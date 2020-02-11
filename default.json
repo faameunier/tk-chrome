@@ -1,0 +1,22 @@
+{
+  "windows": {
+  },
+
+  "windowIds": [],
+  "tab2windows": {},
+  "last_active_tab": null,
+  "current_active": null,
+
+  "closed_history": [],
+
+  "settings": {
+    "closer": {
+      "target_tabs": 10,
+      "score_threshold": 50,
+      "decay": 0.8
+    },
+    "scorer": {
+      "min_active": 10
+    }
+  }
+}
