@@ -3,8 +3,8 @@ chrome.runtime.onInstalled.addListener(function() {
 });
 
 chrome.tabs.onCreated.addListener(async function(tab) {
-  EventQueue.enqueue(() => memoryManager.createWindow(tab.windowId));
-  EventQueue.enqueue(() => memoryManager.createTab(tab));
+  eventQueue.enqueue(() => memoryManager.createWindow(tab.windowId));
+  eventQueue.enqueue(() => memoryManager.createTab(tab));
 });
 
 
@@ -21,7 +21,7 @@ chrome.tabs.onAttached.addListener(function(integer tabId, object attachInfo) {}
 */
 
 chrome.tabs.onRemoved.addListener(function(tabId, removeInfo) {
-  EventQueue.enqueue(() => memoryManager.deleteTab(tabId, removeInfo.windowId));
+  eventQueue.enqueue(() => memoryManager.deleteTab(tabId, removeInfo.windowId, removeInfo.isWindowClosing));
 });
 
 /*

@@ -1,8 +1,16 @@
 class EventQueue {
-  static queue = [];
-  static pendingPromise = false;
+  queue = [];
+  pendingPromise = false;
 
-  static enqueue(promise) {
+  constructor(){
+    if(!EventQueue.instance){
+      logger(this, "Instanciating empty EventQueue");
+      EventQueue.instance = this; 
+    }
+    return EventQueue.instance;
+  }
+
+  enqueue(promise) {
     return new Promise((resolve, reject) => {
         this.queue.push({
             promise,
@@ -13,18 +21,21 @@ class EventQueue {
     });
   }
 
-  static dequeue() {
+  dequeue() {
     if (this.workingOnPromise) {
       return false;
     }
     const item = this.queue.shift();
     if (!item) {
+      logger(this, 'Queue killed');
+      memoryManager.log();
       return false;
     }
     try {
       this.workingOnPromise = true;
       item.promise()
         .then((value) => {
+          logger(this, 'Processing next event')
           this.workingOnPromise = false;
           item.resolve(value);
           this.dequeue();
@@ -42,3 +53,5 @@ class EventQueue {
     return true;
   }
 }
+
+var eventQueue = new EventQueue();

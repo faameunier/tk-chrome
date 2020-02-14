@@ -15,4 +15,8 @@ function copy(obj){
   return JSON.parse(JSON.stringify(obj));
 }
 
+function timeout(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 logger('Starting in ' + ENV + ' env.');

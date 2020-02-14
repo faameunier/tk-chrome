@@ -2,7 +2,6 @@ class MemoryManager {
   empty_win = {
     "total_tabs": 0,
     "tabs": {},
-    "excess_tabs": 0,
   };
 
   empty_tab = {
@@ -12,7 +11,6 @@ class MemoryManager {
       "total_inactive_time": 0,
       "last_active_timestamp": 0
     },
-    "score": 0,
     "pined": false,
     "active": false,
     "music": false
@@ -45,6 +43,12 @@ class MemoryManager {
     return MemoryManager.instance;
   }
 
+  async log() {
+    if (ENV === 'dev') {
+      console.log(this.wins);
+    }
+  }
+
   async createWindow(windowId) {
     if(!Object.keys(this.wins).includes(windowId.toString())){
       this.wins[windowId] = copy(this.empty_win);
@@ -64,11 +68,13 @@ class MemoryManager {
       new_tab.pinned = tab.pinned;
       this.tabs2wins[tab.id] = tab.windowId;
       this.wins[tab.windowId].tabs[tab.id] = new_tab;
+      this.wins[tab.windowId].total_tabs += 1;
+
       logger(this, 'Tab ' + tab.id + ' added to memory');
     }
   }
 
-  async deleteTab(tabId, windowId) {
+  async deleteTab(tabId, windowId, isWindowClosing) {
     logger(this, 'Deleting tab ' + tabId);
     try {
       delete this.tabs2wins[tabId];
@@ -77,14 +83,24 @@ class MemoryManager {
     }
     try {
       delete this.wins[windowId].tabs[tabId];
-      if(Object.keys(this.wins[windowId].tabs).length === 0){
+      this.wins[windowId].total_tabs -= 1;
+      if(this.wins[windowId].total_tabs < 0) {
+        logger(this, 'Missing at least one tab in window ' + windowId);
+        this.wins[windowId].total_tabs = 0;
+      }
+      if(this.wins[windowId].total_tabs === 0){
         logger(this, 'Window ' + windowId + ' is empty, deleting')
       delete this.wins[windowId];
       }
     } catch(e) {
       if(e instanceof TypeError) {
-        logger(this, 'Hu ho, missing tabs in memory...');
-        await this.createWindow(windowId);
+        logger(this, 'Hu ho, missing window in memory...');
+        console.log(isWindowClosing);
+        if (!isWindowClosing){
+          await this.createWindow(windowId);
+        } else {
+          logger(this, 'Ignored, window is closing anyways');
+        }
       } else {
         throw e;
       }
