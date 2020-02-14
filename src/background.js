@@ -14,7 +14,7 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
 /*
 chrome.tabs.onActivated.addListener(function(object activeInfo) {});
 
-// DO NOT IMPLEMENT
+// DO NOT IMPLEMENT - Use onAttached instead
 chrome.tabs.onDetached.addListener(function(integer tabId, object detachInfo) {});
 
 chrome.tabs.onAttached.addListener(function(integer tabId, object attachInfo) {});
