@@ -1,11 +1,11 @@
 {
-  "windows": {
+  "wins": {
   },
 
   "windowIds": [],
   "tab2windows": {},
   "last_active_tab": null,
-  "current_active": null,
+  "current_active_tab": null,
 
   "closed_history": [],
 
@@ -19,4 +19,4 @@
       "min_active": 10
     }
   }
-}
+} 

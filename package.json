@@ -16,10 +16,12 @@
   "devDependencies": {
     "@babel/cli": "^7.0.0",
     "@babel/core": "^7.0.0",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
     "@babel/plugin-proposal-decorators": "^7.8.3",
     "@babel/preset-env": "^7.8.4"
   },
   "dependencies": {
+    "@babel/runtime": "^7.8.4",
     "npm-watch": "^0.6.0"
   }
 }

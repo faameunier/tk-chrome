@@ -6,9 +6,11 @@
   "options_page": "./app/options.html",
   "background": {
     "scripts": [
-      "./scripts/require.js",
-      "./lib/structure.js",
-      "./lib/helpers.js",
+      "./scripts/lodash.js",
+      "./lib/env.js",
+      "./lib/utils.js",
+      "./lib/queue.js",
+      "./lib/memory.js",
       "./lib/background.js"],
     "persistent": false
   },
