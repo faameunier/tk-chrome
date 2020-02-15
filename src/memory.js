@@ -15,7 +15,7 @@ class MemoryManager {
   empty_tab = {
     "url": null,
     "statistics": {},
-    "pined": false,
+    "pinned": false,
     "active": false,
     "audible": false,
     "favIconUrl": null,
@@ -77,7 +77,7 @@ class MemoryManager {
 
       new_tab.pinned = tab.pinned;
       if (typeof tab.url !== 'undefined') {
-        // TODO (what impact on stats ?)
+        // No impact on stats until proven otherwise
         new_tab.url = getDomain(tab.url);
       }
       if (typeof tab.pinned !== 'undefined') {
