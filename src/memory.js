@@ -4,19 +4,23 @@ class MemoryManager {
     "tabs": {},
   };
 
+  empty_stats = {
+    "total_active_time": 0,
+    "total_inactive_time": 0,
+    "total_cached_time": 0,
+    "last_active_timestamp": null,
+    "updated_at": null
+  };
+
   empty_tab = {
     "url": null,
-    "statistics": {
-      "total_active_time": null,
-      "total_inactive_time": null,
-      "last_active_timestamp": null,
-      "updated_at": null
-    },
+    "statistics": {},
     "pined": false,
     "active": false,
     "audible": false,
     "favIconUrl": null,
-    "title": null
+    "title": null,
+    "cache": []
   };
 
   constructor(){
@@ -33,6 +37,9 @@ class MemoryManager {
 
       //TODO relocate
       this.settings = {
+        "memory" : {
+          "cache_size": 5
+        },
         "closer": {
           "target_tabs": 10,
           "score_threshold": 50,
@@ -53,7 +60,7 @@ class MemoryManager {
   }
 
   async createWindow(windowId) {
-    if(!Object.keys(this.wins).includes(windowId.toString())){
+    if(!this.wins[windowId]){
       this.wins[windowId] = copy(this.empty_win);
       logger(this, 'Window ' + windowId + ' added to memory');
     }
@@ -62,6 +69,7 @@ class MemoryManager {
   async createTab(tab){
     if (typeof tab.id !== 'undefined'){
       let new_tab = copy(this.empty_tab);
+      new_tab.cache = new LRU(this.settings.memory.cache_size)
 
       //TODO
       //new_tab.active = tab.active;
@@ -84,6 +92,9 @@ class MemoryManager {
       if (typeof tab.title !== 'undefined') {
         new_tab.title = tab.title;
       }
+
+      await this.createStatistics(new_tab);
+
       this.tabs2wins[tab.id] = tab.windowId;
       this.wins[tab.windowId].tabs[tab.id] = new_tab;
       this.wins[tab.windowId].total_tabs += 1;
@@ -103,7 +114,7 @@ class MemoryManager {
 
   async updateTab(tabId, changes, tab) {
     logger(this, "Updating tab " + tabId);
-    if(!Object.keys(this.tabs2wins).includes(tabId.toString())){
+    if(!this.tabs2wins[tabId]){
       logger(this, "Missing tab found");
       await this.createWindow(tab.windowId);
       await this.createTab(tab);
@@ -115,8 +126,23 @@ class MemoryManager {
     }
     let stored_tab = this.wins[tab.windowId].tabs[tabId];
     if (typeof changes.url !== 'undefined') {
-      // TODO (what impact on stats ?)
-      stored_tab.url = getDomain(changes.url);
+      let new_url = getDomain(changes.url);
+      let old_url = stored_tab.url;
+      stored_tab.url = new_url;
+      if(new_url !== old_url) {
+        await this.updateStatistics(stored_tab);
+        let old_statistics = stored_tab.statistics;
+        let cached = stored_tab.cache.read(new_url);
+        if (cached) {
+          stored_tab.statistics = cached;
+          await this.updateStatistics(stored_tab, true);
+          logger(this, "Old state restored from cache");
+        } else {
+          await this.createStatistics(stored_tab);
+          logger(this, "State couldn't be restored");
+        }
+        stored_tab.cache.write(old_url, old_statistics);
+      }
     }
     if (typeof changes.pinned !== 'undefined') {
       stored_tab.pinned = changes.pinned;
@@ -162,6 +188,31 @@ class MemoryManager {
         throw e;
       }
     }
+  }
+
+  async createStatistics(iTab){
+    let tmp = copy(this.empty_stats);
+    let now = Date.now();
+    if(iTab.active) {
+      tmp.last_active_timestamp = now;
+    }
+    tmp.updated_at = now;
+    iTab.statistics = tmp;
+  }
+
+  async updateStatistics(iTab, fromCache=false) {
+    let now = Date.now();
+    if(fromCache) {
+      iTab.statistics.total_cached_time += now - iTab.statistics.updated_at;
+      iTab.statistics.updated_at = now; // protip
+    }
+    if(iTab.active) {
+      iTab.statistics.total_active_time += now - iTab.statistics.updated_at;
+      iTab.statistics.last_active_timestamp = now;
+    } else {
+      iTab.statistics.total_inactive_time += now - iTab.statistics.updated_at;
+    }
+    iTab.statistics.updated_at = now;
   }
 }
 
