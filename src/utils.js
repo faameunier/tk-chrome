@@ -16,7 +16,15 @@ function copy(obj){
 }
 
 function timeout(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function getDomain(str){
+  try {
+    return psl.parse(new URL(str).hostname).domain;
+  } catch {
+    return str
+  }
 }
 
 logger('Starting in ' + ENV + ' env.');

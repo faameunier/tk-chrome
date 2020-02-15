@@ -7,13 +7,16 @@ class MemoryManager {
   empty_tab = {
     "url": null,
     "statistics": {
-      "total_active_time": 0,
-      "total_inactive_time": 0,
-      "last_active_timestamp": 0
+      "total_active_time": null,
+      "total_inactive_time": null,
+      "last_active_timestamp": null,
+      "updated_at": null
     },
     "pined": false,
     "active": false,
-    "music": false
+    "audible": false,
+    "favIconUrl": null,
+    "title": null
   };
 
   constructor(){
@@ -59,13 +62,28 @@ class MemoryManager {
   async createTab(tab){
     if (typeof tab.id !== 'undefined'){
       let new_tab = copy(this.empty_tab);
-      new_tab.url = tab.url;
 
       //TODO
       //new_tab.active = tab.active;
       //new_tab.statistics.last_active_timestamp = Date.now();
 
       new_tab.pinned = tab.pinned;
+      if (typeof tab.url !== 'undefined') {
+        // TODO (what impact on stats ?)
+        new_tab.url = getDomain(tab.url);
+      }
+      if (typeof tab.pinned !== 'undefined') {
+        new_tab.pinned = tab.pinned;
+      }
+      if (typeof tab.audible !== 'undefined') {
+        new_tab.audible = tab.audible;
+      }
+      if (typeof tab.favIconUrl !== 'undefined') {
+        new_tab.favIconUrl = tab.favIconUrl;
+      }
+      if (typeof tab.title !== 'undefined') {
+        new_tab.title = tab.title;
+      }
       this.tabs2wins[tab.id] = tab.windowId;
       this.wins[tab.windowId].tabs[tab.id] = new_tab;
       this.wins[tab.windowId].total_tabs += 1;
@@ -74,12 +92,52 @@ class MemoryManager {
     }
   }
 
+  async changeWindow(tabId, windowId) {
+    logger(this, "Tab assigned to new window");
+    let oldWindowId = this.tabs2wins[tabId];
+    this.wins[windowId].tabs[tabId] = copy(this.wins[oldWindowId].tabs[tabId]);
+    await this.deleteTab(tabId, oldWindowId, false);
+    this.tabs2wins[tabId] = windowId;
+    this.wins[windowId].total_tabs += 1;
+  }
+
+  async updateTab(tabId, changes, tab) {
+    logger(this, "Updating tab " + tabId);
+    if(!Object.keys(this.tabs2wins).includes(tabId.toString())){
+      logger(this, "Missing tab found");
+      await this.createWindow(tab.windowId);
+      await this.createTab(tab);
+    }
+    if (this.tabs2wins[tabId] !== tab.windowId) {
+      logger(this, "Hu ho, Tab is in wrong window");
+      await this.createWindow(tab.windowId);
+      await this.changeWindow(tabId, tab.windowId);
+    }
+    let stored_tab = this.wins[tab.windowId].tabs[tabId];
+    if (typeof changes.url !== 'undefined') {
+      // TODO (what impact on stats ?)
+      stored_tab.url = getDomain(changes.url);
+    }
+    if (typeof changes.pinned !== 'undefined') {
+      stored_tab.pinned = changes.pinned;
+    }
+    if (typeof changes.audible !== 'undefined') {
+      stored_tab.audible = changes.audible;
+    }
+    if (typeof changes.favIconUrl !== 'undefined') {
+      stored_tab.favIconUrl = changes.favIconUrl;
+    }
+    if (typeof changes.title !== 'undefined') {
+      stored_tab.title = changes.title;
+    }
+  }
+
   async deleteTab(tabId, windowId, isWindowClosing) {
     logger(this, 'Deleting tab ' + tabId);
     try {
       delete this.tabs2wins[tabId];
     } catch {
-      logger("Hu ho, what was that tab...")
+      logger(this, "Hu ho, what was that tab...")
     }
     try {
       delete this.wins[windowId].tabs[tabId];
