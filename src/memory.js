@@ -153,7 +153,6 @@ class MemoryManager {
     } catch(e) {
       if(e instanceof TypeError) {
         logger(this, 'Hu ho, missing window in memory...');
-        console.log(isWindowClosing);
         if (!isWindowClosing){
           await this.createWindow(windowId);
         } else {
