@@ -13,11 +13,8 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
 });
 
 chrome.tabs.onActivated.addListener(function(activeInfo) {
-
+  eventQueue.enqueue(() => memoryManager.setActivated(activeInfo.tabId, activeInfo.windowId));
 });
-
-// DO NOT IMPLEMENT - Use onAttached instead
-// chrome.tabs.onDetached.addListener(function(integer tabId, object detachInfo) {});
 
 chrome.tabs.onAttached.addListener(function(tabId, attachInfo) {
   eventQueue.enqueue(() => memoryManager.createWindow(attachInfo.newWindowId));

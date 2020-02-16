@@ -1,6 +1,7 @@
 class MemoryManager {
   empty_win = {
     "total_tabs": 0,
+    "active_tab": null,
     "tabs": {},
   };
 
@@ -9,6 +10,7 @@ class MemoryManager {
     "total_inactive_time": 0,
     "total_cached_time": 0,
     "last_active_timestamp": null,
+    "activated": 0,
     "updated_at": null
   };
 
@@ -66,14 +68,37 @@ class MemoryManager {
     }
   }
 
+  async setActivated(tabId, windowId) {
+    // window doesn't need to exist
+    if(!this.tabs2wins[tabId]){
+      logger(this, "Hu ho, unknown activated tab, ignored");
+    } else {
+      if (this.tabs2wins[tabId] !== windowId) { // when called from createTab, this cannot happen
+        logger(this, "Hu ho, Tab is in wrong window");
+        let old_window = this.tabs2wins[tabId];
+        await this.createWindow(windowId);
+        await this.changeWindow(tabId, windowId);
+        if(this.wins[old_window]) {
+          this.wins[old_window].active_tab = null;
+        }
+      }
+      let win = this.wins[windowId];
+      let old_active = win.active_tab;
+      if(old_active) {
+        await this.updateStatistics(win.tabs[old_active], false, false);
+        win.tabs[old_active].active = false;
+      }
+      await this.updateStatistics(win.tabs[tabId], false, true);
+      win.active_tab = tabId;
+      win.tabs[tabId].active = true;
+    }
+  }
+
   async createTab(tab){
+    // window should exist !
     if (typeof tab.id !== 'undefined'){
       let new_tab = copy(this.empty_tab);
       new_tab.cache = new LRU(this.settings.memory.cache_size)
-
-      //TODO
-      //new_tab.active = tab.active;
-      //new_tab.statistics.last_active_timestamp = Date.now();
 
       new_tab.pinned = tab.pinned;
       if (typeof tab.url !== 'undefined') {
@@ -99,17 +124,33 @@ class MemoryManager {
       this.wins[tab.windowId].tabs[tab.id] = new_tab;
       this.wins[tab.windowId].total_tabs += 1;
 
+      if(tab.active) {
+        await this.setActivated(tab.id, tab.windowId);
+      }
+
       logger(this, 'Tab ' + tab.id + ' added to memory');
     }
   }
 
   async changeWindow(tabId, windowId) {
+    // windowId should exist before calling me
     logger(this, "Tab assigned to new window");
-    let oldWindowId = this.tabs2wins[tabId];
-    this.wins[windowId].tabs[tabId] = copy(this.wins[oldWindowId].tabs[tabId]);
-    await this.deleteTab(tabId, oldWindowId, false);
-    this.tabs2wins[tabId] = windowId;
-    this.wins[windowId].total_tabs += 1;
+    if(!this.tabs2wins[tabId]){
+      logger(this, "Missing tab found");
+      await this.createTab({"id":tabId, "windowId": windowId});
+      // missing tab is assigned to window and THAT'S IT
+    } else {
+      let oldWindowId = this.tabs2wins[tabId];
+      var cache = this.wins[oldWindowId].tabs[tabId].cache
+      this.wins[oldWindowId].tabs[tabId].cache = null
+      this.wins[windowId].tabs[tabId] = copy(this.wins[oldWindowId].tabs[tabId]);
+      this.wins[windowId].tabs[tabId].cache = cache // restore LRU
+      await this.deleteTab(tabId, oldWindowId, false);
+      this.tabs2wins[tabId] = windowId;
+      if(this.wins[windowId]) {
+        this.wins[windowId].total_tabs += 1;
+      }
+    } 
   }
 
   async updateTab(tabId, changes, tab) {
@@ -130,12 +171,12 @@ class MemoryManager {
       let old_url = stored_tab.url;
       stored_tab.url = new_url;
       if(new_url !== old_url) {
-        await this.updateStatistics(stored_tab);
+        await this.updateStatistics(stored_tab, false, false);
         let old_statistics = stored_tab.statistics;
         let cached = stored_tab.cache.read(new_url);
         if (cached) {
           stored_tab.statistics = cached;
-          await this.updateStatistics(stored_tab, true);
+          await this.updateStatistics(stored_tab, true, false);
           logger(this, "Old state restored from cache");
         } else {
           await this.createStatistics(stored_tab);
@@ -178,12 +219,12 @@ class MemoryManager {
       }
     } catch(e) {
       if(e instanceof TypeError) {
-        logger(this, 'Hu ho, missing window in memory...');
-        if (!isWindowClosing){
-          await this.createWindow(windowId);
-        } else {
-          logger(this, 'Ignored, window is closing anyways');
-        }
+        logger(this, 'Hu ho, missing window in memory... Fefe decided to ignore.');
+        // if (!isWindowClosing){
+        //   await this.createWindow(windowId);
+        // } else {
+        //   logger(this, 'Ignored, window is closing anyways');
+        // }
       } else {
         throw e;
       }
@@ -195,24 +236,31 @@ class MemoryManager {
     let now = Date.now();
     if(iTab.active) {
       tmp.last_active_timestamp = now;
+      tmp.activated = 1;
     }
     tmp.updated_at = now;
     iTab.statistics = tmp;
   }
 
-  async updateStatistics(iTab, fromCache=false) {
+  async updateStatistics(iTab, fromCache=false, activitySwitch=false) {
     let now = Date.now();
     if(fromCache) {
+      activitySwitch = true; // restored from cache is considered a reactivation
       iTab.statistics.total_cached_time += now - iTab.statistics.updated_at;
       iTab.statistics.updated_at = now; // protip
-    }
-    if(iTab.active) {
-      iTab.statistics.total_active_time += now - iTab.statistics.updated_at;
-      iTab.statistics.last_active_timestamp = now;
+      iTab.statistics.activated += 1;
     } else {
-      iTab.statistics.total_inactive_time += now - iTab.statistics.updated_at;
+       if(iTab.active) {
+        iTab.statistics.total_active_time += now - iTab.statistics.updated_at;
+        iTab.statistics.last_active_timestamp = now;
+      } else {
+        if(activitySwitch || iTab.statistics.activated === 0) {
+          iTab.statistics.activated += 1;
+        }
+        iTab.statistics.total_inactive_time += now - iTab.statistics.updated_at;
+      }
+      iTab.statistics.updated_at = now;
     }
-    iTab.statistics.updated_at = now;
   }
 }
 
