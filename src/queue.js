@@ -29,6 +29,7 @@ class EventQueue {
     if (!item) {
       logger(this, 'Queue killed');
       memoryManager.log();
+      memoryManager.save();
       return false;
     }
     try {

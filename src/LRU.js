@@ -7,6 +7,22 @@ class State {
   }
 }
 
+class LRUfactory {
+  static fromString(str){
+    let tmp = JSON.parse(str);
+    return LRUfactory.fromJSON(tmp);
+  }
+
+  static fromJSON(obj) {
+    var cache = new LRU(obj.limit);
+    var nodes = obj.nodes;
+    for(let node of nodes) {
+      cache.write(node.key, node.value);
+    }
+    return cache;
+  }
+}
+
 class LRU {
   constructor(limit=10) {
     logger(this, "Creating new LRU cache")
@@ -94,6 +110,21 @@ class LRU {
     while (node) {
       yield node;
       node = node.next;
+    }
+  }
+
+  toJSON() {
+    var nodes = [];
+    for(let node of this){
+      nodes.unshift({
+        'key': node.key,
+        'value': node.value
+      })
+    };
+    return {
+      "limit": this.limit,
+      "size": this.size,
+      "nodes": nodes
     }
   }
 }

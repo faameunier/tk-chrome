@@ -27,4 +27,20 @@ function getDomain(str){
   }
 }
 
+function storageSet(args) {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.set(args, function() {
+      resolve();
+    });
+  });
+}
+
+function storageGet(args) {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get(args, function(data) {
+      resolve(data);
+    });
+  });
+}
+
 logger('Starting in ' + ENV + ' env.');

@@ -32,8 +32,6 @@ class MemoryManager {
 
       this.wins = {};
       this.tabs2wins = {};
-      this.last_active_tab = null;
-      this.current_active_tab = null; 
 
       this.closed_history = []; 
       this.last_full_stats_update = Date.now();
@@ -55,6 +53,35 @@ class MemoryManager {
       }
     }
     return MemoryManager.instance;
+  }
+
+  async save() {
+    await storageSet({
+      "wins": JSON.stringify(this.wins),
+      "tabs2wins": this.tabs2wins,
+      "closed_history": this.closed_history,
+      "last_full_stats_update": this.last_full_stats_update});
+  }
+
+  async load() {
+    await storageGet(['wins', 'tabs2wins', 'closed_history', 'last_full_stats_update']).then((data) => {
+      try {
+        logger(this, 'Loading state from storage');
+        this.tabs2wins = data.tabs2wins;
+        this.closed_history = data.closed_history;
+        this.last_full_stats_update = data.last_full_stats_update;
+        this.wins = JSON.parse(data.wins);
+        for(let key of Object.keys(this.wins)) {
+          let tabs = this.wins[key].tabs;
+          for(let tabId of Object.keys(tabs)) {
+            let tab = tabs[tabId];
+            tab.cache = LRUfactory.fromJSON(tab.cache);
+          }
+        }
+      } catch {
+        logger(this, 'Loading fail, init memory');
+      }
+    });
   }
 
   async log() {
@@ -87,7 +114,9 @@ class MemoryManager {
       }
       let win = this.wins[windowId];
       let old_active = win.active_tab;
-      if(old_active) {
+      if((old_active !== null) && ((win.tabs[old_active] === null) || (typeof win.tabs[old_active] === "undefined"))) {
+        await this.deleteTab(old_active, windowId); // corrects some weird bug when out of sync
+      } else if(old_active !== null) {
         await this.updateStatistics(win.tabs[old_active], false, false);
         win.tabs[old_active].active = false;
       }
@@ -210,15 +239,17 @@ class MemoryManager {
       logger(this, "Hu ho, what was that tab...")
     }
     try {
-      delete this.wins[windowId].tabs[tabId];
-      this.wins[windowId].total_tabs -= 1;
-      if(this.wins[windowId].total_tabs < 0) {
-        logger(this, 'Missing at least one tab in window ' + windowId);
-        this.wins[windowId].total_tabs = 0;
-      }
-      if(this.wins[windowId].total_tabs === 0){
-        logger(this, 'Window ' + windowId + ' is empty, deleting')
-      delete this.wins[windowId];
+      if (this.wins[windowId].tabs[tabId]) {
+        delete this.wins[windowId].tabs[tabId];
+        this.wins[windowId].total_tabs -= 1;
+        if(this.wins[windowId].total_tabs < 0) {
+          logger(this, 'Missing at least one tab in window ' + windowId);
+          this.wins[windowId].total_tabs = 0;
+        }
+        if(this.wins[windowId].total_tabs === 0){
+          logger(this, 'Window ' + windowId + ' is empty, deleting')
+        delete this.wins[windowId];
+        }
       }
     } catch(e) {
       if(e instanceof TypeError) {
@@ -272,7 +303,14 @@ class MemoryManager {
       logger(this, "Running full stats");
       var tabs = Object.keys(this.tabs2wins);
       for (var i = 0; i < tabs.length; i++) {
-        await this.updateStatistics(this.wins[this.tabs2wins[tabs[i]]].tabs[tabs[i]]);
+        try {
+          let win = this.wins[this.tabs2wins[tabs[i]]];
+          await this.updateStatistics(win.tabs[tabs[i]]);
+        } catch(e) { // 
+          logger(this, "WARNING tracking seriously out of sync")
+          await this.deleteTab(tabs[i]);
+        }
+        
       }
       this.last_full_stats_update = now;
     }
