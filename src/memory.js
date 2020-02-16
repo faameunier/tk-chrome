@@ -36,11 +36,13 @@ class MemoryManager {
       this.current_active_tab = null; 
 
       this.closed_history = []; 
+      this.last_full_stats_update = Date.now();
 
       //TODO relocate
       this.settings = {
         "memory" : {
-          "cache_size": 5
+          "cache_size": 5,
+          "min_time_full_stats_update": 5*60*1000
         },
         "closer": {
           "target_tabs": 10,
@@ -57,6 +59,7 @@ class MemoryManager {
 
   async log() {
     if (ENV === 'dev') {
+      await this.updateAllStatistics();
       console.log(this.wins);
     }
   }
@@ -260,6 +263,18 @@ class MemoryManager {
         iTab.statistics.total_inactive_time += now - iTab.statistics.updated_at;
       }
       iTab.statistics.updated_at = now;
+    }
+  }
+
+  async updateAllStatistics(){
+    let now = Date.now();
+    if((now - this.last_full_stats_update) >= this.settings.memory.min_time_full_stats_update) {
+      logger(this, "Running full stats");
+      var tabs = Object.keys(this.tabs2wins);
+      for (var i = 0; i < tabs.length; i++) {
+        await this.updateStatistics(this.wins[this.tabs2wins[tabs[i]]].tabs[tabs[i]]);
+      }
+      this.last_full_stats_update = now;
     }
   }
 }
