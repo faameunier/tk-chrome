@@ -55,6 +55,16 @@ class MemoryManager {
     return MemoryManager.instance;
   }
 
+  async reset() {
+    this.wins = {};
+    this.tabs2wins = {};
+
+    this.closed_history = []; 
+    this.last_full_stats_update = Date.now();
+    await this.save();
+    await this.load();
+  }
+
   async save() {
     await storageSet({
       "wins": JSON.stringify(this.wins),
@@ -99,23 +109,30 @@ class MemoryManager {
   }
 
   async setActivated(tabId, windowId) {
-    // window doesn't need to exist
     if(!this.tabs2wins[tabId]){
       logger(this, "Hu ho, unknown activated tab, ignored");
+      // We could create an empty shell tab in memory, but I assume
+      // the user will soon trigger an tab update.
     } else {
       if (this.tabs2wins[tabId] !== windowId) { // when called from createTab, this cannot happen
         logger(this, "Hu ho, Tab is in wrong window");
         let old_window = this.tabs2wins[tabId];
-        await this.createWindow(windowId);
-        await this.changeWindow(tabId, windowId);
-        if(this.wins[old_window]) {
+        await this.createWindow(windowId); // In case we are out of sync
+        await this.changeWindow(tabId, windowId); // Setting to the tab to the current window (handles deletion of empty window)
+        if(this.wins[old_window]) { // If the old window still exists, the current active tab is unknown
           this.wins[old_window].active_tab = null;
         }
       }
       let win = this.wins[windowId];
+      if(typeof win === "undefined") {
+        logger(this, "WARNING seriously out of sync");
+        await this.createWindow(windowId); // In case we are out of sync on windows too
+        await this.changeWindow(tabId, windowId);
+      }
       let old_active = win.active_tab;
-      if((old_active !== null) && ((win.tabs[old_active] === null) || (typeof win.tabs[old_active] === "undefined"))) {
-        await this.deleteTab(old_active, windowId); // corrects some weird bug when out of sync
+      if((win.tabs[old_active] === null) || (typeof win.tabs[old_active] === "undefined")) {
+        logger(this, "WARNING we are seriously out of sync, trying to repair")
+        await this.deleteTab(old_active, windowId); // This should not happen based on above code. We go through the deletion process to ensure sync.
       } else if(old_active !== null) {
         await this.updateStatistics(win.tabs[old_active], false, false);
         win.tabs[old_active].active = false;
@@ -173,6 +190,13 @@ class MemoryManager {
       // missing tab is assigned to window and THAT'S IT
     } else {
       let oldWindowId = this.tabs2wins[tabId];
+      if(!this.wins[oldWindowId].tabs[tabId]) {
+        logger(this, "WARNING please guys have some respect");
+        await this.createTab({"id":tabId, "windowId": oldWindowId});
+        if(oldWindowId === windowId) {
+          return null; // easy workaround
+        } // else the empty tab will be deleted in 2secs
+      }
       var cache = this.wins[oldWindowId].tabs[tabId].cache
       this.wins[oldWindowId].tabs[tabId].cache = null
       this.wins[windowId].tabs[tabId] = copy(this.wins[oldWindowId].tabs[tabId]);
@@ -198,6 +222,11 @@ class MemoryManager {
       await this.changeWindow(tabId, tab.windowId);
     }
     let stored_tab = this.wins[tab.windowId].tabs[tabId];
+    if(!stored_tab) {
+      logger(this, "WARNING come on what are you doing guys");
+      await this.createWindow(tab.windowId);
+      await this.changeWindow(tabId, tab.windowId);
+    }
     if (typeof changes.url !== 'undefined') {
       let new_url = getDomain(changes.url);
       let old_url = stored_tab.url;
@@ -232,6 +261,8 @@ class MemoryManager {
   }
 
   async deleteTab(tabId, windowId, isWindowClosing) {
+    // A mistake here woul f*ck up the tracking
+    // Edit with caution as this function also forces tracking sync
     logger(this, 'Deleting tab ' + tabId);
     try {
       delete this.tabs2wins[tabId];
@@ -253,7 +284,9 @@ class MemoryManager {
       }
     } catch(e) {
       if(e instanceof TypeError) {
-        logger(this, 'Hu ho, missing window in memory... Fefe decided to ignore.');
+        logger(this, 'Hu ho, missing window in memory...');
+        // We don't do anything, any activity on that missing window
+        // would force sync back.
         // if (!isWindowClosing){
         //   await this.createWindow(windowId);
         // } else {
@@ -306,7 +339,7 @@ class MemoryManager {
         try {
           let win = this.wins[this.tabs2wins[tabs[i]]];
           await this.updateStatistics(win.tabs[tabs[i]]);
-        } catch(e) { // 
+        } catch(e) {
           logger(this, "WARNING tracking seriously out of sync")
           await this.deleteTab(tabs[i]);
         }

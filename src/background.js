@@ -1,6 +1,7 @@
 eventQueue.enqueue(() => memoryManager.load());
 
 chrome.runtime.onInstalled.addListener(function() {
+  eventQueue.enqueue(() => memoryManager.reset());
   logger('Extention installed :D');
 });
 
