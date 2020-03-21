@@ -27,9 +27,11 @@ class EventQueue {
     }
     const item = this.queue.shift();
     if (!item) {
+      this.workingOnPromise = true;
       logger(this, 'Queue killed');
       memoryManager.log();
       memoryManager.save();
+      this.workingOnPromise = false;
       return false;
     }
     try {
