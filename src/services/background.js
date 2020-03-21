@@ -6,7 +6,6 @@ chrome.runtime.onInstalled.addListener(function() {
 });
 
 chrome.tabs.onCreated.addListener(function(tab) {
-  eventQueue.enqueue(() => memoryManager.createWindow(tab.windowId));
   eventQueue.enqueue(() => memoryManager.createTab(tab));
 });
 
@@ -20,7 +19,6 @@ chrome.tabs.onActivated.addListener(function(activeInfo) {
 });
 
 chrome.tabs.onAttached.addListener(function(tabId, attachInfo) {
-  eventQueue.enqueue(() => memoryManager.createWindow(attachInfo.newWindowId));
   eventQueue.enqueue(() => memoryManager.changeWindow(tabId, attachInfo.newWindowId));
 });
 

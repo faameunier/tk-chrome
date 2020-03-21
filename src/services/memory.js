@@ -1,10 +1,4 @@
 class MemoryManager {
-  empty_win = {
-    "total_tabs": 0,
-    "active_tab": null,
-    "tabs": {},
-  };
-
   empty_stats = {
     "total_active_time": 0,
     "total_inactive_time": 0,
@@ -22,6 +16,7 @@ class MemoryManager {
     "audible": false,
     "favIconUrl": null,
     "title": null,
+    "windowId": null,
     "cache": []
   };
 
@@ -30,8 +25,7 @@ class MemoryManager {
       logger(this, "Instanciating empty MemoryManager");
       MemoryManager.instance = this; 
 
-      this.wins = {};
-      this.tabs2wins = {};
+      this.tabs = {};
 
       this.closed_history = []; 
       this.last_full_stats_update = Date.now();
@@ -56,9 +50,7 @@ class MemoryManager {
   }
 
   async reset() {
-    this.wins = {};
-    this.tabs2wins = {};
-
+    this.tabs = {};
     this.closed_history = []; 
     this.last_full_stats_update = Date.now();
     await this.save();
@@ -67,26 +59,21 @@ class MemoryManager {
 
   async save() {
     await storageSet({
-      "wins": JSON.stringify(this.wins),
-      "tabs2wins": this.tabs2wins,
+      "tabs": JSON.stringify(this.tabs),
       "closed_history": this.closed_history,
       "last_full_stats_update": this.last_full_stats_update});
   }
 
   async load() {
-    await storageGet(['wins', 'tabs2wins', 'closed_history', 'last_full_stats_update']).then((data) => {
+    await storageGet(['tabs', 'closed_history', 'last_full_stats_update']).then((data) => {
       try {
         logger(this, 'Loading state from storage');
-        this.tabs2wins = data.tabs2wins;
         this.closed_history = data.closed_history;
         this.last_full_stats_update = data.last_full_stats_update;
-        this.wins = JSON.parse(data.wins);
-        for(let key of Object.keys(this.wins)) {
-          let tabs = this.wins[key].tabs;
-          for(let tabId of Object.keys(tabs)) {
-            let tab = tabs[tabId];
-            tab.cache = LRUfactory.fromJSON(tab.cache);
-          }
+        this.tabs = JSON.parse(data.tabs);
+        for(let key of Object.keys(this.tabs)) {
+          let tab = tabs[tabId];
+          tab.cache = LRUfactory.fromJSON(tab.cache);
         }
       } catch {
         logger(this, 'Loading fail, init memory');
@@ -95,64 +82,58 @@ class MemoryManager {
   }
 
   async log() {
-    if (ENV === 'dev') {
+    if (ENV === 'debug') {
       await this.updateAllStatistics();
-      console.log(this.wins);
-    }
-  }
-
-  async createWindow(windowId) {
-    if(!this.wins[windowId]){
-      this.wins[windowId] = copy(this.empty_win);
-      logger(this, 'Window ' + windowId + ' added to memory');
+      console.log(this.tabs);
+    } else if (ENV === 'dev') {
+      console.log(this.tabs);
     }
   }
 
   async setActivated(tabId, windowId) {
-    if(!this.tabs2wins[tabId]){
-      logger(this, "Hu ho, unknown activated tab, ignored");
-      // We could create an empty shell tab in memory, but I assume
-      // the user will soon trigger an tab update.
-    } else {
-      if (this.tabs2wins[tabId] !== windowId) { // when called from createTab, this cannot happen
-        logger(this, "Hu ho, Tab is in wrong window");
-        let old_window = this.tabs2wins[tabId];
-        await this.createWindow(windowId); // In case we are out of sync
-        await this.changeWindow(tabId, windowId); // Setting to the tab to the current window (handles deletion of empty window)
-        if(this.wins[old_window]) { // If the old window still exists, the current active tab is unknown
-          this.wins[old_window].active_tab = null;
-        }
-      }
-      let win = this.wins[windowId];
-      if(typeof win === "undefined") {
-        logger(this, "WARNING seriously out of sync");
-        await this.createWindow(windowId); // In case we are out of sync on windows too
-        await this.changeWindow(tabId, windowId);
-      }
-      let old_active = win.active_tab;
-      if((win.tabs[old_active] === null) || (typeof win.tabs[old_active] === "undefined")) {
-        logger(this, "WARNING we are seriously out of sync, trying to repair")
-        await this.deleteTab(old_active, windowId); // This should not happen based on above code. We go through the deletion process to ensure sync.
-      } else if(old_active !== null) {
-        await this.updateStatistics(win.tabs[old_active], false, false);
-        win.tabs[old_active].active = false;
-      }
-      await this.updateStatistics(win.tabs[tabId], false, true);
-      win.active_tab = tabId;
-      win.tabs[tabId].active = true;
+    if(!this.tabs[tabId]){
+      logger(this, "OOS Unknown activated tab, creating shell");
+      await this.createTab({'id':tabId, 'active':true, 'windowId': windowId});
+      // createTab will call setActivated again.
+      return null;
     }
+    if (this.tabs[tabId].windowId !== windowId) { // when called from createTab, this cannot happen
+      logger(this, "OOS Tab " + tabId + "is in wrong window");
+      await this.changeWindow(tabId, windowId); // Setting to the tab to the current window
+      // If tab wasn't active, no problem.
+      // If tab was active... no problem neither :) then the active tab is unknown.
+      // and stats will be updated right after.
+    }
+
+    let win = _.filter(Object.values(this.tabs), (tab) => {return tab.windowId == windowId});
+    
+    for (var i = 0; i < win.length; i++) {
+      let tab = win[i];
+      if (tab.active && (tab.tabId !== tabId)) {
+        await this.updateStatistics(tab, false, false);
+        tab.active = false;
+      }
+    };
+
+    await this.updateStatistics(this.tabs[tabId], false, true);
+    this.tabs[tabId].active = true;
   }
 
   async createTab(tab){
-    // window should exist !
     if (typeof tab.id !== 'undefined'){
       let new_tab = copy(this.empty_tab);
-      new_tab.cache = new LRU(this.settings.memory.cache_size)
 
       new_tab.pinned = tab.pinned;
+      new_tab.windowId = tab.windowId;
       if (typeof tab.url !== 'undefined') {
         // No impact on stats until proven otherwise
         new_tab.url = getDomain(tab.url);
+      }
+      if (typeof tab.cache !== 'undefined') {
+        // No impact on stats until proven otherwise
+        new_tab.cache = tab.cache;
+      } else {
+        new_tab.cache = new LRU(this.settings.memory.cache_size)
       }
       if (typeof tab.pinned !== 'undefined') {
         new_tab.pinned = tab.pinned;
@@ -166,12 +147,13 @@ class MemoryManager {
       if (typeof tab.title !== 'undefined') {
         new_tab.title = tab.title;
       }
-
-      await this.createStatistics(new_tab);
-
-      this.tabs2wins[tab.id] = tab.windowId;
-      this.wins[tab.windowId].tabs[tab.id] = new_tab;
-      this.wins[tab.windowId].total_tabs += 1;
+      if (typeof tab.statistics !== 'undefined') {
+        new_tab.statistics = tab.statistics;
+      } else {
+        await this.createStatistics(new_tab);
+      }
+      
+      this.tabs[tab.id] = new_tab;
 
       if(tab.active) {
         await this.setActivated(tab.id, tab.windowId);
@@ -184,49 +166,26 @@ class MemoryManager {
   async changeWindow(tabId, windowId) {
     // windowId should exist before calling me
     logger(this, "Tab assigned to new window");
-    if(!this.tabs2wins[tabId]){
-      logger(this, "Missing tab found");
+    if(!this.tabs[tabId]){
+      logger(this, "OOS Missing tab found");
       await this.createTab({"id":tabId, "windowId": windowId});
       // missing tab is assigned to window and THAT'S IT
     } else {
-      let oldWindowId = this.tabs2wins[tabId];
-      if(!this.wins[oldWindowId].tabs[tabId]) {
-        logger(this, "WARNING please guys have some respect");
-        await this.createTab({"id":tabId, "windowId": oldWindowId});
-        if(oldWindowId === windowId) {
-          return null; // easy workaround
-        } // else the empty tab will be deleted in 2secs
-      }
-      var cache = this.wins[oldWindowId].tabs[tabId].cache
-      this.wins[oldWindowId].tabs[tabId].cache = null
-      this.wins[windowId].tabs[tabId] = copy(this.wins[oldWindowId].tabs[tabId]);
-      this.wins[windowId].tabs[tabId].cache = cache // restore LRU
-      await this.deleteTab(tabId, oldWindowId, false);
-      this.tabs2wins[tabId] = windowId;
-      if(this.wins[windowId]) {
-        this.wins[windowId].total_tabs += 1;
-      }
+      this.tabs[tabId].windowId = windowId;
     } 
   }
 
   async updateTab(tabId, changes, tab) {
     logger(this, "Updating tab " + tabId);
-    if(!this.tabs2wins[tabId]){
-      logger(this, "Missing tab found");
-      await this.createWindow(tab.windowId);
+    if(!this.tabs[tabId]){
+      logger(this, "OOS Missing tab found");
       await this.createTab(tab);
     }
-    if (this.tabs2wins[tabId] !== tab.windowId) {
-      logger(this, "Hu ho, Tab is in wrong window");
-      await this.createWindow(tab.windowId);
+    if (this.tabs[tabId].windowId !== tab.windowId) {
+      logger(this, "OOS tab in wrong window");
       await this.changeWindow(tabId, tab.windowId);
     }
-    let stored_tab = this.wins[tab.windowId].tabs[tabId];
-    if(!stored_tab) {
-      logger(this, "WARNING come on what are you doing guys");
-      await this.createWindow(tab.windowId);
-      await this.changeWindow(tabId, tab.windowId);
-    }
+    let stored_tab = this.tabs[tabId];
     if (typeof changes.url !== 'undefined') {
       let new_url = getDomain(changes.url);
       let old_url = stored_tab.url;
@@ -261,40 +220,11 @@ class MemoryManager {
   }
 
   async deleteTab(tabId, windowId, isWindowClosing) {
-    // A mistake here woul f*ck up the tracking
-    // Edit with caution as this function also forces tracking sync
     logger(this, 'Deleting tab ' + tabId);
     try {
-      delete this.tabs2wins[tabId];
+      delete this.tabs[tabId];
     } catch {
-      logger(this, "Hu ho, what was that tab...")
-    }
-    try {
-      if (this.wins[windowId].tabs[tabId]) {
-        delete this.wins[windowId].tabs[tabId];
-        this.wins[windowId].total_tabs -= 1;
-        if(this.wins[windowId].total_tabs < 0) {
-          logger(this, 'Missing at least one tab in window ' + windowId);
-          this.wins[windowId].total_tabs = 0;
-        }
-        if(this.wins[windowId].total_tabs === 0){
-          logger(this, 'Window ' + windowId + ' is empty, deleting')
-        delete this.wins[windowId];
-        }
-      }
-    } catch(e) {
-      if(e instanceof TypeError) {
-        logger(this, 'Hu ho, missing window in memory...');
-        // We don't do anything, any activity on that missing window
-        // would force sync back.
-        // if (!isWindowClosing){
-        //   await this.createWindow(windowId);
-        // } else {
-        //   logger(this, 'Ignored, window is closing anyways');
-        // }
-      } else {
-        throw e;
-      }
+      logger(this, "OOS trying to delete unknown tab")
     }
   }
 
@@ -334,16 +264,9 @@ class MemoryManager {
     let now = Date.now();
     if((now - this.last_full_stats_update) >= this.settings.memory.min_time_full_stats_update) {
       logger(this, "Running full stats");
-      var tabs = Object.keys(this.tabs2wins);
-      for (var i = 0; i < tabs.length; i++) {
-        try {
-          let win = this.wins[this.tabs2wins[tabs[i]]];
-          await this.updateStatistics(win.tabs[tabs[i]]);
-        } catch(e) {
-          logger(this, "WARNING tracking seriously out of sync")
-          await this.deleteTab(tabs[i]);
-        }
-        
+      var tab_ids = Object.keys(this.tabs);
+      for (var i = 0; i < tab_ids.length; i++) {
+        await this.updateStatistics(this.tabs[tab_ids[i]]);
       }
       this.last_full_stats_update = now;
     }

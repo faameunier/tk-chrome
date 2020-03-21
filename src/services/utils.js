@@ -1,5 +1,5 @@
 const logger = function (...args) {
-  if(ENV === 'dev') {
+  if(ENV === 'debug' || (ENV === 'dev')) {
     let pre = new Date().toUTCString();
     if(typeof args[0] === 'object'){
       pre += " | " + args[0].constructor.name + " | ";
