@@ -9,7 +9,6 @@ chrome.tabs.onCreated.addListener(function(tab) {
   eventQueue.enqueue(() => memoryManager.createTab(tab));
 });
 
-
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
   eventQueue.enqueue(() => memoryManager.updateTab(tabId, changeInfo, tab));
 });

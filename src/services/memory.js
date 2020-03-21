@@ -29,12 +29,14 @@ class MemoryManager {
 
       this.closed_history = []; 
       this.last_full_stats_update = Date.now();
+      this.last_garbage_collector = Date.now();
 
       //TODO relocate
       this.settings = {
         "memory" : {
           "cache_size": 5,
-          "min_time_full_stats_update": 5*60*1000
+          "min_time_full_stats_update": 5*60*1000,
+          "min_time_garbage_collector": 5*60*1000
         },
         "closer": {
           "target_tabs": 10,
@@ -82,8 +84,9 @@ class MemoryManager {
   }
 
   async log() {
+    await this.updateAllStatistics();
+    await this.cleanTabs();
     if (ENV === 'debug') {
-      await this.updateAllStatistics();
       console.log(this.tabs);
     } else if (ENV === 'dev') {
       console.log(this.tabs);
@@ -269,6 +272,36 @@ class MemoryManager {
         await this.updateStatistics(this.tabs[tab_ids[i]]);
       }
       this.last_full_stats_update = now;
+    }
+  }
+
+  async cleanTabsDelay() {
+    let now = Date.now();
+    if((now - this.last_garbage_collector) >= this.settings.memory.min_time_garbage_collector) {
+      await this.cleanTabs();
+      this.last_garbage_collector = now;
+    }
+  }
+
+  async cleanTabs() {
+    var tab_ids = Object.keys(this.tabs);
+    for(let i = 0; i < tab_ids.length; i++) {
+      let tabId = tab_ids[i];
+      try {
+        let p = new Promise((resolve, reject) => {
+          chrome.tabs.get(parseInt(tabId), function(tab) {
+            if (chrome.runtime.lastError) {
+              reject(false);
+            } else {
+              resolve();
+            }
+          });
+        });
+        await p;
+      } catch {
+        logger(this, "Tab " + tabId + " collected by garbage cleaner");
+        await this.deleteTab(tabId);
+      }
     }
   }
 }
