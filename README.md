@@ -3,10 +3,16 @@ The dev environment relies on npm / node. Make sure to have these installed and 
 
 #### NPM environment
 Clone and install dependencies.
+Please use a recent version of Node and npm :)
 ```
 git clone git@github.com:faameunier/tk-chrome.git
 cd tk-chrome
 npm install
+```
+
+**TIP** A bug with node_gyp and MacOS Catalina can be avoided by running 
+```
+npm i -g node-gyp@latest && npm config set node_gyp "/usr/local/lib/node_modules/node-gyp/bin/node-gyp.js"
 ```
 
 The code need to build (transpile) from ES2015+ to ES5 for better compatibility. This is done using Babel.
