@@ -5,7 +5,7 @@ import Button from 'react-bootstrap/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import Typography from "@material-ui/core/Typography/Typography";
 import FormControlLabel from '@material-ui/core/FormControlLabel';
-import PrimaryText from '../PrimaryText'
+import PrimaryText from '../primary-text'
 import { withStyles } from '@material-ui/core/styles';
 import Slider from '@material-ui/core/Slider';
 import Tooltip from "@material-ui/core/Tooltip/Tooltip";

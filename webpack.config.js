@@ -7,20 +7,27 @@ module.exports = {
     mode: 'development',
     entry: {
         jquery: 'jquery',
-        app: './src/App.js'
+        popup: './src/app/popup.js'
     },
     devtool: 'inline-source-map',
     plugins: [
         new CleanWebpackPlugin(),
         new HtmlWebpackPlugin({
-            title: 'Output Management',
-            template:'./src/index.html'
+            title: 'Tab Killer',
+            template:'./src/views/popup.html',
+            filename: './views/popup.html'
         }),
         new CopyWebpackPlugin([
             { from: './src/manifest.json', to:'./', flatten:true },
-            { from: './src/assets/img/icons/*', to:'./', flatten:true }
+            { from: './src/lib', to:'./lib', flatten:false },
+            { from: './src/config', to:'./config', flatten:false }
         ], {
             copyUnmodified: true
+        }),
+        new CopyWebpackPlugin([
+            { from: './src/assets', to:'./assets', flatten:false }
+        ], {
+            copyUnmodified: false
         })
     ],
     output: {
@@ -55,5 +62,5 @@ module.exports = {
                 use: ['file-loader']
             }
         ]
-    }
+    },
 };

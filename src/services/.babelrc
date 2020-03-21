@@ -1,0 +1,20 @@
+{
+   "presets": [
+    [
+      "@babel/preset-env",
+      {
+        "targets": {
+          "browsers": [
+            "Chrome >= 59"
+          ]
+        }
+      }
+    ],
+    "minify"
+  ],
+  "plugins":[
+    ["@babel/plugin-proposal-decorators", {"legacy": true}], 
+    "@babel/plugin-proposal-class-properties"
+  ],
+  "sourceType": "script"
+}

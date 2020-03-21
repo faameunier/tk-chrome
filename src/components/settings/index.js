@@ -1,1 +1,1 @@
-export { default } from './Settings.style';
+export { default } from './settings.style';
