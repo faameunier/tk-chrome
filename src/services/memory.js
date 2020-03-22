@@ -60,6 +60,7 @@ class MemoryManager {
   }
 
   async save() {
+    logger(this, 'Saved');
     await storageSet({
       "tabs": JSON.stringify(this.tabs),
       "closed_history": this.closed_history,
