@@ -32,7 +32,7 @@ The build will happen automatically each time you do a modification **in the src
 #### Setting up chrome
 Go to [chrome://extensions](chrome://extensions), toggle 'Developer mode' in top right corner.
 
-Select 'Load unpacked extension' and select this whole folder.
+Select 'Load unpacked extension' and select the **dist** folder.
 
 This will be improved in a later update of the building process.
 

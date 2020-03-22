@@ -31,17 +31,19 @@ class MemoryManager {
       this.last_full_stats_update = Date.now();
       this.last_garbage_collector = Date.now();
 
-      //TODO relocate
+      //TODO relocate ?
       this.settings = {
         "memory" : {
           "cache_size": 5,
           "min_time_full_stats_update": 5*60*1000,
           "min_time_garbage_collector": 5*60*1000
         },
-        "closer": {
+        "policy": {
           "target_tabs": 10,
           "score_threshold": 50,
-          "decay": 0.8
+          "decay": 0.8,
+          "min_time": 10*1000,
+          "last_policy_runs": {}
         },
         "scorer": {
           "min_active": 10

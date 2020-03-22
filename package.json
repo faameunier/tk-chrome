@@ -10,8 +10,7 @@
     "build": {
       "patterns": [
         "src"
-      ],
-      "extensions": "js,jsx"
+      ]
     }
   },
   "devDependencies": {

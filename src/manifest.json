@@ -12,6 +12,7 @@
       "./services/queue.js",
       "./services/LRU.js",
       "./services/memory.js",
+      "./services/policy.js",
       "./services/background.js"],
     "persistent": false
   },
