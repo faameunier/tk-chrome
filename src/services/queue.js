@@ -31,12 +31,14 @@ class EventQueue {
       logger(this, 'Queue killed');
       memoryManager.log().then((value) => {
         memoryManager.save().then((value) => {
-          if (this.queue.length === 0) {
-            this.workingOnPromise = false;
-          } else {
-            this.workingOnPromise = false;
-            this.dequeue();
-          }
+          PolicyManager.run().then((value) => {
+            if (this.queue.length === 0) {
+              this.workingOnPromise = false;
+            } else {
+              this.workingOnPromise = false;
+              this.dequeue();
+            }
+          });
         });
       });
       return false;

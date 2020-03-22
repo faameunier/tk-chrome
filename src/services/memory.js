@@ -92,8 +92,6 @@ class MemoryManager {
     await this.cleanTabs();
     if (ENV === 'debug') {
       console.log(this.tabs);
-    } else if (ENV === 'dev') {
-      console.log(this.tabs);
     }
   }
 

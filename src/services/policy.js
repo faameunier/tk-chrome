@@ -1,4 +1,6 @@
 class PolicyManager {
+  constructor() {}
+
   static async run() {
     let windows = this.buildWindows();
     this.backfillRuns(windows);
@@ -40,11 +42,11 @@ class PolicyManager {
     if (tabs.length > memoryManager.settings.policy.target_tabs) { // if too many tabs
       if (this.exponentialTrigger(tabs, windowId)) { // if we waited enough
         // TODO filter tabs to removed protected ones.
-        let scores = null; // await Promise.all(_.map(tabs, (tab) => Scorer.score(tab)))
+        let scores = await Promise.all(_.map(tabs, (tab) => Scorer.score(tab)));
         scores = _.zip(_.map(tabs, (tab) => tab.tabId), scores); // [[tabId1, score1], [tabId2, score2]...]
         scores.sort((s1, s2) => (s1[1] > s2[1]) ? 1 : -1); // ascending sort
-        logger(this, windowId + " window scored: " + scores.toString());
-        deleteMe = scores.shift()[0];
+        logger(windowId.toString().concat(" window scored: ", JSON.stringify(scores)));
+        let deleteMe = scores.shift()[0];
         await this.killTab(deleteMe, _.find(tabs, (tab) => tab.tabId === deleteMe))
         return true;
       }
@@ -66,9 +68,9 @@ class PolicyManager {
       await p;
       // Deleting the tab will trigger all cleaning actions in memoryManager through the onRemoved trigger.
       memoryManager.closed_history.push(copy(tab)); // making a simple json copy, could be even simpler.
-      logger(this, "Tab " + tabId + " killed by policy");
+      logger("Tab ".concat(tabId, " killed by policy"));
     } catch {
-      logger(this, "Tab " + tabId + " not found");
+      logger("Tab ".concat(tabId, " not found"));
     }
   }
 

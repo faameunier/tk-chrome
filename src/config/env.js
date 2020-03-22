@@ -1,1 +1,2 @@
-const ENV = 'debug';
+const ENV = 'dev';
+const SCORER = 'random';
