@@ -1,2 +1,2 @@
 const ENV = 'dev';
-const SCORER = 'random';
+const SCORER = 'default';
