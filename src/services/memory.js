@@ -79,7 +79,7 @@ class MemoryManager {
         this.last_full_stats_update = data.last_full_stats_update;
         this.tabs = JSON.parse(data.tabs);
         for(let key of Object.keys(this.tabs)) {
-          let tab = tabs[tabId];
+          let tab = this.tabs[key];
           tab.cache = LRUfactory.fromJSON(tab.cache);
         }
       } catch {
