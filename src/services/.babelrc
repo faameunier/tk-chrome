@@ -10,11 +10,16 @@
         }
       }
     ],
-    "minify"
+    ['minify', {
+      builtIns: false,
+      evaluate: true,
+      mangle: true
+    }],
   ],
   "plugins":[
     ["@babel/plugin-proposal-decorators", {"legacy": true}], 
     "@babel/plugin-proposal-class-properties"
   ],
-  "sourceType": "script"
+  "sourceType": "script",
+  "comments": false
 }

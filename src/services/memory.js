@@ -43,11 +43,12 @@ class MemoryManager {
           "target_tabs": 10,
           "score_threshold": 50,
           "decay": 0.8,
-          "min_time": 10*1000,
+          "min_time": 5*1000,
           "last_policy_runs": {}
         },
         "scorer": {
-          "min_active": 10
+          "min_active": 30 * 1000,
+          "cached_decay": 0.7
         }
       }
     }
