@@ -38,14 +38,14 @@ class DefaultScorer extends AbstractScorer {
     if (stats.total_active_time + stats.total_inactive_time + stats.total_cached_time >= memoryManager.settings.scorer.min_active) {
       return Math.log(stats.total_active_time) * stats.total_active_time  / (stats.total_inactive_time + stats.total_active_time) * Math.log(stats.activated);
     } else {
-      return 1000000000000000;
+      return MAXIMUM_SCORE;
     }
   }
 
   static scoreCache(cache) {
     var cachedScores = [];
-    let acc = function(state) {
-      cachedScores.push(this.scoreStatistics(state.value.statistics));
+    let acc = (state) => {
+      cachedScores.push(this.scoreStatistics(state.value));
     }
     cache.forEach(acc);
     return cachedScores;
@@ -54,9 +54,14 @@ class DefaultScorer extends AbstractScorer {
   static mergeScores(scores) {
     var result = 0;
     for(var i = 0; i < scores.length; i++) {
-      result += (scores[i] * Math.pow(memoryManager.settings.scorer.cached_decay, i));
+      let temp = scores[i];
+      if (i === 0) {
+        result += temp
+      } else if (temp !== MAXIMUM_SCORE) {
+        result += (temp * Math.pow(memoryManager.settings.scorer.cached_decay, i));
+      }
     }
-    return result;
+    return Math.min(result, MAXIMUM_SCORE);
   }
 }
 

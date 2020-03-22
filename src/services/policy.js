@@ -47,8 +47,19 @@ class PolicyManager {
         scores.sort((s1, s2) => (s1[1] > s2[1]) ? 1 : -1); // ascending sort
         logger(windowId.toString().concat(" window scored: ", JSON.stringify(scores)));
         let deleteMe = scores.shift()[0];
-        await this.killTab(deleteMe, _.find(tabs, (tab) => tab.tabId === deleteMe))
-        return true;
+
+        // safety hack, do not remove an old tab only because you have new ones
+        var count = 0;
+        while(scores.length > 0) {
+          let temp = scores.pop()[1];
+          if (temp === MAXIMUM_SCORE) {
+            count += 1;
+          }
+        }
+        if (count < tabs.length - memoryManager.settings.policy.target_tabs) {
+          await this.killTab(deleteMe, _.find(tabs, (tab) => tab.tabId === deleteMe))
+          return true
+        }        
       }
     }
     return false;
@@ -58,7 +69,8 @@ class PolicyManager {
     try {
       let p = new Promise((resolve, reject) => {
         chrome.tabs.remove(parseInt(tabId), function(tab) {
-          if (chrome.runtime.lastError) {
+          let error = chrome.runtime.lastError;
+          if (error) {
             reject("Tab not found");
           } else {
             resolve();
