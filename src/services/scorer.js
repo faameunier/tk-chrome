@@ -47,7 +47,9 @@ class DefaultScorer extends AbstractScorer {
     let acc = (state) => {
       cachedScores.push(this.scoreStatistics(state.value));
     }
-    cache.forEach(acc);
+    if (cache) {
+      cache.forEach(acc);
+    }
     return cachedScores;
   }
 
