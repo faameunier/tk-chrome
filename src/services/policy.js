@@ -4,22 +4,25 @@ class PolicyManager {
     this.backfillRuns(windows);
 
     let windowIds = Object.keys(windows);
-    let promises = [];
-    for(var i = 0; i < windowIds.length; i++) {
-      promises.push(this.runWindow(windows, windowIds[i]));
-    }
+    let promises = _.map(windowIds, (windowId) => this.runWindow(windows, windowId));
     let results = await Promise.all(promises); // Running every windows update in parallel.
 
     let now = Date.now();
+    let any = false;
     for(var i = 0; i < windowIds.length; i++) {
       if(results[i]) { // The policy ran on the i-th window
         memoryManager.settings.policy.last_policy_runs[windowIds[i]] = now;
+        any = true;
       }
+    }
+
+    if(any) { // force update localstorage memory if an action was taken, might be useless if the queue awaits
+      await memoryManager.save()
     }
   }
 
   static buildWindows() {
-    return _.groupBy(memoryManager.tabs, (tab) => {tab.windowId});
+    return _.groupBy(memoryManager.tabs, (tab) => {return tab.windowId});
   }
 
   static backfillRuns(windows) {
@@ -33,10 +36,40 @@ class PolicyManager {
   }
 
   static async runWindow(windows, windowId) {
-    if (this.exponentialTrigger(windows[windowId], windowId)) {
-      return true;
+    let tabs = windows[windowId];
+    if (tabs.length > memoryManager.settings.policy.target_tabs) { // if too many tabs
+      if (this.exponentialTrigger(tabs, windowId)) { // if we waited enough
+        // TODO filter tabs to removed protected ones.
+        let scores = null; // await Promise.all(_.map(tabs, (tab) => Scorer.score(tab)))
+        scores = _.zip(_.map(tabs, (tab) => tab.tabId), scores); // [[tabId1, score1], [tabId2, score2]...]
+        scores.sort((s1, s2) => (s1[1] > s2[1]) ? 1 : -1); // ascending sort
+        logger(this, windowId + " window scored: " + scores.toString());
+        deleteMe = scores.shift()[0];
+        await this.killTab(deleteMe, _.find(tabs, (tab) => tab.tabId === deleteMe))
+        return true;
+      }
     }
     return false;
+  }
+
+  static async killTab(tabId, tab) {
+    try {
+      let p = new Promise((resolve, reject) => {
+        chrome.tabs.remove(parseInt(tabId), function(tab) {
+          if (chrome.runtime.lastError) {
+            reject("Tab not found");
+          } else {
+            resolve();
+          }
+        });
+      });
+      await p;
+      // Deleting the tab will trigger all cleaning actions in memoryManager through the onRemoved trigger.
+      memoryManager.closed_history.push(copy(tab)); // making a simple json copy, could be even simpler.
+      logger(this, "Tab " + tabId + " killed by policy");
+    } catch {
+      logger(this, "Tab " + tabId + " not found");
+    }
   }
 
   static exponentialTrigger(tabs, windowId) {

@@ -9,6 +9,7 @@ class MemoryManager {
   };
 
   empty_tab = {
+    "tabId": null,
     "url": null,
     "statistics": {},
     "pinned": false,
@@ -128,6 +129,8 @@ class MemoryManager {
   async createTab(tab){
     if (typeof tab.id !== 'undefined'){
       let new_tab = copy(this.empty_tab);
+
+      new_tab.tabId = tab.id;
 
       new_tab.pinned = tab.pinned;
       new_tab.windowId = tab.windowId;
