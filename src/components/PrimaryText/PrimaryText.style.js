@@ -1,6 +1,6 @@
 import { withStyles } from '@material-ui/core/styles';
 
-import PrimaryText from './primary-text';
+import PrimaryText from './PrimaryText';
 
 const styles = {
   container: {

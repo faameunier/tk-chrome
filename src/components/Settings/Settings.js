@@ -5,7 +5,7 @@ import Button from 'react-bootstrap/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import Typography from "@material-ui/core/Typography/Typography";
 import FormControlLabel from '@material-ui/core/FormControlLabel';
-import PrimaryText from '../primary-text'
+import PrimaryText from '../PrimaryText'
 import { withStyles } from '@material-ui/core/styles';
 import Slider from '@material-ui/core/Slider';
 import Tooltip from "@material-ui/core/Tooltip/Tooltip";
@@ -205,7 +205,7 @@ class Settings extends PureComponent {
         return(
             <div className="card todo-list-container">
                 <div className="card-header" >
-                    <h3 className="card-title">TabKiller Settings</h3>
+                    {/*<h3 className="card-title">TabKiller Settings</h3>*/}
                     <div className={classes.textField}>
                         <PrimaryText
                             text={

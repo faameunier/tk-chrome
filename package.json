@@ -2,7 +2,7 @@
   "name": "tk-chrome",
   "version": "0.0.1",
   "scripts": {
-    "build": "webpack; babel ./src/services -d ./dist/services",
+    "build": "webpack && babel ./src/services -d ./dist/services",
     "watch": "npm-watch",
     "watch-frontend": "webpack --watch"
   },
@@ -14,14 +14,15 @@
     }
   },
   "devDependencies": {
-    "@babel/cli": "^7.0.0",
+    "@babel/cli": "^7.8.4",
     "@babel/core": "^7.0.0",
     "@babel/plugin-proposal-class-properties": "^7.8.3",
     "@babel/plugin-proposal-decorators": "^7.8.3",
     "@babel/preset-env": "^7.8.4",
     "@babel/preset-react": "^7.9.1",
-    "babel-preset-minify": "^0.5.1",
+    "babel-install": "2.1.0",
     "babel-loader": "^8.0.6",
+    "babel-preset-minify": "^0.5.1",
     "clean-webpack-plugin": "^3.0.0",
     "copy-webpack-plugin": "^5.0.3",
     "css-loader": "^3.1.0",
