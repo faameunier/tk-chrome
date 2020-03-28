@@ -50,6 +50,7 @@ class HomeDispatcher extends PureComponent {
                   >
                     <Tab label="Home" value={"HOME"}/>
                     <Tab label="Settings" value={"SETTINGS"}/>
+                    <Tab label="Debug" value={"DEBUG"} disabled/>
                   </Tabs>
                     <div>{this.dispatchPage()}</div>
                 </Paper>

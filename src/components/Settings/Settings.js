@@ -204,14 +204,14 @@ class Settings extends PureComponent {
         console.log("Render state", this.state);
         return(
             <div className="card todo-list-container">
-                <div className="card-header" >
-                    {/*<h3 className="card-title">TabKiller Settings</h3>*/}
-                    <div className={classes.textField}>
-                        <PrimaryText
+                <div className="card-body" >
+                    <PrimaryText
                             text={
                               'Select the suiting option or customize it.'
                             }
                           />
+                    {/*<h3 className="card-title">TabKiller Settings</h3>*/}
+                    <div className={classes.textField}>
                         <div className={classes.activeBar}>
                            <h1 className={"bold-title"}>Active hours:</h1>
                         <AirbnbSlider
@@ -255,14 +255,14 @@ class Settings extends PureComponent {
                             aria-expanded={this.state.open}
                             variant="outline-primary"
                             className="button"
+                            disabled
                           >
-                            Customize?
+                            Customize
                           </Button>
                           <Collapse in={this.state.open}>
                             <div id="example-collapse-text">
-                              Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus
-                              terry richardson ad squid. Nihil anim keffiyeh helvetica, craft beer
-                              labore wes anderson cred nesciunt sapiente ea proident.
+                              Still in construction...
+
                             </div>
                           </Collapse>
                     </div>

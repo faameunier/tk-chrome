@@ -34,13 +34,15 @@
     "webpack-dev-server": "^3.7.2"
   },
   "dependencies": {
+    "@babel/runtime": "^7.8.4",
+    "@material-ui/core": "^4.9.5",
+    "@material-ui/icons": "^4.9.1",
     "bootstrap": "^4.3.1",
     "jquery": "^3.4.1",
+    "material-ui-icons": "^1.0.0-beta.36",
+    "npm-watch": "^0.6.0",
     "react": "^16.8.6",
     "react-bootstrap": "^1.0.0-beta.9",
-    "react-dom": "^16.8.6",
-    "@material-ui/core": "^4.9.5",
-    "@babel/runtime": "^7.8.4",
-    "npm-watch": "^0.6.0"
+    "react-dom": "^16.8.6"
   }
 }
