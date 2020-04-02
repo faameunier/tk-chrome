@@ -36,7 +36,7 @@ class RandomScorer extends AbstractScorer {
 class DefaultScorer extends AbstractScorer {
   static scoreStatistics(stats) {
     if (stats.total_active_time + stats.total_inactive_time + stats.total_cached_time >= memoryManager.settings.scorer.min_active) {
-      return Math.log(stats.total_active_time) * stats.total_active_time  / (stats.total_inactive_time + stats.total_active_time) * Math.log(stats.activated);
+      return Math.log(Math.min(Math.max(stats.total_active_time, 10000), 3600*1000)) * stats.total_active_time  / (stats.total_inactive_time + stats.total_active_time) * Math.max(1, Math.exp(-(Date.now() - stats.last_active_timestamp)) * 100000);
     } else {
       return MAXIMUM_SCORE;
     }

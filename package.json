@@ -2,7 +2,7 @@
   "name": "tk-chrome",
   "version": "0.0.1",
   "scripts": {
-    "build": "webpack; babel ./src/services -d ./dist/services",
+    "build": "webpack && babel ./src/services -d ./dist/services",
     "watch": "npm-watch",
     "watch-frontend": "webpack --watch"
   },
