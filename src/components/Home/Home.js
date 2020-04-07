@@ -1,39 +1,29 @@
 import React, { PureComponent } from 'react';
-import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemAvatar from '@material-ui/core/ListItemAvatar';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
 import Avatar from '@material-ui/core/Avatar';
-import IconButton from '@material-ui/core/IconButton';
-import FormGroup from '@material-ui/core/FormGroup';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Checkbox from '@material-ui/core/Checkbox';
-import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import FolderIcon from '@material-ui/icons/Folder';
-import RestoreIcon from '@material-ui/icons/Restore';
 
-
-function CrossButton(props){
-    return(<Button type="button" className="close" aria-label="Close" onClick={()=>props.removeItem(props.itemKey)}><span aria-hidden="true">&times;</span></Button>)
-}
 
 class Home extends PureComponent {
+
     constructor(props){
         super(props);
+        // IF YOU WANT TO INJECT NEW ITEMS
+        // let items = ["www.amazon.com", "www.youtube.com","www.amazon.com", "www.youtube.com","www.amazon.com", "www.youtube.com"];
+        // let nextItems = ["www.linkedin.com","www.amazon.com", "www.youtube.com","www.linkedin.com",];
+        //
+        // this.state = {removedList:items, renderSaveBoolean:false,
+        //     nextList:nextItems};
+        // chrome.storage.local.set({removedList:items, nextList:nextItems});
+        this.state = {renderSaveBoolean:false};
 
-
-        this.state = {removedList:["www.amazon.com", "www.youtube.com"], item:'',
-            nextList:["www.linkedin.com"]};
-        let items = this.state.removedList;
-        let nextItems = this.state.nextList;
-
-        chrome.storage.local.set({removedList:items, nextList:nextItems});
     }
     componentDidMount(){
         chrome.storage.local.get(['removedList'], (result)=>{
@@ -44,40 +34,27 @@ class Home extends PureComponent {
             const nextList = result.nextList || [];
             this.setState({nextList});
         });
-        console.log("State", this.state);
     }
     componentDidUpdate(prevProps, prevState) {
+        if (this.state.renderSaveBoolean){
+            this.saveToChrome();
+            this.setState({myBoolean:false});
+        }
     }
 
     removeItem(key){
-        console.log("RemoveItem in da loop, n°", key);
-        this.setState((prevState)=>{
-            let items = prevState.removedList;//this.selectCorrectList(selectedList, prevState);
-            items.splice(key, 1);
-            chrome.storage.local.set({removedList:items});
-            return {removedList: items}
+        let items = this.state.removedList;
+        items.splice(key, 1);
+        this.setState({removedList:items, renderSaveBoolean:true});
 
-        });
     }
     removeNextItem(key){
-        console.log("Remove nextList in da loop n°", key);
-        this.setState((prevState)=>{
-            let items = prevState.nextList;//this.selectCorrectList(selectedList, prevState);
-            items.splice(key, 1);
-            chrome.storage.local.set({nextList:items});
-            return {nextList: items}
-
-        });
+        let items = this.state.nextList;
+        items.splice(key, 1);
+        this.setState({nextList:items, renderSaveBoolean:true});
     }
-    addItem(selectedList){
-        if(!this.state.item)
-            return;
-        this.setState((prevState)=>{
-            let items =  this.selectCorrectList(selectedList, prevState);
-            items.push(prevState.item);
-            chrome.storage.local.set({selectedList:items});
-            return {selectedList: items, item:''};
-        });
+    saveToChrome(){
+        chrome.storage.local.set({removedList: this.state.removedList, nextList: this.state.nextList});
     }
     renderList(listToBeRendered){
         const {classes} = this.props;
@@ -85,18 +62,17 @@ class Home extends PureComponent {
         let selectedList;
         switch(listToBeRendered){
             case("NEXT"):
-                selectedList = this.state.nextList;
-                console.log("NEXT case", selectedList);
+                selectedList = this.state.nextList? this.state.nextList:[];
                 break;
             default:
-                selectedList = this.state.removedList;
+                selectedList = this.state.removedList? this.state.removedList:[];
 
         }
         const isNext = listToBeRendered==="NEXT";
         return(
                 <div className="card-body">
-                    <Typography variant="h6" className={classes.title}>
-                        {isNext ?"Next tabs":"Tabs closed today"}
+                    <Typography variant="h6" className={classes.greenTitle}>
+                        {isNext ?"Next tabs to be closed":"Tabs closed today"}
                       </Typography>
                       <div>
                         <List dense={true}>
@@ -114,10 +90,14 @@ class Home extends PureComponent {
                                 secondary={false ? 'Secondary text' : null}
                               />
                               <ListItemSecondaryAction>
-                                <IconButton edge="end" aria-label="delete"  onClick={isNext?
-                                    this.removeNextItem.bind(this): this.removeItem.bind(this)}>
-                                  <RestoreIcon/>
-                                </IconButton>
+                                  <Button
+                                    size="large"
+                                    onClick={isNext? this.removeNextItem.bind(this, i): this.removeItem.bind(this, i)}
+                                    variant="outline-primary"
+                                    className={classes.button}
+                                  >
+                                    {isNext? "Skip":"Restore"}
+                                  </Button>
                               </ListItemSecondaryAction>
                             </ListItem>))}
                         </List>
@@ -127,9 +107,17 @@ class Home extends PureComponent {
     }
     render(){
         const {classes} = this.props;
+        const numberClosedTabsLastHour = 6;
         return(
             <div className="card todo-list-container">
+                <div className="card-body">
+                    <Typography variant="h3" className={classes.title}>
 
+                          <Typography  className={classes.boldText}>{numberClosedTabsLastHour} Tabs</Typography>
+                          <Typography className={classes.middleText}> were closed in the last </Typography>
+                          <Typography className={classes.boldText}> hour! </Typography>
+                    </Typography>
+                </div>
                 {this.renderList.bind(this)("REMOVED")}
                 {this.renderList.bind(this)("NEXT")}
             </div>)

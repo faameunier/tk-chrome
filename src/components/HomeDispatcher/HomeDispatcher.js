@@ -44,13 +44,11 @@ class HomeDispatcher extends PureComponent {
                 <Paper square>
                   <Tabs
                     value={this.state.appBarValue? this.state.appBarValue : "HOME"}
-                    indicatorColor="primary"
-                    textColor="primary"
                     onChange={(e,v) => this.handleChange(e,v)}
                   >
-                    <Tab label="Home" value={"HOME"}/>
-                    <Tab label="Settings" value={"SETTINGS"}/>
-                    <Tab label="Debug" value={"DEBUG"} disabled/>
+                    <Tab label="Home" value={"HOME"} className={classes.tab}/>
+                    <Tab label="Settings" value={"SETTINGS"} className={classes.tab}/>
+                    <Tab label="Debug" value={"DEBUG"} disabled className={classes.tab}/>
                   </Tabs>
                     <div>{this.dispatchPage()}</div>
                 </Paper>

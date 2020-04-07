@@ -57,7 +57,6 @@ const AirbnbSlider = withStyles({
       boxShadow: '#ccc 0px 2px 3px 1px',
     },
     '& .bar': {
-      // display: inline-block !important;
       height: 9,
       width: 1,
       backgroundColor: 'currentColor',
@@ -89,18 +88,12 @@ function AirbnbThumbComponent(props) {
   );
 }
 
-function CrossButton(props){
-    return(<Button type="button" className="close" aria-label="Close" onClick={()=>props.removeItem(props.itemKey)}><span aria-hidden="true">&times;</span></Button>)
-}
-
 class Settings extends PureComponent {
     constructor(props){
-        console.log("Constructor");
         super(props);
         this.state = {open:false, beginHour:8, endHour:20, businessBool:false, casualBool:false};
     }
     componentDidMount(){
-        console.log("DidMount");
         chrome.storage.local.get(['beginHour'], (result)=>{
             const beginHour = result.beginHour || 8;
             this.setState({beginHour});
@@ -120,7 +113,6 @@ class Settings extends PureComponent {
 
     }
     componentDidUpdate(prevProps, prevState) {
-        console.log("DidUpdate");
 
         if (prevState.beginHour !== this.state.beginHour || prevState.endHour !== this.state.endHour){
             this.saveActiveHoursToLocal();
@@ -134,7 +126,6 @@ class Settings extends PureComponent {
             else {
                 this.saveCasesBool()
             }
-
         }
         if (prevState.businessBool !== this.state.businessBool){
             if (bothBoolTrue){
@@ -144,10 +135,6 @@ class Settings extends PureComponent {
                 this.saveCasesBool()
             }
         }
-
-
-
-
     }
     removeItem(key){
         this.setState((prevState)=>{
@@ -173,12 +160,8 @@ class Settings extends PureComponent {
 
     }
     handleSliderChange(event, value){
-        //console.log("slider changed event:",event);
-        //console.log("slider changed value: ", value);
-        console.log("slider :",value[0]);
         const beginHour = value[0];
         const endHour = value[1]
-        console.log(this.state);
         this.setState({ beginHour });
         this.setState({ endHour });
 
@@ -194,14 +177,11 @@ class Settings extends PureComponent {
         this.setState({businessBool: !this.state.businessBool})
     }
     saveCasesBool(){
-        console.log("casualBool in save loop:", this.state.casualBool);
-        console.log("businessBool in save loop:", this.state.businessBool);
         chrome.storage.local.set({casualBool:this.state.casualBool, businessBool:this.state.businessBool});
     }
 
     render(){
         const { classes } = this.props;
-        console.log("Render state", this.state);
         return(
             <div className="card todo-list-container">
                 <div className="card-body" >
@@ -210,13 +190,12 @@ class Settings extends PureComponent {
                               'Select the suiting option or customize it.'
                             }
                           />
-                    {/*<h3 className="card-title">TabKiller Settings</h3>*/}
                     <div className={classes.textField}>
                         <div className={classes.activeBar}>
                            <h1 className={"bold-title"}>Active hours:</h1>
                         <AirbnbSlider
                             ThumbComponent={AirbnbThumbComponent}
-                            ValueLabelComponent={ValueLabelComponent}
+                            //ValueLabelComponent={ValueLabelComponent}
                             getAriaLabel={index => (index === 0 ? 'Begin active hours' : 'End active hours')}
                             defaultValue={[this.state.beginHour, this.state.endHour]}
                             value={[this.state.beginHour, this.state.endHour]}
