@@ -38,7 +38,6 @@ class Home extends PureComponent {
     componentDidUpdate(prevProps, prevState) {
         if (this.state.renderSaveBoolean){
             this.saveToChrome();
-            this.setState({myBoolean:false});
         }
     }
 
@@ -55,6 +54,8 @@ class Home extends PureComponent {
     }
     saveToChrome(){
         chrome.storage.local.set({removedList: this.state.removedList, nextList: this.state.nextList});
+        this.setState({renderSaveBoolean:false});
+
     }
     renderList(listToBeRendered){
         const {classes} = this.props;
