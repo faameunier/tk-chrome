@@ -44,7 +44,10 @@ class MemoryManager {
           "score_threshold": 50,
           "decay": 0.8,
           "min_time": 3*1000,
-          "last_policy_runs": {}
+          "last_policy_runs": {},
+          "active": false,
+          "pinned": false,
+          "audible": false
         },
         "scorer": {
           "min_active": 3 * 1000,
@@ -145,9 +148,13 @@ class MemoryManager {
       }
       if (typeof tab.pinned !== 'undefined') {
         new_tab.pinned = tab.pinned;
+      } else {
+        new_tab.pinned = false;
       }
       if (typeof tab.audible !== 'undefined') {
         new_tab.audible = tab.audible;
+      } else {
+        new_tab.audible = false;
       }
       if (typeof tab.favIconUrl !== 'undefined') {
         new_tab.favIconUrl = tab.favIconUrl;

@@ -41,7 +41,7 @@ class PolicyManager {
     let tabs = windows[windowId];
     if (tabs.length > memoryManager.settings.policy.target_tabs) { // if too many tabs
       if (this.exponentialTrigger(tabs, windowId)) { // if we waited enough
-        // TODO filter tabs to removed protected ones.
+        tabs = _.filter(tabs, (tab) => {return tab.active == memoryManager.settings.policy.active && tab.pinned == memoryManager.settings.policy.pinned && tab.audible == memoryManager.settings.policy.audible})
         let scores = await Promise.all(_.map(tabs, (tab) => Scorer.score(tab)));
         scores = _.zip(_.map(tabs, (tab) => tab.tabId), scores); // [[tabId1, score1], [tabId2, score2]...]
         scores.sort((s1, s2) => (s1[1] > s2[1]) ? 1 : -1); // ascending sort
