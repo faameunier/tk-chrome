@@ -214,7 +214,7 @@ class Settings extends PureComponent {
                                   onChange={()=>this.handleBusinessChange()}
                                   value="secondary"
                                   color="primary" />}
-                              label="Business Use"
+                              label="Focused Mode"
                             />
                           </Typography>
                             <Typography variant="h6" gutterBottom>
@@ -224,7 +224,7 @@ class Settings extends PureComponent {
                                     onChange={()=>this.handleCasualChange()}
                                   value="secondary"
                                   color="primary" />}
-                              label="Casual Use"
+                              label="Relaxed Mode"
                             />
                           </Typography>
                         </Form>

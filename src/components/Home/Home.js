@@ -19,21 +19,22 @@ class Home extends PureComponent {
         // let items = ["www.amazon.com", "www.youtube.com","www.amazon.com", "www.youtube.com","www.amazon.com", "www.youtube.com"];
         // let nextItems = ["www.linkedin.com","www.amazon.com", "www.youtube.com","www.linkedin.com",];
         //
-        // this.state = {removedList:items, renderSaveBoolean:false,
+        // this.state = {closed_history:items, renderSaveBoolean:false,
         //     nextList:nextItems};
-        // chrome.storage.local.set({removedList:items, nextList:nextItems});
+        // chrome.storage.local.set({closed_history:items, nextList:nextItems});
         this.state = {renderSaveBoolean:false};
 
     }
     componentDidMount(){
-        chrome.storage.local.get(['removedList'], (result)=>{
-            const removedList = result.removedList || [];
-            this.setState({removedList});
+        chrome.storage.local.get(['closed_history'], (result)=>{
+            const closed_history = result.closed_history || [];
+            this.setState({closed_history});
         });
-        chrome.storage.local.get(['nextList'], (result)=>{
-            const nextList = result.nextList || [];
+        chrome.storage.local.get(['closed_history'], (result)=>{ //WARNING REPLACE WITH PROPER path
+            const nextList = result.closed_history || [];
             this.setState({nextList});
         });
+
     }
     componentDidUpdate(prevProps, prevState) {
         if (this.state.renderSaveBoolean){
@@ -42,9 +43,9 @@ class Home extends PureComponent {
     }
 
     removeItem(key){
-        let items = this.state.removedList;
+        let items = this.state.closed_history;
         items.splice(key, 1);
-        this.setState({removedList:items, renderSaveBoolean:true});
+        this.setState({closed_history:items, renderSaveBoolean:true});
 
     }
     removeNextItem(key){
@@ -53,7 +54,7 @@ class Home extends PureComponent {
         this.setState({nextList:items, renderSaveBoolean:true});
     }
     saveToChrome(){
-        chrome.storage.local.set({removedList: this.state.removedList, nextList: this.state.nextList});
+        chrome.storage.local.set({closed_history: this.state.closed_history, nextList: this.state.nextList});
         this.setState({renderSaveBoolean:false});
 
     }
@@ -66,7 +67,7 @@ class Home extends PureComponent {
                 selectedList = this.state.nextList? this.state.nextList:[];
                 break;
             default:
-                selectedList = this.state.removedList? this.state.removedList:[];
+                selectedList = this.state.closed_history? this.state.closed_history:[];
 
         }
         const isNext = listToBeRendered==="NEXT";
@@ -87,8 +88,8 @@ class Home extends PureComponent {
                                 </Avatar>
                               </ListItemAvatar>
                               <ListItemText
-                                primary={website}
-                                secondary={false ? 'Secondary text' : null}
+                                primary={website.url}
+                                secondary={website.title}
                               />
                               <ListItemSecondaryAction>
                                   <Button
