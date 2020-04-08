@@ -139,6 +139,8 @@ class MemoryManager {
       if (typeof tab.url !== 'undefined') {
         // No impact on stats until proven otherwise
         new_tab.url = getDomain(tab.url);
+        new_tab.full_url = tab.url;
+
       }
       if (typeof tab.cache !== 'undefined') {
         // No impact on stats until proven otherwise
@@ -202,9 +204,11 @@ class MemoryManager {
     }
     let stored_tab = this.tabs[tabId];
     if (typeof changes.url !== 'undefined') {
-      let new_url = getDomain(changes.url);
+      let new_url = getDomain(changes.url);;
+      let new_full_url = changes.url
       let old_url = stored_tab.url;
       stored_tab.url = new_url;
+      stored_tab.full_url = new_full_url;
       if(new_url !== old_url) {
         await this.updateStatistics(stored_tab, false, false);
         let old_statistics = stored_tab.statistics;
