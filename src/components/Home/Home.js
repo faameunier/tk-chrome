@@ -8,20 +8,12 @@ import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
 import Avatar from '@material-ui/core/Avatar';
 import Typography from '@material-ui/core/Typography';
-import FolderIcon from '@material-ui/icons/Folder';
 
 
 class Home extends PureComponent {
 
     constructor(props){
         super(props);
-        // IF YOU WANT TO INJECT NEW ITEMS
-        // let items = ["www.amazon.com", "www.youtube.com","www.amazon.com", "www.youtube.com","www.amazon.com", "www.youtube.com"];
-        // let nextItems = ["www.linkedin.com","www.amazon.com", "www.youtube.com","www.linkedin.com",];
-        //
-        // this.state = {closed_history:items, renderSaveBoolean:false,
-        //     nextList:nextItems};
-        // chrome.storage.local.set({closed_history:items, nextList:nextItems});
         this.state = {renderSaveBoolean:false};
 
     }
@@ -29,7 +21,7 @@ class Home extends PureComponent {
         chrome.storage.local.get(['closed_history'], (result)=>{
             const closed_history = result.closed_history || [];
             this.setState({closed_history});
-            console.log("DidMOunt", closed_history.length)
+            console.log("DidMOunt", closed_history.length, closed_history)
         });
         chrome.storage.local.get(['closed_history'], (result)=>{ //WARNING REPLACE WITH PROPER path
             const nextList = result.closed_history || [];
@@ -62,12 +54,12 @@ class Home extends PureComponent {
     }
     saveToChrome(){
         console.log("SAVING", this.state.closed_history.length);
-        chrome.storage.local.set({closed_history: this.state.closed_history, nextList: this.state.nextList}, (result)=>{
-            chrome.storage.local.get(['closed_history'], (result)=>{
-            const closed_history = result.closed_history || [];
-            console.log("AFter SAVING", closed_history.length)
-            });
-        });
+        // chrome.storage.local.set({closed_history: this.state.closed_history, nextList: this.state.nextList}, (result)=>{
+        //     chrome.storage.local.get(['closed_history'], (result)=>{
+        //     const closed_history = result.closed_history || [];
+        //     console.log("AFter SAVING", closed_history.length)
+        //     });
+        // });
         this.setState({renderSaveBoolean:false});
 
 
@@ -97,9 +89,7 @@ class Home extends PureComponent {
                               selectedList.map((website,i) => (
                             <ListItem key={i}>
                               <ListItemAvatar>
-                                <Avatar>
-                                  <FolderIcon />
-                                </Avatar>
+                                <Avatar alt={website.title} src={website.favIconUrl} />
                               </ListItemAvatar>
                               <ListItemText
                                 primary={website.url}
@@ -124,7 +114,7 @@ class Home extends PureComponent {
     }
     render(){
         const {classes} = this.props;
-        const numberClosedTabsLastHour = 6;
+        const numberClosedTabsLastHour = this.state.closed_history? this.state.closed_history.length:0;
         return(
             <div className="card todo-list-container">
                 <div className="card-body">
