@@ -27,6 +27,11 @@ const styles = theme => ({
         color: '#1b9e74',
         borderColor: '#1b9e74',
         fontSize: 12,
+    },
+    itemText: {
+        maxWidth: 200,
+    },
+    listItems: {
     }
 
 });

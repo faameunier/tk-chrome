@@ -29,6 +29,7 @@ class Home extends PureComponent {
         chrome.storage.local.get(['closed_history'], (result)=>{
             const closed_history = result.closed_history || [];
             this.setState({closed_history});
+            console.log("DidMOunt", closed_history.length)
         });
         chrome.storage.local.get(['closed_history'], (result)=>{ //WARNING REPLACE WITH PROPER path
             const nextList = result.closed_history || [];
@@ -44,18 +45,31 @@ class Home extends PureComponent {
 
     removeItem(key){
         let items = this.state.closed_history;
+        this.restoreTab(items, key);
         items.splice(key, 1);
         this.setState({closed_history:items, renderSaveBoolean:true});
 
     }
     removeNextItem(key){
         let items = this.state.nextList;
+        this.restoreTab(items, key);
         items.splice(key, 1);
         this.setState({nextList:items, renderSaveBoolean:true});
     }
+    restoreTab(items, key){
+        const restoredTab = items[key];
+        chrome.tabs.create({ url: restoredTab.full_url, active: false });
+    }
     saveToChrome(){
-        chrome.storage.local.set({closed_history: this.state.closed_history, nextList: this.state.nextList});
+        console.log("SAVING", this.state.closed_history.length);
+        chrome.storage.local.set({closed_history: this.state.closed_history, nextList: this.state.nextList}, (result)=>{
+            chrome.storage.local.get(['closed_history'], (result)=>{
+            const closed_history = result.closed_history || [];
+            console.log("AFter SAVING", closed_history.length)
+            });
+        });
         this.setState({renderSaveBoolean:false});
+
 
     }
     renderList(listToBeRendered){
@@ -77,7 +91,7 @@ class Home extends PureComponent {
                         {isNext ?"Next tabs to be closed":"Tabs closed today"}
                       </Typography>
                       <div>
-                        <List dense={true}>
+                        <List dense={true} className={classes.listItems}>
                           {selectedList.length===0 ?
                             <p>Removed list is empty.</p> :
                               selectedList.map((website,i) => (
@@ -90,6 +104,7 @@ class Home extends PureComponent {
                               <ListItemText
                                 primary={website.url}
                                 secondary={website.title}
+                                className={classes.itemText}
                               />
                               <ListItemSecondaryAction>
                                   <Button
