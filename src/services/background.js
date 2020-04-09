@@ -25,6 +25,18 @@ chrome.tabs.onRemoved.addListener(function(tabId, removeInfo) {
   eventQueue.enqueue(() => memoryManager.deleteTab(tabId, removeInfo.windowId, removeInfo.isWindowClosing));
 });
 
+chrome.runtime.onMessage.addListener(
+  function(request, sender, sendResponse) {
+    switch (request.messageType) {
+        case 'RESTORE':
+            eventQueue.enqueue(() => memoryManager.restoreTab(request.tabId));
+            eventQueue.enqueue(() => memoryManager.removeTabFromClosedHistory(request.tabId));
+            break;
+        default:
+            break;
+    }
+    eventQueue.enqueue(() => sendResponse({answer: 1}));
+  });
 /*
 // TODO find usecase to understand when it is triggered.
 chrome.tabs.onReplaced.addListener(function(integer addedTabId, integer removedTabId) {});

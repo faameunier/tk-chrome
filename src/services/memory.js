@@ -40,7 +40,7 @@ class MemoryManager {
           "min_time_garbage_collector": 5*60*1000
         },
         "policy": {
-          "target_tabs": 10,
+          "target_tabs": 4,
           "score_threshold": 50,
           "decay": 0.8,
           "min_time": 3*1000,
@@ -133,13 +133,13 @@ class MemoryManager {
       let new_tab = copy(this.empty_tab);
 
       new_tab.tabId = tab.id;
-
       new_tab.pinned = tab.pinned;
       new_tab.windowId = tab.windowId;
       if (typeof tab.url !== 'undefined') {
         // No impact on stats until proven otherwise
         new_tab.url = getDomain(tab.url);
         new_tab.full_url = tab.url;
+        new_tab.seesionId = ""; //NotAvailable?
 
       }
       if (typeof tab.cache !== 'undefined') {
@@ -289,6 +289,17 @@ class MemoryManager {
       }
       this.last_full_stats_update = now;
     }
+  }
+
+  async removeTabFromClosedHistory(tabId){
+      this.closed_history = await this.closed_history.filter((tab)=>{return tab.tabId !== tabId});
+      console.log("SESSION ID",restoredTab.sessionId);
+      await this.save();
+
+  }
+  async restoreTab(tabId){
+      const restoredTab = await this.closed_history.filter((tab)=>{return tab.tabId === tabId})[0];
+      chrome.tabs.create({ url: restoredTab.full_url, active: false }); //REPLACE BY SESSIONID
   }
 
   async cleanTabsDelay() {

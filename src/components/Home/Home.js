@@ -9,6 +9,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import Avatar from '@material-ui/core/Avatar';
 import Typography from '@material-ui/core/Typography';
 
+const RESTORE = 'RESTORE';
 
 class Home extends PureComponent {
 
@@ -37,28 +38,30 @@ class Home extends PureComponent {
 
     removeItem(key){
         let items = this.state.closed_history;
-        this.restoreTab(items, key);
+        this.restoreTab(items, key, RESTORE);
         items.splice(key, 1);
         this.setState({closed_history:items, renderSaveBoolean:true});
-
     }
     removeNextItem(key){
         let items = this.state.nextList;
-        this.restoreTab(items, key);
+        this.restoreTab(items, key, RESTORE);
         items.splice(key, 1);
         this.setState({nextList:items, renderSaveBoolean:true});
+
     }
-    restoreTab(items, key){
+    restoreTab(items, key, messageType){
         const restoredTab = items[key];
-        chrome.tabs.create({ url: restoredTab.full_url, active: false });
+        chrome.runtime.sendMessage({messageType: messageType, tabId: restoredTab.tabId}, function(response) {
+                console.log('ANSWER restore',response.answer);
+        });
+        //chrome.tabs.create({ url: restoredTab.full_url, active: false });
     }
     saveToChrome(){
         console.log("SAVING", this.state.closed_history.length);
-        // chrome.storage.local.set({closed_history: this.state.closed_history, nextList: this.state.nextList}, (result)=>{
-        //     chrome.storage.local.get(['closed_history'], (result)=>{
+        // chrome.storage.local.get(['closed_history'], (result)=>{
         //     const closed_history = result.closed_history || [];
-        //     console.log("AFter SAVING", closed_history.length)
-        //     });
+        //     this.setState({closed_history, renderSaveBoolean:false});
+        //     console.log("DidMOunt", closed_history.length, closed_history)
         // });
         this.setState({renderSaveBoolean:false});
 
