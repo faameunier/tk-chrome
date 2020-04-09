@@ -41,29 +41,25 @@ class Home extends PureComponent {
     }
     componentDidUpdate(prevProps, prevState) {
         if (this.state.renderSaveBoolean){
-            this.saveToChrome();
+            this.forceRender();
         }
     }
 
     removeItem(key){
         let items = this.state.closed_history;
         this.restoreTab(items, key, RESTORE);
-        items.splice(key, 1);
-        this.setState({closed_history:items, renderSaveBoolean:true});
     }
     removeNextItem(key){
         let items = this.state.nextList;
         this.restoreTab(items, key, RESTORE);
-        items.splice(key, 1);
-        this.setState({nextList:items, renderSaveBoolean:true});
-
+        //items.splice(key, 1);
+        //this.setState({nextList:items, renderSaveBoolean:true});
     }
     restoreTab(items, key, messageType){
         const restoredTab = items[key];
         chrome.runtime.sendMessage({messageType: messageType, tabId: restoredTab.tabId});
     }
-    saveToChrome(){
-        console.log("SAVING", this.state.closed_history.length);
+    forceRender(){
         this.setState({renderSaveBoolean:false});
     }
     filterList(selectedList){
