@@ -12,6 +12,8 @@ import Typography from '@material-ui/core/Typography';
 const RESTORE = 'RESTORE';
 const NEXT = 'NEXT';
 const REMOVED = 'REMOVED';
+const CLOSED_HISTORY = 'closed_history';
+const TIME_PERIOD_TO_CONSIDER = 3600000; // in microsecond
 
 class Home extends PureComponent {
 
@@ -21,16 +23,21 @@ class Home extends PureComponent {
 
     }
     componentDidMount(){
-        chrome.storage.local.get(['closed_history'], (result)=>{
+        chrome.storage.local.get([CLOSED_HISTORY], (result)=>{
             const closed_history = result.closed_history || [];
             this.setState({closed_history});
             console.log("DidMOunt", closed_history.length, closed_history)
         });
-        chrome.storage.local.get(['closed_history'], (result)=>{ //WARNING REPLACE WITH PROPER path
-            const nextList = result.closed_history || [];
-            this.setState({nextList});
-        });
+        this.setState({nextList: []});
+        let self=this;
+        chrome.storage.onChanged.addListener( function(changes) {
+            const changesClosedHistory = changes[CLOSED_HISTORY];
+            if (changesClosedHistory &&
+                changesClosedHistory['newValue'].length !== changesClosedHistory['oldValue'].length){
+                self.setState({closed_history: changesClosedHistory['newValue'], renderSaveBoolean:true});
 
+            }
+        });
     }
     componentDidUpdate(prevProps, prevState) {
         if (this.state.renderSaveBoolean){
@@ -53,21 +60,17 @@ class Home extends PureComponent {
     }
     restoreTab(items, key, messageType){
         const restoredTab = items[key];
-        chrome.runtime.sendMessage({messageType: messageType, tabId: restoredTab.tabId}, function(response) {
-                console.log('ANSWER restore',response.answer);
-        });
-        //chrome.tabs.create({ url: restoredTab.full_url, active: false });
+        chrome.runtime.sendMessage({messageType: messageType, tabId: restoredTab.tabId});
     }
     saveToChrome(){
         console.log("SAVING", this.state.closed_history.length);
-        // chrome.storage.local.get(['closed_history'], (result)=>{
-        //     const closed_history = result.closed_history || [];
-        //     this.setState({closed_history, renderSaveBoolean:false});
-        //     console.log("DidMOunt", closed_history.length, closed_history)
-        // });
         this.setState({renderSaveBoolean:false});
-
-
+    }
+    filterList(selectedList){
+        const now = Date.now()
+        return selectedList.filter((item)=> {
+            return (now - Math.max(item.statistics.updated_at, item.statistics.last_active_timestamp))<TIME_PERIOD_TO_CONSIDER;
+        });
     }
     renderList(listToBeRendered){
         const {classes} = this.props;
@@ -82,7 +85,7 @@ class Home extends PureComponent {
 
         }
         const isNext = listToBeRendered===NEXT;
-
+        const filteredList = this.filterList(selectedList);
 
         return(
                 <div className="card-body">
@@ -91,9 +94,9 @@ class Home extends PureComponent {
                       </Typography>
                       <div>
                         <List dense={true} className={classes.listItems}>
-                          {selectedList.length===0 ?
+                          {filteredList.length===0 ?
                             <p>Removed list is empty.</p> :
-                              selectedList.map((website,i) => (
+                              filteredList.map((website,i) => (
                             <ListItem key={i}>
                               <ListItemAvatar>
                                 <Avatar alt={website.title} src={website.favIconUrl} />
@@ -121,7 +124,7 @@ class Home extends PureComponent {
     }
     render(){
         const {classes} = this.props;
-        const numberClosedTabsLastHour = this.state.closed_history? this.state.closed_history.length:0;
+        const numberClosedTabsLastHour = this.state.closed_history? this.filterList(this.state.closed_history).length:0;
         return(
             <div className="card todo-list-container">
                 <div className="card-body">

@@ -293,7 +293,6 @@ class MemoryManager {
 
   async removeTabFromClosedHistory(tabId){
       this.closed_history = await this.closed_history.filter((tab)=>{return tab.tabId !== tabId});
-      console.log("SESSION ID",restoredTab.sessionId);
       await this.save();
 
   }

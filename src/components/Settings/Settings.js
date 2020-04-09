@@ -91,15 +91,15 @@ function AirbnbThumbComponent(props) {
 class Settings extends PureComponent {
     constructor(props){
         super(props);
-        this.state = {open:false, beginHour:8, endHour:20, businessBool:false, casualBool:false};
+        this.state = {open:false, beginHour:6, endHour:23, businessBool:false, casualBool:false};
     }
     componentDidMount(){
         chrome.storage.local.get(['beginHour'], (result)=>{
-            const beginHour = result.beginHour || 8;
+            const beginHour = result.beginHour || 6;
             this.setState({beginHour});
         });
         chrome.storage.local.get(['endHour'], (result)=>{
-            const endHour = result.endHour || 20;
+            const endHour = result.endHour || 23;
             this.setState({endHour});
         });
         chrome.storage.local.get(['businessBool'], (result)=>{
