@@ -10,6 +10,8 @@ import Avatar from '@material-ui/core/Avatar';
 import Typography from '@material-ui/core/Typography';
 
 const RESTORE = 'RESTORE';
+const NEXT = 'NEXT';
+const REMOVED = 'REMOVED';
 
 class Home extends PureComponent {
 
@@ -72,14 +74,16 @@ class Home extends PureComponent {
 
         let selectedList;
         switch(listToBeRendered){
-            case("NEXT"):
+            case(NEXT):
                 selectedList = this.state.nextList? this.state.nextList:[];
                 break;
             default:
                 selectedList = this.state.closed_history? this.state.closed_history:[];
 
         }
-        const isNext = listToBeRendered==="NEXT";
+        const isNext = listToBeRendered===NEXT;
+
+
         return(
                 <div className="card-body">
                     <Typography variant="h6" className={classes.greenTitle}>
@@ -128,8 +132,8 @@ class Home extends PureComponent {
                           <Typography className={classes.boldText}> hour! </Typography>
                     </Typography>
                 </div>
-                {this.renderList.bind(this)("REMOVED")}
-                {this.renderList.bind(this)("NEXT")}
+                {this.renderList.bind(this)(REMOVED)}
+                {this.renderList.bind(this)(NEXT)}
             </div>)
     }
 
