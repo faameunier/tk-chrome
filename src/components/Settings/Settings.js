@@ -94,21 +94,12 @@ class Settings extends PureComponent {
         this.state = {open:false, beginHour:6, endHour:23, businessBool:false, casualBool:false};
     }
     componentDidMount(){
-        chrome.storage.local.get(['beginHour'], (result)=>{
+        chrome.storage.local.get(['beginHour','endHour','businessBool','casualBool'], (result)=>{
             const beginHour = result.beginHour || 6;
-            this.setState({beginHour});
-        });
-        chrome.storage.local.get(['endHour'], (result)=>{
             const endHour = result.endHour || 23;
-            this.setState({endHour});
-        });
-        chrome.storage.local.get(['businessBool'], (result)=>{
             const businessBool = result.businessBool || false;
-            this.setState({businessBool});
-        });
-        chrome.storage.local.get(['casualBool'], (result)=>{
             const casualBool = result.casualBool || false;
-            this.setState({casualBool});
+            this.setState({beginHour, endHour, businessBool, casualBool});
         });
 
     }
@@ -135,25 +126,6 @@ class Settings extends PureComponent {
                 this.saveCasesBool()
             }
         }
-    }
-    removeItem(key){
-        this.setState((prevState)=>{
-            let items = prevState.todoListItems;
-            items.splice(key, 1);
-            chrome.storage.local.set({todoListItems:items});
-            return {todoListItems: items}
-
-        });
-    }
-    addItem(){
-        if(!this.state.item)
-            return;
-        this.setState((prevState)=>{
-            let items = prevState.todoListItems;
-            items.push(prevState.item);
-            chrome.storage.local.set({todoListItems:items});
-            return {todoListItems: items, item:''};
-        });
     }
     toggleOpen(){
         this.setState({open:!this.state.open});

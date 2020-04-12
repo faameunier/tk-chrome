@@ -13,7 +13,7 @@ const RESTORE = 'RESTORE';
 const NEXT = 'NEXT';
 const REMOVED = 'REMOVED';
 const CLOSED_HISTORY = 'closed_history';
-const TIME_PERIOD_TO_CONSIDER = 3600000; // in microsecond
+const TIME_PERIOD_TO_CONSIDER = 3600000*2; // in microsecond
 
 class Home extends PureComponent {
 
@@ -46,14 +46,12 @@ class Home extends PureComponent {
     }
 
     removeItem(key){
-        let items = this.state.closed_history;
+        let items = this.state.closed_history.reverse();
         this.restoreTab(items, key, RESTORE);
     }
     removeNextItem(key){
         let items = this.state.nextList;
         this.restoreTab(items, key, RESTORE);
-        //items.splice(key, 1);
-        //this.setState({nextList:items, renderSaveBoolean:true});
     }
     restoreTab(items, key, messageType){
         const restoredTab = items[key];
@@ -81,7 +79,7 @@ class Home extends PureComponent {
 
         }
         const isNext = listToBeRendered===NEXT;
-        const filteredList = this.filterList(selectedList);
+        const filteredList = this.filterList(selectedList).reverse();
 
         return(
                 <div className="card-body">
@@ -125,10 +123,9 @@ class Home extends PureComponent {
             <div className="card todo-list-container">
                 <div className="card-body">
                     <Typography variant="h3" className={classes.title}>
-
-                          <Typography  className={classes.boldText}>{numberClosedTabsLastHour} Tabs</Typography>
+                          <Typography  className={classes.boldText}>{numberClosedTabsLastHour? numberClosedTabsLastHour:'No'} tabs</Typography>
                           <Typography className={classes.middleText}> were closed in the last </Typography>
-                          <Typography className={classes.boldText}> hour! </Typography>
+                          <Typography className={classes.boldText}> 2 hours! </Typography>
                     </Typography>
                 </div>
                 {this.renderList.bind(this)(REMOVED)}
