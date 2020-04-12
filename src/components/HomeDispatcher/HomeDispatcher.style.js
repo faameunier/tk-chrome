@@ -7,7 +7,7 @@ import React from "react";
 const styles = theme => ({
     homeContainer: {
        minWidth: 400,
-       minHeight: 300,
+       //minHeight: 300,
      },
      tab: {
         color: '#1b9e74',

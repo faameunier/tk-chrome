@@ -89,7 +89,7 @@ class Home extends PureComponent {
                       <div>
                         <List dense={true} className={classes.listItems}>
                           {filteredList.length===0 ?
-                            <p>Removed list is empty.</p> :
+                            <p>No tabs closed in the last 2 hours.</p> :
                               filteredList.map((website,i) => (
                             <ListItem key={i}>
                               <ListItemAvatar>
@@ -129,7 +129,7 @@ class Home extends PureComponent {
                     </Typography>
                 </div>
                 {this.renderList.bind(this)(REMOVED)}
-                {this.renderList.bind(this)(NEXT)}
+                {/*{this.renderList.bind(this)(NEXT)}*/}
             </div>)
     }
 
