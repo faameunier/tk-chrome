@@ -27,7 +27,6 @@ class MemoryManager {
       MemoryManager.instance = this; 
 
       this.tabs = {};
-
       this.closed_history = []; 
       this.last_full_stats_update = Date.now();
       this.last_garbage_collector = Date.now();
@@ -89,7 +88,7 @@ class MemoryManager {
       } catch {
         logger(this, 'Loading fail, init memory');
       }
-    });ù
+    });
   }
 
   async log() {
@@ -293,18 +292,15 @@ class MemoryManager {
   }
 
   async removeTabFromClosedHistory(tabId){
-      this.closed_history = await this.closed_history.filter((tab)=>{return tab.tabId !== tabId});
-      await this.save();
-
+      this.closed_history = this.closed_history.filter((tab)=>{return tab.tabId !== tabId});
   }
   async restoreTab(tabId){
-      const restoredTab = await this.closed_history.filter((tab)=>{return tab.tabId === tabId})[0];
-      chrome.tabs.create({ url: restoredTab.full_url, active: false }); //REPLACE BY SESSIONID
+      const restoredTab = this.closed_history.filter((tab)=>{return tab.tabId === tabId})[0];
+      chrome.tabs.create({ url: restoredTab.full_url, active: false }); //TODO REPLACE BY SESSIONID
   }
 
   async updateSettings(settings){
-    this.settings = await settings;
-    await this.save()
+    this.settings = settings;
   }
 
   async cleanTabsDelay() {

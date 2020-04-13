@@ -11,6 +11,9 @@ import Tooltip from "@material-ui/core/Tooltip/Tooltip";
 import TextField from '@material-ui/core/TextField';
 import FormControl from '@material-ui/core/FormControl';
 
+import { withSnackbar } from 'notistack';
+
+
 const IS_RELAXED_MODE = 'IS_RELAXED_MODE';
 const IS_FOCUSED_MODE = 'IS_FOCUSED_MODE';
 const IS_CUSTOMIZED_MODE = 'IS_CUSTOMIZED_MODE';
@@ -176,6 +179,12 @@ class Settings extends PureComponent {
     }
     handleSaveParameters(){
         chrome.runtime.sendMessage({messageType: 'SETTINGS', settings:this.state.settings});
+        const key = this.props.enqueueSnackbar('New Settings are saved.',{
+            anchorOrigin: {
+                vertical: 'bottom',
+                horizontal: 'right',
+                 }
+        });
     }
     handleChangeParameters = parameter => event =>{
         let settings = this.state.settings;
@@ -278,5 +287,4 @@ class Settings extends PureComponent {
     }
 
 }
-
-export default Settings;
+export default withSnackbar(Settings);
