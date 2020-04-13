@@ -10,7 +10,6 @@ import Slider from '@material-ui/core/Slider';
 import Tooltip from "@material-ui/core/Tooltip/Tooltip";
 import TextField from '@material-ui/core/TextField';
 import FormControl from '@material-ui/core/FormControl';
-
 import { withSnackbar } from 'notistack';
 
 
@@ -178,14 +177,17 @@ class Settings extends PureComponent {
         this.setState({renderSaveBoolean:false});
     }
     handleSaveParameters(){
+        const { classes } = this.props;
         chrome.runtime.sendMessage({messageType: 'SETTINGS', settings:this.state.settings});
-        const key = this.props.enqueueSnackbar('New Settings are saved.',
+        this.props.enqueueSnackbar('New Settings are saved.',
             {
                 variant: 'success',
                 anchorOrigin: {
                     vertical: 'bottom',
-                    horizontal: 'right',
-                     }
+                    horizontal: 'left',
+                     },
+                transitionDuration: 500,
+                autoHideDuration: 1000,
             }
             );
     }
@@ -286,7 +288,8 @@ class Settings extends PureComponent {
                       </div>
                     </div>
                 </div>
-            </div>)
+            </div>
+    )
     }
 
 }
