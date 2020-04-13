@@ -302,9 +302,8 @@ class MemoryManager {
       chrome.tabs.create({ url: restoredTab.full_url, active: false }); //REPLACE BY SESSIONID
   }
 
-  async updateSettings(domain, path, value){
-    console.log('UPDATE SETTINGS', value);
-    this.settings[domain][path] = await value;
+  async updateSettings(settings){
+    this.settings = await settings;
     await this.save()
   }
 

@@ -110,8 +110,6 @@ class Settings extends PureComponent {
             // if (!customizedBool && !relaxedMode && !customizedBool){
             //     relaxedMode = true;
             // }
-            console.log('SETTINGS IN FRONT', result.settings);
-
             const settings = result.settings || {policy: {target_tabs: 100}};
             this.setState({beginHour, endHour, focusedMode, relaxedMode, customizedBool, settings});
         });
@@ -119,9 +117,7 @@ class Settings extends PureComponent {
         let self=this;
         chrome.storage.onChanged.addListener( function(changes) {
             const changesSettings= changes['settings'];
-            console.log("Changes in FRONT", changes);
             if (changesSettings){
-                console.log('CHANGES to SETTINGS');
                 self.setState({settings: changesSettings['newValue'], renderSaveBoolean: true});
             }
         });
@@ -137,7 +133,6 @@ class Settings extends PureComponent {
                 this.saveCasesBool();
         }
         if (this.state.renderSaveBoolean){
-            console.log("IN DA LOOP FORCE");
             this.forceRender();
         }
 
@@ -159,7 +154,6 @@ class Settings extends PureComponent {
 
     }
     saveSettingsToState(){
-        console.log('ENTER SAVE_SETTINGS_TO_STATE');
         let settings = this.state.settings;
         if (this.state.focusedMode){
             settings['policy']['target_tabs'] = 5;
@@ -169,12 +163,8 @@ class Settings extends PureComponent {
         }
 
         if (!this.state.customizedBool) {
-            console.log("SENDING MESSAGE", settings);
-            chrome.runtime.sendMessage({messageType: 'POLICY', path:'target_tabs',
-                                        value:settings['policy']['target_tabs']});
+            chrome.runtime.sendMessage({messageType: 'SETTINGS', settings:settings});
         }
-        //this.setState({settings, renderSaveBoolean:true});
-
     }
     saveCasesBool(){
         chrome.storage.local.set({relaxedMode:this.state.relaxedMode, focusedMode:this.state.focusedMode,
@@ -182,11 +172,10 @@ class Settings extends PureComponent {
         );
     }
      forceRender(){
-        console.log("ForceRender");
         this.setState({renderSaveBoolean:false});
     }
-    saveParameters(){
-
+    handleSaveParameters(){
+        chrome.runtime.sendMessage({messageType: 'SETTINGS', settings:this.state.settings});
     }
     handleChangeParameters = parameter => event =>{
         let settings = this.state.settings;
@@ -195,7 +184,6 @@ class Settings extends PureComponent {
     }
     render(){
         const { classes } = this.props;
-        console.log("RENDER", );
         const inputsParameters = [
               {
                 label: 'Optimal number of tabs ',
@@ -279,7 +267,7 @@ class Settings extends PureComponent {
                             disabled={!this.state.customizedBool}
                             className={classes.secondaryButton}
                             variant={this.state.customizedBool? 'outline-primary':'primary'}
-                            onClick={this.handleSaveClick}
+                            onClick={()=>this.handleSaveParameters()}
                             >
                           Save
                       </Button>
