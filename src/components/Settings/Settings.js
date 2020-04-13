@@ -1,6 +1,5 @@
 import React, { PureComponent } from 'react';
 import Form from 'react-bootstrap/Form';
-import Collapse from 'react-bootstrap/Collapse';
 import Button from 'react-bootstrap/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import Typography from "@material-ui/core/Typography/Typography";
@@ -117,6 +116,7 @@ class Settings extends PureComponent {
             this.setState({beginHour, endHour, focusedMode, relaxedMode, customizedBool, settings});
         });
 
+        let self=this;
         chrome.storage.onChanged.addListener( function(changes) {
             const changesSettings= changes['settings'];
             console.log("Changes in FRONT", changes);
@@ -127,7 +127,6 @@ class Settings extends PureComponent {
         });
     }
     componentDidUpdate(prevProps, prevState) {
-
         if (prevState.beginHour !== this.state.beginHour || prevState.endHour !== this.state.endHour){
             this.saveActiveHoursToLocal();
         }
@@ -138,8 +137,10 @@ class Settings extends PureComponent {
                 this.saveCasesBool();
         }
         if (this.state.renderSaveBoolean){
+            console.log("IN DA LOOP FORCE");
             this.forceRender();
         }
+
     }
     handleSliderChange(event, value){
         const beginHour = value[0];
@@ -181,7 +182,11 @@ class Settings extends PureComponent {
         );
     }
      forceRender(){
+        console.log("ForceRender");
         this.setState({renderSaveBoolean:false});
+    }
+    saveParameters(){
+
     }
     handleChangeParameters = parameter => event =>{
         let settings = this.state.settings;
@@ -190,14 +195,15 @@ class Settings extends PureComponent {
     }
     render(){
         const { classes } = this.props;
-            const inputsParameters = [
-      {
-        label: 'Optimal number of tabs ',
-        value: this.state.settings.policy.target_tabs,
-        onChange: OPTIMAL_NUMBER_TABS,
-        inputProps: { min: '1', max: '100', step: '1' },
-      },
-    ];
+        console.log("RENDER", );
+        const inputsParameters = [
+              {
+                label: 'Optimal number of tabs ',
+                value: this.state.settings.policy.target_tabs,
+                onChange: OPTIMAL_NUMBER_TABS,
+                inputProps: { min: '1', max: '100', step: '1' },
+              },
+            ];
     const listItemsParameters = inputsParameters.map((item, index) => (
       <TextField
         key={index}

@@ -40,7 +40,7 @@ class MemoryManager {
           "min_time_garbage_collector": 5*60*1000
         },
         "policy": {
-          "target_tabs": 4,
+          "target_tabs": 12,
           "score_threshold": 50,
           "decay": 0.8,
           "min_time": 3*1000,
@@ -76,11 +76,10 @@ class MemoryManager {
   }
 
   async load() {
-    await storageGet(['tabs', 'closed_history', 'last_full_stats_update', 'settings']).then((data) => {
+    await storageGet(['tabs', 'closed_history', 'last_full_stats_update']).then((data) => {
       try {
         logger(this, 'Loading state from storage');
         this.closed_history = data.closed_history;
-        this.settings = data.settings;
         this.last_full_stats_update = data.last_full_stats_update;
         this.tabs = JSON.parse(data.tabs);
         for(let key of Object.keys(this.tabs)) {
@@ -90,7 +89,7 @@ class MemoryManager {
       } catch {
         logger(this, 'Loading fail, init memory');
       }
-    });
+    });ù
   }
 
   async log() {
