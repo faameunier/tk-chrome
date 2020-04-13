@@ -32,10 +32,8 @@ class Home extends PureComponent {
         let self=this;
         chrome.storage.onChanged.addListener( function(changes) {
             const changesClosedHistory = changes[CLOSED_HISTORY];
-            if (changesClosedHistory &&
-                changesClosedHistory['newValue'].length !== changesClosedHistory['oldValue'].length){
+            if (changesClosedHistory){
                 self.setState({closed_history: changesClosedHistory['newValue'], renderSaveBoolean:true});
-
             }
         });
     }

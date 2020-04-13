@@ -179,12 +179,15 @@ class Settings extends PureComponent {
     }
     handleSaveParameters(){
         chrome.runtime.sendMessage({messageType: 'SETTINGS', settings:this.state.settings});
-        const key = this.props.enqueueSnackbar('New Settings are saved.',{
-            anchorOrigin: {
-                vertical: 'bottom',
-                horizontal: 'right',
-                 }
-        });
+        const key = this.props.enqueueSnackbar('New Settings are saved.',
+            {
+                variant: 'success',
+                anchorOrigin: {
+                    vertical: 'bottom',
+                    horizontal: 'right',
+                     }
+            }
+            );
     }
     handleChangeParameters = parameter => event =>{
         let settings = this.state.settings;
