@@ -32,6 +32,11 @@ chrome.runtime.onMessage.addListener(
             eventQueue.enqueue(() => memoryManager.restoreTab(request.tabId));
             eventQueue.enqueue(() => memoryManager.removeTabFromClosedHistory(request.tabId));
             break;
+        case 'POLICY':
+            console.log('RECEIVING SETTINGS', request.path, request.value);
+            eventQueue.enqueue(() => memoryManager.updateSettings('policy',request.path, request.value));
+            break;
+
         default:
             break;
     }

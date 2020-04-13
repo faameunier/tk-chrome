@@ -53,14 +53,14 @@ class MemoryManager {
           "min_active": 3 * 1000,
           "cached_decay": 0.7
         }
-      }
+      };
     }
     return MemoryManager.instance;
   }
 
   async reset() {
     this.tabs = {};
-    this.closed_history = []; 
+    this.closed_history = [];
     this.last_full_stats_update = Date.now();
     await this.save();
     await this.load();
@@ -71,14 +71,16 @@ class MemoryManager {
     await storageSet({
       "tabs": JSON.stringify(this.tabs),
       "closed_history": this.closed_history,
+      "settings": this.settings,
       "last_full_stats_update": this.last_full_stats_update});
   }
 
   async load() {
-    await storageGet(['tabs', 'closed_history', 'last_full_stats_update']).then((data) => {
+    await storageGet(['tabs', 'closed_history', 'last_full_stats_update', 'settings']).then((data) => {
       try {
         logger(this, 'Loading state from storage');
         this.closed_history = data.closed_history;
+        this.settings = data.settings;
         this.last_full_stats_update = data.last_full_stats_update;
         this.tabs = JSON.parse(data.tabs);
         for(let key of Object.keys(this.tabs)) {
@@ -299,6 +301,12 @@ class MemoryManager {
   async restoreTab(tabId){
       const restoredTab = await this.closed_history.filter((tab)=>{return tab.tabId === tabId})[0];
       chrome.tabs.create({ url: restoredTab.full_url, active: false }); //REPLACE BY SESSIONID
+  }
+
+  async updateSettings(domain, path, value){
+    console.log('UPDATE SETTINGS', value);
+    this.settings[domain][path] = await value;
+    await this.save()
   }
 
   async cleanTabsDelay() {

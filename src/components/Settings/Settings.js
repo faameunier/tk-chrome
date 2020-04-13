@@ -15,6 +15,7 @@ import FormControl from '@material-ui/core/FormControl';
 const IS_RELAXED_MODE = 'IS_RELAXED_MODE';
 const IS_FOCUSED_MODE = 'IS_FOCUSED_MODE';
 const IS_CUSTOMIZED_MODE = 'IS_CUSTOMIZED_MODE';
+const OPTIMAL_NUMBER_TABS = 'target_tabs';
 
 const ACTIVE_MARKS = [
   {
@@ -97,34 +98,48 @@ function AirbnbThumbComponent(props) {
 class Settings extends PureComponent {
     constructor(props){
         super(props);
-        this.state = {open:false, beginHour:6, endHour:23, focusedMode:false, relaxedMode:false, customizeBool: false};
+        this.state = {open:false, beginHour:0, endHour:24, focusedMode:false, relaxedMode:false, customizedBool: false,
+                        settings: {policy: {target_tabs: 100}}, renderSaveBoolean:false};
     }
     componentDidMount(){
-        chrome.storage.local.get(['beginHour','endHour','focusedMode','relaxedMode'], (result)=>{
-            const beginHour = result.beginHour || 6;
-            const endHour = result.endHour || 23;
+        chrome.storage.local.get(['beginHour','endHour','focusedMode','relaxedMode','customizedBool', 'settings'], (result)=>{
+            const beginHour = result.beginHour || 0;
+            const endHour = result.endHour || 24;
             const focusedMode = result.focusedMode || false;
-            const relaxedMode = result.relaxedMode || false;
-            this.setState({beginHour, endHour, focusedMode, relaxedMode});
+            let relaxedMode = result.relaxedMode || false;
+            const customizedBool = result.customizedBool || false;
+            // if (!customizedBool && !relaxedMode && !customizedBool){
+            //     relaxedMode = true;
+            // }
+            console.log('SETTINGS IN FRONT', result.settings);
+
+            const settings = result.settings || {policy: {target_tabs: 100}};
+            this.setState({beginHour, endHour, focusedMode, relaxedMode, customizedBool, settings});
         });
 
+        chrome.storage.onChanged.addListener( function(changes) {
+            const changesSettings= changes['settings'];
+            console.log("Changes in FRONT", changes);
+            if (changesSettings){
+                console.log('CHANGES to SETTINGS');
+                self.setState({settings: changesSettings['newValue'], renderSaveBoolean: true});
+            }
+        });
     }
     componentDidUpdate(prevProps, prevState) {
 
         if (prevState.beginHour !== this.state.beginHour || prevState.endHour !== this.state.endHour){
             this.saveActiveHoursToLocal();
         }
-        const bothBoolTrue = this.state.relaxedMode && this.state.focusedMode;
-
         if (prevState.relaxedMode !== this.state.relaxedMode ||
             prevState.focusedMode !== this.state.focusedMode ||
-            prevState.customizeBool !== this.state.customizeBool){
-                this.saveCasesBool()
+            prevState.customizedBool !== this.state.customizedBool){
+                this.saveSettingsToState();
+                this.saveCasesBool();
         }
-    }
-    toggleOpen(){
-        this.setState({open:!this.state.open});
-
+        if (this.state.renderSaveBoolean){
+            this.forceRender();
+        }
     }
     handleSliderChange(event, value){
         const beginHour = value[0];
@@ -139,29 +154,56 @@ class Settings extends PureComponent {
 
     handleBoolChange(changeType){
         this.setState({relaxedMode: changeType===IS_RELAXED_MODE, focusedMode:changeType===IS_FOCUSED_MODE,
-                        customizeBool:changeType===IS_CUSTOMIZED_MODE})
+                        customizedBool:changeType===IS_CUSTOMIZED_MODE});
+
+    }
+    saveSettingsToState(){
+        console.log('ENTER SAVE_SETTINGS_TO_STATE');
+        let settings = this.state.settings;
+        if (this.state.focusedMode){
+            settings['policy']['target_tabs'] = 5;
+        }
+        else if(this.state.relaxedMode){
+            settings['policy']['target_tabs'] = 12;
+        }
+
+        if (!this.state.customizedBool) {
+            console.log("SENDING MESSAGE", settings);
+            chrome.runtime.sendMessage({messageType: 'POLICY', path:'target_tabs',
+                                        value:settings['policy']['target_tabs']});
+        }
+        //this.setState({settings, renderSaveBoolean:true});
+
     }
     saveCasesBool(){
         chrome.storage.local.set({relaxedMode:this.state.relaxedMode, focusedMode:this.state.focusedMode,
-            customizeBool:this.state.customizeBool});
+            customizedBool:this.state.customizedBool}
+        );
     }
-
+     forceRender(){
+        this.setState({renderSaveBoolean:false});
+    }
+    handleChangeParameters = parameter => event =>{
+        let settings = this.state.settings;
+        settings['policy'][parameter] = event.target.value;
+        this.setState({settings: settings, renderSaveBoolean:true});
+    }
     render(){
         const { classes } = this.props;
             const inputsParameters = [
       {
         label: 'Optimal number of tabs ',
-        value: 14,//this.props.consensusTotCoverage,
-        //onChange: this.handleChangeParameters(CONSENSUS_TOT_COVERAGE),
-        inputProps: { min: '0', max: '100', step: '1' },
+        value: this.state.settings.policy.target_tabs,
+        onChange: OPTIMAL_NUMBER_TABS,
+        inputProps: { min: '1', max: '100', step: '1' },
       },
     ];
     const listItemsParameters = inputsParameters.map((item, index) => (
       <TextField
         key={index}
-        disabled={!this.state.customizeBool}
+        disabled={!this.state.customizedBool}
         label={item.label}
-        //onChange={item.onChange}
+        onChange={this.handleChangeParameters(item.onChange)}
         value={item.value}
         className={classes.textField}
         type="number"
@@ -218,7 +260,7 @@ class Settings extends PureComponent {
                       <Typography variant="h6" gutterBottom>
                         <FormControlLabel
                           onChange={()=>this.handleBoolChange(IS_CUSTOMIZED_MODE)}
-                          control={<Checkbox checked={this.state.customizeBool} value="" color="primary" />}
+                          control={<Checkbox checked={this.state.customizedBool} value="" color="primary" />}
                           label="Customize your settings' parameters"
                         />
                       </Typography>
@@ -228,9 +270,9 @@ class Settings extends PureComponent {
                       </FormControl>
                       <div>
                         <Button
-                            disabled={!this.state.customizeBool}
+                            disabled={!this.state.customizedBool}
                             className={classes.secondaryButton}
-                            variant={this.state.customizeBool? 'outline-primary':'primary'}
+                            variant={this.state.customizedBool? 'outline-primary':'primary'}
                             onClick={this.handleSaveClick}
                             >
                           Save
