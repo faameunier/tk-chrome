@@ -7,7 +7,6 @@
     overflow-y: scroll;
 }
 .card-header{
-    margin-top: 18px;
     background-color: rgba(255, 255, 255, 0.21);
     min-width: 200px;
 }

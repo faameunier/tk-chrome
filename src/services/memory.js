@@ -27,7 +27,6 @@ class MemoryManager {
       MemoryManager.instance = this; 
 
       this.tabs = {};
-
       this.closed_history = []; 
       this.last_full_stats_update = Date.now();
       this.last_garbage_collector = Date.now();
@@ -40,7 +39,7 @@ class MemoryManager {
           "min_time_garbage_collector": 5*60*1000
         },
         "policy": {
-          "target_tabs": 10,
+          "target_tabs": 12,
           "score_threshold": 50,
           "decay": 0.8,
           "min_time": 3*1000,
@@ -53,14 +52,14 @@ class MemoryManager {
           "min_active": 3 * 1000,
           "cached_decay": 0.7
         }
-      }
+      };
     }
     return MemoryManager.instance;
   }
 
   async reset() {
     this.tabs = {};
-    this.closed_history = []; 
+    this.closed_history = [];
     this.last_full_stats_update = Date.now();
     await this.save();
     await this.load();
@@ -71,6 +70,7 @@ class MemoryManager {
     await storageSet({
       "tabs": JSON.stringify(this.tabs),
       "closed_history": this.closed_history,
+      "settings": this.settings,
       "last_full_stats_update": this.last_full_stats_update});
   }
 
@@ -133,12 +133,14 @@ class MemoryManager {
       let new_tab = copy(this.empty_tab);
 
       new_tab.tabId = tab.id;
-
       new_tab.pinned = tab.pinned;
       new_tab.windowId = tab.windowId;
       if (typeof tab.url !== 'undefined') {
         // No impact on stats until proven otherwise
         new_tab.url = getDomain(tab.url);
+        new_tab.full_url = tab.url;
+        new_tab.seesionId = ""; //NotAvailable?
+
       }
       if (typeof tab.cache !== 'undefined') {
         // No impact on stats until proven otherwise
@@ -202,9 +204,11 @@ class MemoryManager {
     }
     let stored_tab = this.tabs[tabId];
     if (typeof changes.url !== 'undefined') {
-      let new_url = getDomain(changes.url);
+      let new_url = getDomain(changes.url);;
+      let new_full_url = changes.url
       let old_url = stored_tab.url;
       stored_tab.url = new_url;
+      stored_tab.full_url = new_full_url;
       if(new_url !== old_url) {
         await this.updateStatistics(stored_tab, false, false);
         let old_statistics = stored_tab.statistics;
@@ -285,6 +289,18 @@ class MemoryManager {
       }
       this.last_full_stats_update = now;
     }
+  }
+
+  async removeTabFromClosedHistory(tabId){
+      this.closed_history = this.closed_history.filter((tab)=>{return tab.tabId !== tabId});
+  }
+  async restoreTab(tabId){
+      const restoredTab = this.closed_history.filter((tab)=>{return tab.tabId === tabId})[0];
+      chrome.tabs.create({ url: restoredTab.full_url, active: false }); //TODO REPLACE BY SESSIONID
+  }
+
+  async updateSettings(settings){
+    this.settings = settings;
   }
 
   async cleanTabsDelay() {
