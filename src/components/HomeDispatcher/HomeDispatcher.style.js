@@ -12,7 +12,7 @@ const styles = theme => ({
         color: '#1b9e74',
      },
     notification: {
-        maxWidth: 275,
+        left: 150,
     }
 });
 export default withStyles(styles)(HomeDispatcher);

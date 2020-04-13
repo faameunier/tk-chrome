@@ -184,10 +184,10 @@ class Settings extends PureComponent {
                 variant: 'success',
                 anchorOrigin: {
                     vertical: 'bottom',
-                    horizontal: 'left',
+                    horizontal: 'right',
                      },
-                transitionDuration: 500,
-                autoHideDuration: 1000,
+                transitionDuration: 750,
+                autoHideDuration: 2000,
             }
             );
     }
