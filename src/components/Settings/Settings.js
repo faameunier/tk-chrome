@@ -9,6 +9,12 @@ import PrimaryText from '../PrimaryText'
 import { withStyles } from '@material-ui/core/styles';
 import Slider from '@material-ui/core/Slider';
 import Tooltip from "@material-ui/core/Tooltip/Tooltip";
+import TextField from '@material-ui/core/TextField';
+import FormControl from '@material-ui/core/FormControl';
+
+const IS_RELAXED_MODE = 'IS_RELAXED_MODE';
+const IS_FOCUSED_MODE = 'IS_FOCUSED_MODE';
+const IS_CUSTOMIZED_MODE = 'IS_CUSTOMIZED_MODE';
 
 const ACTIVE_MARKS = [
   {
@@ -91,15 +97,15 @@ function AirbnbThumbComponent(props) {
 class Settings extends PureComponent {
     constructor(props){
         super(props);
-        this.state = {open:false, beginHour:6, endHour:23, businessBool:false, casualBool:false};
+        this.state = {open:false, beginHour:6, endHour:23, focusedMode:false, relaxedMode:false, customizeBool: false};
     }
     componentDidMount(){
-        chrome.storage.local.get(['beginHour','endHour','businessBool','casualBool'], (result)=>{
+        chrome.storage.local.get(['beginHour','endHour','focusedMode','relaxedMode'], (result)=>{
             const beginHour = result.beginHour || 6;
             const endHour = result.endHour || 23;
-            const businessBool = result.businessBool || false;
-            const casualBool = result.casualBool || false;
-            this.setState({beginHour, endHour, businessBool, casualBool});
+            const focusedMode = result.focusedMode || false;
+            const relaxedMode = result.relaxedMode || false;
+            this.setState({beginHour, endHour, focusedMode, relaxedMode});
         });
 
     }
@@ -108,23 +114,12 @@ class Settings extends PureComponent {
         if (prevState.beginHour !== this.state.beginHour || prevState.endHour !== this.state.endHour){
             this.saveActiveHoursToLocal();
         }
-        const bothBoolTrue = this.state.casualBool && this.state.businessBool
+        const bothBoolTrue = this.state.relaxedMode && this.state.focusedMode;
 
-        if (prevState.casualBool !== this.state.casualBool){
-            if (bothBoolTrue){
-                this.setState({businessBool:false},()=>{this.saveCasesBool()});
-            }
-            else {
+        if (prevState.relaxedMode !== this.state.relaxedMode ||
+            prevState.focusedMode !== this.state.focusedMode ||
+            prevState.customizeBool !== this.state.customizeBool){
                 this.saveCasesBool()
-            }
-        }
-        if (prevState.businessBool !== this.state.businessBool){
-            if (bothBoolTrue){
-                this.setState({casualBool:false},()=>{this.saveCasesBool()});
-            }
-            else {
-                this.saveCasesBool()
-            }
         }
     }
     toggleOpen(){
@@ -142,18 +137,37 @@ class Settings extends PureComponent {
         chrome.storage.local.set({beginHour:this.state.beginHour, endHour:this.state.endHour});
     }
 
-    handleCasualChange(){
-        this.setState({casualBool: !this.state.casualBool})
-    }
-    handleBusinessChange(){
-        this.setState({businessBool: !this.state.businessBool})
+    handleBoolChange(changeType){
+        this.setState({relaxedMode: changeType===IS_RELAXED_MODE, focusedMode:changeType===IS_FOCUSED_MODE,
+                        customizeBool:changeType===IS_CUSTOMIZED_MODE})
     }
     saveCasesBool(){
-        chrome.storage.local.set({casualBool:this.state.casualBool, businessBool:this.state.businessBool});
+        chrome.storage.local.set({relaxedMode:this.state.relaxedMode, focusedMode:this.state.focusedMode,
+            customizeBool:this.state.customizeBool});
     }
 
     render(){
         const { classes } = this.props;
+            const inputsParameters = [
+      {
+        label: 'Optimal number of tabs ',
+        value: 14,//this.props.consensusTotCoverage,
+        //onChange: this.handleChangeParameters(CONSENSUS_TOT_COVERAGE),
+        inputProps: { min: '0', max: '100', step: '1' },
+      },
+    ];
+    const listItemsParameters = inputsParameters.map((item, index) => (
+      <TextField
+        key={index}
+        disabled={!this.state.customizeBool}
+        label={item.label}
+        //onChange={item.onChange}
+        value={item.value}
+        className={classes.textField}
+        type="number"
+        inputProps={item.inputProps}
+      />
+    ));
         return(
             <div className="card todo-list-container">
                 <div className="card-body" >
@@ -164,26 +178,27 @@ class Settings extends PureComponent {
                           />
                     <div className={classes.textField}>
                         <div className={classes.activeBar}>
-                           <h1 className={"bold-title"}>Active hours:</h1>
-                        <AirbnbSlider
-                            ThumbComponent={AirbnbThumbComponent}
-                            //ValueLabelComponent={ValueLabelComponent}
-                            getAriaLabel={index => (index === 0 ? 'Begin active hours' : 'End active hours')}
-                            defaultValue={[this.state.beginHour, this.state.endHour]}
-                            value={[this.state.beginHour, this.state.endHour]}
-                            valueLabelDisplay="auto"
-                            min={0}
-                            max={24}
-                            marks={ACTIVE_MARKS}
-                            onChange={(e,v) => this.handleSliderChange(e,v)}
-                          />
+                           {/*<h1 className={"bold-title"}>Active hours:</h1>*/}
+                        {/*<AirbnbSlider*/}
+                            {/*ThumbComponent={AirbnbThumbComponent}*/}
+                            {/*//ValueLabelComponent={ValueLabelComponent}*/}
+                            {/*getAriaLabel={index => (index === 0 ? 'Begin active hours' : 'End active hours')}*/}
+                            {/*defaultValue={[this.state.beginHour, this.state.endHour]}*/}
+                            {/*value={[this.state.beginHour, this.state.endHour]}*/}
+                            {/*valueLabelDisplay="auto"*/}
+                            {/*min={0}*/}
+                            {/*max={24}*/}
+                            {/*marks={ACTIVE_MARKS}*/}
+                            {/*onChange={(e,v) => this.handleSliderChange(e,v)}*/}
+                          {/*/>*/}
                         </div>
+                       <h1 className={"bold-title"}>Select Tabby's operating mode:</h1>
                         <Form className={classes.qualityWrapper} >
                           <Typography variant="h6" gutterBottom>
                             <FormControlLabel
                               control={<Checkbox
-                                  checked={this.state.businessBool}
-                                  onChange={()=>this.handleBusinessChange()}
+                                  checked={this.state.focusedMode}
+                                  onChange={()=>this.handleBoolChange(IS_FOCUSED_MODE)}
                                   value="secondary"
                                   color="primary" />}
                               label="Focused Mode"
@@ -192,30 +207,35 @@ class Settings extends PureComponent {
                             <Typography variant="h6" gutterBottom>
                             <FormControlLabel
                               control={<Checkbox
-                                  checked={this.state.casualBool}
-                                    onChange={()=>this.handleCasualChange()}
+                                  checked={this.state.relaxedMode}
+                                    onChange={()=>this.handleBoolChange(IS_RELAXED_MODE)}
                                   value="secondary"
                                   color="primary" />}
                               label="Relaxed Mode"
                             />
                           </Typography>
                         </Form>
-                        <Button
-                            onClick={() => this.toggleOpen(this.state.open)}
-                            aria-controls="example-collapse-text"
-                            aria-expanded={this.state.open}
-                            variant="outline-primary"
-                            className="button"
-                            disabled
-                          >
-                            Customize
-                          </Button>
-                          <Collapse in={this.state.open}>
-                            <div id="example-collapse-text">
-                              Still in construction...
+                      <Typography variant="h6" gutterBottom>
+                        <FormControlLabel
+                          onChange={()=>this.handleBoolChange(IS_CUSTOMIZED_MODE)}
+                          control={<Checkbox checked={this.state.customizeBool} value="" color="primary" />}
+                          label="Customize your settings' parameters"
+                        />
+                      </Typography>
 
-                            </div>
-                          </Collapse>
+                      <FormControl className={classes.content} required fullWidth>
+                        {listItemsParameters}
+                      </FormControl>
+                      <div>
+                        <Button
+                            disabled={!this.state.customizeBool}
+                            className={classes.secondaryButton}
+                            variant={this.state.customizeBool? 'outline-primary':'primary'}
+                            onClick={this.handleSaveClick}
+                            >
+                          Save
+                      </Button>
+                      </div>
                     </div>
                 </div>
             </div>)
