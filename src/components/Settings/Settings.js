@@ -153,6 +153,9 @@ class Settings extends PureComponent {
     handleBoolChange(changeType){
         this.setState({relaxedMode: changeType===IS_RELAXED_MODE, focusedMode:changeType===IS_FOCUSED_MODE,
                         customizedBool:changeType===IS_CUSTOMIZED_MODE});
+        if (changeType===IS_RELAXED_MODE || changeType===IS_FOCUSED_MODE){
+                    this.notifyUser();
+        }
 
     }
     saveSettingsToState(){
@@ -177,8 +180,10 @@ class Settings extends PureComponent {
         this.setState({renderSaveBoolean:false});
     }
     handleSaveParameters(){
-        const { classes } = this.props;
         chrome.runtime.sendMessage({messageType: 'SETTINGS', settings:this.state.settings});
+        this.notifyUser();
+    }
+    notifyUser(){
         this.props.enqueueSnackbar('New Settings are saved.',
             {
                 variant: 'success',

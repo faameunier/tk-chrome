@@ -42,6 +42,7 @@ class HomeDispatcher extends PureComponent {
         const {classes} = this.props;
         return(
         <SnackbarProvider
+                maxSnack={2}
                 classes={{
                   root: classes.notification,
                 }}
