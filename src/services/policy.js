@@ -4,7 +4,6 @@ class PolicyManager {
   static async run() {
     let windows = this.buildWindows();
     this.backfillRuns(windows);
-
     let windowIds = Object.keys(windows);
     let promises = _.map(windowIds, (windowId) => this.runWindow(windows, windowId));
     let results = await Promise.all(promises); // Running every windows update in parallel.

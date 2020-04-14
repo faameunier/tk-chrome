@@ -36,7 +36,8 @@ class MemoryManager {
     this.current_scores = {};
     this.runtime_events = {
       "last_full_stats_update": Date.now(),
-      "last_garbage_collector": Date.now()
+      "last_garbage_collector": Date.now(),
+      "last_policy_runs": {}
     };
     this.settings = {
       "memory": {
@@ -49,7 +50,7 @@ class MemoryManager {
         "score_threshold": 50,
         "decay": 0.8,
         "min_time": 3 * 1000,
-        "last_policy_runs": {},
+        
         "active": false,
         "pinned": false,
         "audible": false
