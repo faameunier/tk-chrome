@@ -31,7 +31,13 @@ const styles = theme => ({
     itemText: {
         maxWidth: 200,
     },
-    listItems: {
+    timeDisplay: {
+        fontWeight: "bold",
+        fontSize: 14,
+    },
+    gridAvatarWithTime: {
+        display: 'flex',
+        flexDirection: 'column',
     }
 
 });

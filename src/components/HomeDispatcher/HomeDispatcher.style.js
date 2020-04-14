@@ -11,5 +11,8 @@ const styles = theme => ({
      tab: {
         color: '#1b9e74',
      },
+    notification: {
+        left: 150,
+    }
 });
 export default withStyles(styles)(HomeDispatcher);

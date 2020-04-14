@@ -4,6 +4,7 @@ import Tab from '@material-ui/core/Tab';
 import Paper from '@material-ui/core/Paper';
 import Settings from '../Settings';
 import Home from '../Home';
+import {SnackbarProvider} from "notistack";
 
 
 
@@ -40,6 +41,12 @@ class HomeDispatcher extends PureComponent {
     render(){
         const {classes} = this.props;
         return(
+        <SnackbarProvider
+                maxSnack={2}
+                classes={{
+                  root: classes.notification,
+                }}
+            >
             <div className={classes.homeContainer}>
                 <Paper square>
                   <Tabs
@@ -53,6 +60,7 @@ class HomeDispatcher extends PureComponent {
                     <div>{this.dispatchPage()}</div>
                 </Paper>
             </div>
+        </SnackbarProvider>
         )
     }
 
