@@ -64,6 +64,9 @@ class PolicyManager {
     if (tabs.length > memoryManager.settings.policy.target_tabs) { // if too many tabs
       if (this.exponentialTrigger(tabs, windowId)) { // if we waited enough
         tabs = _.filter(tabs, (tab) => { return tab.active == memoryManager.settings.policy.active && tab.pinned == memoryManager.settings.policy.pinned && tab.audible == memoryManager.settings.policy.audible })
+        if (tabs.length === 0) {
+          return [false, {}];
+        }
         let scores = await Promise.all(_.map(tabs, (tab) => Scorer.score(tab)));
 
         let objScores = _.zipObject(_.map(tabs, (tab) => tab.tabId), scores); // save scores
@@ -71,8 +74,13 @@ class PolicyManager {
         scores = _.zip(_.map(tabs, (tab) => tab.tabId), scores); // [[tabId1, score1], [tabId2, score2]...]
         scores.sort((s1, s2) => (s1[1] > s2[1]) ? 1 : -1); // ascending sort
         logger(windowId.toString().concat(" window scored: ", JSON.stringify(scores)));
-        let deleteMe = scores.shift()[0];
+        let deleteMe = scores.shift();
 
+        if (deleteMe[1] === MAXIMUM_SCORE) {
+          return [false, {}];
+        } else {
+          deleteMe = deleteMe[0];
+        }
         // safety hack, do not remove an old tab only because you have new ones
         var count = 0;
         while (scores.length > 0) {
