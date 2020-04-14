@@ -4,6 +4,8 @@ class PolicyManager {
   static async run() {
     let windows = this.buildWindows();
     this.backfillRuns(windows);
+    this.cleanRuntimeWindows(windows);
+
     let windowIds = Object.keys(windows);
     let promises = _.map(windowIds, (windowId) => this.runWindow(windows, windowId));
     let results = await Promise.all(promises); // Running every windows update in parallel.
@@ -36,6 +38,17 @@ class PolicyManager {
     let unknown_windows = _.difference(current_windows, known_windows);
     for (var i = 0; i < unknown_windows.length; i++) {
       memoryManager.runtime_events.last_policy_runs[unknown_windows[i]] = now;
+    }
+  }
+
+  static cleanRuntimeWindows(windows) {
+    // Adds windows to known execution time.
+    // New windows are defaulted with current timestamp.
+    let known_windows = Object.keys(memoryManager.runtime_events.last_policy_runs);
+    let current_windows = Object.keys(windows);
+    let unknown_windows = _.difference(known_windows, current_windows);
+    for (var i = 0; i < unknown_windows.length; i++) {
+      delete memoryManager.runtime_events.last_policy_runs[unknown_windows[i]];
     }
   }
 
