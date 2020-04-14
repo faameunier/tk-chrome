@@ -21,46 +21,48 @@ class MemoryManager {
     "cache": []
   };
 
-  constructor(){
-    if(!MemoryManager.instance){
+  constructor() {
+    if (!MemoryManager.instance) {
       logger(this, "Instanciating empty MemoryManager");
-      MemoryManager.instance = this; 
-
-      this.tabs = {};
-      this.closed_history = []; 
-      this.last_full_stats_update = Date.now();
-      this.last_garbage_collector = Date.now();
-
-      //TODO relocate ?
-      this.settings = {
-        "memory" : {
-          "cache_size": 5,
-          "min_time_full_stats_update": 1*1000,
-          "min_time_garbage_collector": 5*60*1000
-        },
-        "policy": {
-          "target_tabs": 12,
-          "score_threshold": 50,
-          "decay": 0.8,
-          "min_time": 3*1000,
-          "last_policy_runs": {},
-          "active": false,
-          "pinned": false,
-          "audible": false
-        },
-        "scorer": {
-          "min_active": 3 * 1000,
-          "cached_decay": 0.7
-        }
-      };
+      MemoryManager.instance = this;
+      this.init();
     }
     return MemoryManager.instance;
   }
 
-  async reset() {
+  async init() {
     this.tabs = {};
     this.closed_history = [];
-    this.last_full_stats_update = Date.now();
+    this.current_scores = {};
+    this.runtime_events = {
+      "last_full_stats_update": Date.now(),
+      "last_garbage_collector": Date.now()
+    };
+    this.settings = {
+      "memory": {
+        "cache_size": 5,
+        "min_time_full_stats_update": 1 * 1000,
+        "min_time_garbage_collector": 5 * 60 * 1000
+      },
+      "policy": {
+        "target_tabs": 12,
+        "score_threshold": 50,
+        "decay": 0.8,
+        "min_time": 3 * 1000,
+        "last_policy_runs": {},
+        "active": false,
+        "pinned": false,
+        "audible": false
+      },
+      "scorer": {
+        "min_active": 3 * 1000,
+        "cached_decay": 0.7
+      }
+    };
+  }
+
+  async reset() {
+    this.init();
     await this.save();
     await this.load();
   }
@@ -71,18 +73,21 @@ class MemoryManager {
       "tabs": JSON.stringify(this.tabs),
       "closed_history": this.closed_history,
       "settings": this.settings,
-      "last_full_stats_update": this.last_full_stats_update});
+      "current_scores": this.current_scores,
+      "runtime_events": this.runtime_events
+    });
   }
 
   async load() {
-    await storageGet(['tabs', 'closed_history', 'last_full_stats_update', 'settings']).then((data) => {
+    await storageGet(['tabs', 'closed_history', 'current_scores', 'settings', 'runtime_events']).then((data) => {
       try {
         logger(this, 'Loading state from storage');
         this.closed_history = data.closed_history;
-        this.last_full_stats_update = data.last_full_stats_update;
+        this.runtime_events = data.runtime_events;
+        this.current_scores = current_scores;
         this.tabs = JSON.parse(data.tabs);
         this.settings = data.settings;
-        for(let key of Object.keys(this.tabs)) {
+        for (let key of Object.keys(this.tabs)) {
           let tab = this.tabs[key];
           tab.cache = LRUfactory.fromJSON(tab.cache);
         }
@@ -101,9 +106,9 @@ class MemoryManager {
   }
 
   async setActivated(tabId, windowId) {
-    if(!this.tabs[tabId]){
+    if (!this.tabs[tabId]) {
       logger(this, "OOS Unknown activated tab, creating shell");
-      await this.createTab({'id':tabId, 'active':true, 'windowId': windowId});
+      await this.createTab({ 'id': tabId, 'active': true, 'windowId': windowId });
       // createTab will call setActivated again.
       return null;
     }
@@ -115,8 +120,8 @@ class MemoryManager {
       // and stats will be updated right after.
     }
 
-    let win = _.filter(Object.values(this.tabs), (tab) => {return tab.windowId == windowId});
-    
+    let win = _.filter(Object.values(this.tabs), (tab) => { return tab.windowId == windowId });
+
     for (var i = 0; i < win.length; i++) {
       let tab = win[i];
       if (tab.active && (tab.tabId !== tabId)) {
@@ -129,8 +134,8 @@ class MemoryManager {
     this.tabs[tabId].active = true;
   }
 
-  async createTab(tab){
-    if (typeof tab.id !== 'undefined'){
+  async createTab(tab) {
+    if (typeof tab.id !== 'undefined') {
       let new_tab = copy(this.empty_tab);
 
       new_tab.tabId = tab.id;
@@ -170,10 +175,10 @@ class MemoryManager {
       } else {
         await this.createStatistics(new_tab);
       }
-      
+
       this.tabs[tab.id] = new_tab;
 
-      if(tab.active) {
+      if (tab.active) {
         await this.setActivated(tab.id, tab.windowId);
       }
 
@@ -184,18 +189,18 @@ class MemoryManager {
   async changeWindow(tabId, windowId) {
     // windowId should exist before calling me
     logger(this, "Tab assigned to new window");
-    if(!this.tabs[tabId]){
+    if (!this.tabs[tabId]) {
       logger(this, "OOS Missing tab found");
-      await this.createTab({"id":tabId, "windowId": windowId});
+      await this.createTab({ "id": tabId, "windowId": windowId });
       // missing tab is assigned to window and THAT'S IT
     } else {
       this.tabs[tabId].windowId = windowId;
-    } 
+    }
   }
 
   async updateTab(tabId, changes, tab) {
     logger(this, "Updating tab " + tabId);
-    if(!this.tabs[tabId]){
+    if (!this.tabs[tabId]) {
       logger(this, "OOS Missing tab found");
       await this.createTab(tab);
     }
@@ -210,7 +215,7 @@ class MemoryManager {
       let old_url = stored_tab.url;
       stored_tab.url = new_url;
       stored_tab.full_url = new_full_url;
-      if(new_url !== old_url) {
+      if (new_url !== old_url) {
         await this.updateStatistics(stored_tab, false, false);
         let old_statistics = stored_tab.statistics;
         let cached = stored_tab.cache.read(new_url);
@@ -248,10 +253,10 @@ class MemoryManager {
     }
   }
 
-  async createStatistics(iTab){
+  async createStatistics(iTab) {
     let tmp = copy(this.empty_stats);
     let now = Date.now();
-    if(iTab.active) {
+    if (iTab.active) {
       tmp.last_active_timestamp = now;
       tmp.activated = 1;
     }
@@ -259,19 +264,19 @@ class MemoryManager {
     iTab.statistics = tmp;
   }
 
-  async updateStatistics(iTab, fromCache=false, activitySwitch=false) {
+  async updateStatistics(iTab, fromCache = false, activitySwitch = false) {
     let now = Date.now();
-    if(fromCache) {
+    if (fromCache) {
       activitySwitch = true; // restored from cache is considered a reactivation
       iTab.statistics.total_cached_time += now - iTab.statistics.updated_at;
       iTab.statistics.updated_at = now; // protip
       iTab.statistics.activated += 1;
     } else {
-       if(iTab.active) {
+      if (iTab.active) {
         iTab.statistics.total_active_time += now - iTab.statistics.updated_at;
         iTab.statistics.last_active_timestamp = now;
       } else {
-        if(activitySwitch || iTab.statistics.activated === 0) {
+        if (activitySwitch || iTab.statistics.activated === 0) {
           iTab.statistics.activated += 1;
         }
         iTab.statistics.total_inactive_time += now - iTab.statistics.updated_at;
@@ -280,42 +285,42 @@ class MemoryManager {
     }
   }
 
-  async updateAllStatistics(){
+  async updateAllStatistics() {
     let now = Date.now();
-    if((now - this.last_full_stats_update) >= this.settings.memory.min_time_full_stats_update) {
+    if ((now - this.runtime_events.last_full_stats_update) >= this.settings.memory.min_time_full_stats_update) {
       logger(this, "Running full stats");
       var tab_ids = Object.keys(this.tabs);
       for (var i = 0; i < tab_ids.length; i++) {
         await this.updateStatistics(this.tabs[tab_ids[i]]);
       }
-      this.last_full_stats_update = now;
+      this.runtime_events.last_full_stats_update = now;
     }
   }
 
-  async removeTabFromClosedHistory(tabId){
-      this.closed_history = this.closed_history.filter((tab)=>{return tab.tabId !== tabId});
-  }
- 
-  async restoreTab(tabId){
-      const restoredTab = this.closed_history.filter((tab)=>{return tab.tabId === tabId})[0];
-      chrome.tabs.create({ url: restoredTab.full_url, active: false }); //TODO REPLACE BY SESSIONID
+  async removeTabFromClosedHistory(tabId) {
+    this.closed_history = this.closed_history.filter((tab) => { return tab.tabId !== tabId });
   }
 
-  async updateSettings(settings){
+  async restoreTab(tabId) {
+    const restoredTab = this.closed_history.filter((tab) => { return tab.tabId === tabId })[0];
+    chrome.tabs.create({ url: restoredTab.full_url, active: false }); //TODO REPLACE BY SESSIONID
+  }
+
+  async updateSettings(settings) {
     this.settings = settings;
   }
 
   async cleanTabsDelay() {
     let now = Date.now();
-    if((now - this.last_garbage_collector) >= this.settings.memory.min_time_garbage_collector) {
+    if ((now - this.runtime_events.last_garbage_collector) >= this.settings.memory.min_time_garbage_collector) {
       await this.cleanTabs();
-      this.last_garbage_collector = now;
+      this.runtime_events.last_garbage_collector = now;
     }
   }
 
   async cleanTabs() {
     var tab_ids = Object.keys(this.tabs);
-    for(let i = 0; i < tab_ids.length; i++) {
+    for (let i = 0; i < tab_ids.length; i++) {
       let tabId = tab_ids[i];
       try {
         let p = new Promise((resolve, reject) => {

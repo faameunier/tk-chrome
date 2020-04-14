@@ -1,5 +1,5 @@
 class PolicyManager {
-  constructor() {}
+  constructor() { }
 
   static async run() {
     let windows = this.buildWindows();
@@ -11,29 +11,32 @@ class PolicyManager {
 
     let now = Date.now();
     let any = false;
-    for(var i = 0; i < windowIds.length; i++) {
-      if(results[i]) { // The policy ran on the i-th window
-        memoryManager.settings.policy.last_policy_runs[windowIds[i]] = now;
+    for (var i = 0; i < windowIds.length; i++) {
+      if (results[i]) { // The policy ran on the i-th window
+        memoryManager.runtime_events.last_policy_runs[windowIds[i]] = now;
         any = true;
       }
     }
 
-    if(any) { // force update localstorage memory if an action was taken, might be useless if the queue awaits
-      await memoryManager.save()
+    if (any) { // force update localstorage memory if an action was taken, might be useless if the queue awaits
+      await memoryManager.save();
     }
   }
 
   static buildWindows() {
-    return _.groupBy(memoryManager.tabs, (tab) => {return tab.windowId});
+    // Groups tabs per window
+    return _.groupBy(memoryManager.tabs, (tab) => { return tab.windowId });
   }
 
   static backfillRuns(windows) {
+    // Adds windows to known execution time.
+    // New windows are defaulted with current timestamp.
     let now = Date.now();
-    let known_windows = Object.keys(memoryManager.settings.policy.last_policy_runs);
+    let known_windows = Object.keys(memoryManager.runtime_events.last_policy_runs);
     let current_windows = Object.keys(windows);
     let unknown_windows = _.difference(current_windows, known_windows);
-    for(var i = 0; i < unknown_windows.length; i++) {
-      memoryManager.settings.policy.last_policy_runs[unknown_windows[i]] = now;
+    for (var i = 0; i < unknown_windows.length; i++) {
+      memoryManager.runtime_events.last_policy_runs[unknown_windows[i]] = now;
     }
   }
 
@@ -41,7 +44,7 @@ class PolicyManager {
     let tabs = windows[windowId];
     if (tabs.length > memoryManager.settings.policy.target_tabs) { // if too many tabs
       if (this.exponentialTrigger(tabs, windowId)) { // if we waited enough
-        tabs = _.filter(tabs, (tab) => {return tab.active == memoryManager.settings.policy.active && tab.pinned == memoryManager.settings.policy.pinned && tab.audible == memoryManager.settings.policy.audible})
+        tabs = _.filter(tabs, (tab) => { return tab.active == memoryManager.settings.policy.active && tab.pinned == memoryManager.settings.policy.pinned && tab.audible == memoryManager.settings.policy.audible })
         let scores = await Promise.all(_.map(tabs, (tab) => Scorer.score(tab)));
         scores = _.zip(_.map(tabs, (tab) => tab.tabId), scores); // [[tabId1, score1], [tabId2, score2]...]
         scores.sort((s1, s2) => (s1[1] > s2[1]) ? 1 : -1); // ascending sort
@@ -50,7 +53,7 @@ class PolicyManager {
 
         // safety hack, do not remove an old tab only because you have new ones
         var count = 0;
-        while(scores.length > 0) {
+        while (scores.length > 0) {
           let temp = scores.pop()[1];
           if (temp === MAXIMUM_SCORE) {
             count += 1;
@@ -58,8 +61,8 @@ class PolicyManager {
         }
         if (count < tabs.length - memoryManager.settings.policy.target_tabs) {
           await this.killTab(deleteMe, _.find(tabs, (tab) => tab.tabId === deleteMe))
-          return true
-        }        
+          return true;
+        }
       }
     }
     return false;
@@ -89,7 +92,7 @@ class PolicyManager {
 
   static exponentialTrigger(tabs, windowId) {
     let n_tabs = tabs.length;
-    let last_policy_run = memoryManager.settings.policy.last_policy_runs[windowId];
-    return (Date.now() - memoryManager.settings.policy.last_policy_runs[windowId]) >= memoryManager.settings.policy.min_time * Math.pow(memoryManager.settings.policy.decay, Math.max(0, n_tabs - memoryManager.settings.policy.target_tabs));
+    let last_policy_run = memoryManager.runtime_events.last_policy_runs[windowId];
+    return (Date.now() - memoryManager.runtime_events.last_policy_runs[windowId]) >= memoryManager.settings.policy.min_time * Math.pow(memoryManager.settings.policy.decay, Math.max(0, n_tabs - memoryManager.settings.policy.target_tabs));
   }
 }
