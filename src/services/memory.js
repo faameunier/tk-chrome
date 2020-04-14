@@ -43,7 +43,7 @@ class MemoryManager {
       "memory": {
         "cache_size": 5,
         "min_time_full_stats_update": 1 * 1000,
-        "min_time_garbage_collector": 5 * 60 * 1000
+        "min_time_garbage_collector": 5 * 1000
       },
       "policy": {
         "target_tabs": 12,
@@ -100,7 +100,7 @@ class MemoryManager {
 
   async log() {
     await this.updateAllStatistics();
-    await this.cleanTabs();
+    await this.cleanTabsDelay();
     if (ENV === 'debug') {
       console.log(this.tabs);
     }
