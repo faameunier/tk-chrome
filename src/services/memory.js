@@ -59,6 +59,7 @@ class MemoryManager {
       },
       "scorer": {
         "min_active": 3 * 1000,
+        "protection_time": 10 * 60 * 1000,
         "cached_decay": 0.7
       }
     };
@@ -138,7 +139,7 @@ class MemoryManager {
   }
 
   async createTab(tab) {
-    if (!(tab.id in Object.keys(this.tabs))) { // avoid setting back stats to zero when a tab is restored
+    if (!(tab.id in this.tabs)) { // avoid setting back stats to zero when a tab is restored
       if (typeof tab.id !== 'undefined') {
         let new_tab = copy(this.empty_tab);
 
