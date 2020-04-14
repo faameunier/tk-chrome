@@ -121,11 +121,11 @@ class Home extends PureComponent {
             <div className="card todo-list-container">
                 <div className="card-body">
                     <Typography variant="h3" className={classes.title}>
-                          <Typography  className={classes.boldText}>{numberClosedTabsLastHour? numberClosedTabsLastHour:'No'} tabs</Typography>
-                          <Typography className={classes.middleText}> were closed in the last </Typography>
+                          <Typography  className={classes.boldText}>{numberClosedTabsLastHour? numberClosedTabsLastHour:'No'} tab{numberClosedTabsLastHour===1?'':'s'}</Typography>
+                          <Typography className={classes.middleText}> {numberClosedTabsLastHour===1? 'was':'were'} closed in the last </Typography>
                           <Typography className={classes.boldText}> 2 hours! </Typography>
                     </Typography>
-                </div>
+                </div>}
                 {this.renderList.bind(this)(REMOVED)}
                 {/*{this.renderList.bind(this)(NEXT)}*/}
             </div>)
