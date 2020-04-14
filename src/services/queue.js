@@ -30,8 +30,8 @@ class EventQueue {
       this.workingOnPromise = true;
       logger(this, 'Queue killed');
       memoryManager.log().then((value) => {
-        memoryManager.save().then((value) => {
-          PolicyManager.run().then((value) => {
+        PolicyManager.run().then((value) => {
+          memoryManager.save().then((value) => {
             if (this.queue.length === 0) {
               this.workingOnPromise = false;
             } else {

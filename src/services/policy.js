@@ -6,18 +6,24 @@ class PolicyManager {
     this.backfillRuns(windows);
     this.cleanRuntimeWindows(windows);
 
+    let allScores = _.pick(memoryManager.current_scores, Object.keys(memoryManager.tabs)); // keeping a-only tabs that still exist
+
     let windowIds = Object.keys(windows);
     let promises = _.map(windowIds, (windowId) => this.runWindow(windows, windowId));
     let results = await Promise.all(promises); // Running every windows update in parallel.
 
     let now = Date.now();
     let any = false;
+
     for (var i = 0; i < windowIds.length; i++) {
-      if (results[i]) { // The policy ran on the i-th window
+      if (results[i][0]) { // The policy ran on the i-th window
         memoryManager.runtime_events.last_policy_runs[windowIds[i]] = now;
+        allScores = Object.assign(allScores, results[i][1])
         any = true;
       }
     }
+
+    memoryManager.current_scores = allScores;
 
     if (any) { // force update localstorage memory if an action was taken, might be useless if the queue awaits
       await memoryManager.save();
@@ -60,7 +66,7 @@ class PolicyManager {
         tabs = _.filter(tabs, (tab) => { return tab.active == memoryManager.settings.policy.active && tab.pinned == memoryManager.settings.policy.pinned && tab.audible == memoryManager.settings.policy.audible })
         let scores = await Promise.all(_.map(tabs, (tab) => Scorer.score(tab)));
 
-        all_scores = _.zipObject(_.map(tabs, (tab) => tab.tabId), scores); // save scores
+        let objScores = _.zipObject(_.map(tabs, (tab) => tab.tabId), scores); // save scores
 
         scores = _.zip(_.map(tabs, (tab) => tab.tabId), scores); // [[tabId1, score1], [tabId2, score2]...]
         scores.sort((s1, s2) => (s1[1] > s2[1]) ? 1 : -1); // ascending sort
@@ -77,11 +83,11 @@ class PolicyManager {
         }
         if (count < tabs.length - memoryManager.settings.policy.target_tabs) {
           await this.killTab(deleteMe, _.find(tabs, (tab) => tab.tabId === deleteMe))
-          return true;
+          return [true, objScores]; // updating tab scores
         }
       }
     }
-    return false;
+    return [false, {}]; // old scores are kept for windows without a run
   }
 
   static async killTab(tabId, tab) {
