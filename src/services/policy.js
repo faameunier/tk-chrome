@@ -42,8 +42,7 @@ class PolicyManager {
   }
 
   static cleanRuntimeWindows(windows) {
-    // Adds windows to known execution time.
-    // New windows are defaulted with current timestamp.
+    // Remove phantom windows that were deleted
     let known_windows = Object.keys(memoryManager.runtime_events.last_policy_runs);
     let current_windows = Object.keys(windows);
     let unknown_windows = _.difference(known_windows, current_windows);
@@ -53,11 +52,16 @@ class PolicyManager {
   }
 
   static async runWindow(windows, windowId) {
+    // Run policy for a given window
+    // Returns true if the policy was run, false otherwise
     let tabs = windows[windowId];
     if (tabs.length > memoryManager.settings.policy.target_tabs) { // if too many tabs
       if (this.exponentialTrigger(tabs, windowId)) { // if we waited enough
         tabs = _.filter(tabs, (tab) => { return tab.active == memoryManager.settings.policy.active && tab.pinned == memoryManager.settings.policy.pinned && tab.audible == memoryManager.settings.policy.audible })
         let scores = await Promise.all(_.map(tabs, (tab) => Scorer.score(tab)));
+
+        all_scores = _.zipObject(_.map(tabs, (tab) => tab.tabId), scores); // save scores
+
         scores = _.zip(_.map(tabs, (tab) => tab.tabId), scores); // [[tabId1, score1], [tabId2, score2]...]
         scores.sort((s1, s2) => (s1[1] > s2[1]) ? 1 : -1); // ascending sort
         logger(windowId.toString().concat(" window scored: ", JSON.stringify(scores)));
@@ -94,7 +98,9 @@ class PolicyManager {
       });
       await p;
       // Deleting the tab will trigger all cleaning actions in memoryManager through the onRemoved trigger.
-      memoryManager.closed_history.push(copy(tab)); // making a simple json copy, could be even simpler.
+      let copiedTab = copy(tab);// making a simple json copy, could be even simpler.
+      copiedTab.deletion_time = Date.now();
+      memoryManager.closed_history.push(copiedTab);
       memoryManager.closed_history = memoryManager.closed_history.slice(0, MAXIMUM_HISTORY_SIZE);
       logger("Tab ".concat(tabId, " killed by policy"));
     } catch {
@@ -103,6 +109,7 @@ class PolicyManager {
   }
 
   static exponentialTrigger(tabs, windowId) {
+    // Time condition to run the full policy
     let n_tabs = tabs.length;
     let last_policy_run = memoryManager.runtime_events.last_policy_runs[windowId];
     return (Date.now() - memoryManager.runtime_events.last_policy_runs[windowId]) >= memoryManager.settings.policy.min_time * Math.pow(memoryManager.settings.policy.decay, Math.max(0, n_tabs - memoryManager.settings.policy.target_tabs));
