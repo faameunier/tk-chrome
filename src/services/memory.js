@@ -75,12 +75,13 @@ class MemoryManager {
   }
 
   async load() {
-    await storageGet(['tabs', 'closed_history', 'last_full_stats_update']).then((data) => {
+    await storageGet(['tabs', 'closed_history', 'last_full_stats_update', 'settings']).then((data) => {
       try {
         logger(this, 'Loading state from storage');
         this.closed_history = data.closed_history;
         this.last_full_stats_update = data.last_full_stats_update;
         this.tabs = JSON.parse(data.tabs);
+        this.settings = data.settings;
         for(let key of Object.keys(this.tabs)) {
           let tab = this.tabs[key];
           tab.cache = LRUfactory.fromJSON(tab.cache);
@@ -294,6 +295,7 @@ class MemoryManager {
   async removeTabFromClosedHistory(tabId){
       this.closed_history = this.closed_history.filter((tab)=>{return tab.tabId !== tabId});
   }
+ 
   async restoreTab(tabId){
       const restoredTab = this.closed_history.filter((tab)=>{return tab.tabId === tabId})[0];
       chrome.tabs.create({ url: restoredTab.full_url, active: false }); //TODO REPLACE BY SESSIONID
