@@ -2,22 +2,22 @@ class EventQueue {
   queue = [];
   pendingPromise = false;
 
-  constructor(){
-    if(!EventQueue.instance){
+  constructor() {
+    if (!EventQueue.instance) {
       logger(this, "Instanciating empty EventQueue");
-      EventQueue.instance = this; 
+      EventQueue.instance = this;
     }
     return EventQueue.instance;
   }
 
   enqueue(promise) {
     return new Promise((resolve, reject) => {
-        this.queue.push({
-            promise,
-            resolve,
-            reject,
-        });
-        this.dequeue();
+      this.queue.push({
+        promise,
+        resolve,
+        reject,
+      });
+      this.dequeue();
     });
   }
 

@@ -38,18 +38,18 @@ chrome.runtime.s.addListener(
     }
 
     switch (request.messageType) {
-        case 'RESTORE':
-            eventQueue.enqueue(() => memoryManager.restoreTab(request.tabId));
-            eventQueue.enqueue(() => memoryManager.removeTabFromClosedHistory(request.tabId));
-            break;
-        case 'SETTINGS':
-            eventQueue.enqueue(() => memoryManager.updateSettings(request.settings));
-            break;
+      case 'RESTORE':
+        eventQueue.enqueue(() => memoryManager.restoreTab(request.tabId));
+        eventQueue.enqueue(() => memoryManager.removeTabFromClosedHistory(request.tabId));
+        break;
+      case 'SETTINGS':
+        eventQueue.enqueue(() => memoryManager.updateSettings(request.settings));
+        break;
 
-        default:
-            break;
+      default:
+        break;
     }
-    eventQueue.enqueue(() => sendResponsePromisified({answer: 1}));
+    eventQueue.enqueue(() => sendResponsePromisified({ answer: 1 }));
   });
 /*
 // TODO find usecase to understand when it is triggered.

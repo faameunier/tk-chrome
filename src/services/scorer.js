@@ -36,7 +36,7 @@ class RandomScorer extends AbstractScorer {
 class DefaultScorer extends AbstractScorer {
   static scoreStatistics(stats) {
     if (stats.total_active_time + stats.total_inactive_time + stats.total_cached_time >= memoryManager.settings.scorer.min_active) {
-      return Math.log(Math.min(Math.max(stats.total_active_time, 10000), 3600*1000)) * stats.total_active_time  / (stats.total_inactive_time + stats.total_active_time) * Math.max(1, Math.exp(-(Date.now() - stats.last_active_timestamp)) * 100000);
+      return Math.log(Math.min(Math.max(stats.total_active_time, 10000), 3600 * 1000)) * stats.total_active_time / (stats.total_inactive_time + stats.total_active_time) * Math.max(1, Math.exp(-(Date.now() - stats.last_active_timestamp)) * 100000);
     } else {
       return MAXIMUM_SCORE;
     }
@@ -55,7 +55,7 @@ class DefaultScorer extends AbstractScorer {
 
   static mergeScores(scores) {
     var result = 0;
-    for(var i = 0; i < scores.length; i++) {
+    for (var i = 0; i < scores.length; i++) {
       let temp = scores[i];
       if (i === 0) {
         result += temp
@@ -69,7 +69,7 @@ class DefaultScorer extends AbstractScorer {
 
 class Scorer {
   static score(tab) {
-    if(SCORER === 'random') {
+    if (SCORER === 'random') {
       return RandomScorer.score(tab);
     } else {
       return DefaultScorer.score(tab);
