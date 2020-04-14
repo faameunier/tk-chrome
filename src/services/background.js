@@ -25,7 +25,7 @@ chrome.tabs.onRemoved.addListener(function(tabId, removeInfo) {
   eventQueue.enqueue(() => memoryManager.deleteTab(tabId, removeInfo.windowId, removeInfo.isWindowClosing));
 });
 
-chrome.runtime.s.addListener(
+chrome.runtime.sendMessage.addListener(
   function(request, sender, sendResponse) {
     function sendResponsePromisified(data) {
       return new Promise((resolve, reject) => {
