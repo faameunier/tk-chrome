@@ -68,17 +68,28 @@ class Home extends PureComponent {
         const {classes} = this.props;
 
         let selectedList;
+        const MAX_LENGTH_TITLE = 50;
+
         switch(listToBeRendered){
             case(NEXT):
                 selectedList = this.state.nextList? this.state.nextList:[];
                 break;
             default:
                 selectedList = this.state.closed_history? this.state.closed_history:[];
+                selectedList = selectedList.map((website, i)=> {
+                    const deletionTime = new Date(website.deletion_time);
+                    const formatted_deletion_time = deletionTime.toTimeString().split(' ')[0];
+                    website.hours_deletion = formatted_deletion_time.split(':')[0];
+                    website.minutes_deletion = formatted_deletion_time.split(':')[1];
+                    if (website.title && website.title.length > MAX_LENGTH_TITLE) {
+                        website.title = website.title.substring(0, MAX_LENGTH_TITLE).concat('...');
+                    }
+                    return website;
+                })
 
         }
         const isNext = listToBeRendered===NEXT;
         const filteredList = this.filterList(selectedList).reverse();
-
         return(
                 <div className="card-body">
                     <Typography variant="h6" className={classes.greenTitle}>
@@ -90,9 +101,14 @@ class Home extends PureComponent {
                             <p>No tabs closed in the last 2 hours.</p> :
                               filteredList.map((website,i) => (
                             <ListItem key={i}>
-                              <ListItemAvatar>
-                                <Avatar alt={website.title} src={website.favIconUrl} />
-                              </ListItemAvatar>
+                                <div className={classes.gridAvatarWithTime}>
+                                    <Typography  className={classes.timeDisplay} >
+                                          {`${website.hours_deletion}:${website.minutes_deletion}`}
+                                    </Typography>
+                                    <ListItemAvatar >
+                                        <Avatar alt={website.title} src={website.favIconUrl} />
+                                    </ListItemAvatar>
+                                </div>
                               <ListItemText
                                 primary={website.url}
                                 secondary={website.title}
@@ -112,7 +128,6 @@ class Home extends PureComponent {
                         </List>
                   </div>
            </div>)
-
     }
     render(){
         const {classes} = this.props;
@@ -125,7 +140,7 @@ class Home extends PureComponent {
                           <Typography className={classes.middleText}> {numberClosedTabsLastHour===1? 'was':'were'} closed in the last </Typography>
                           <Typography className={classes.boldText}> 2 hours! </Typography>
                     </Typography>
-                </div>}
+                </div>
                 {this.renderList.bind(this)(REMOVED)}
                 {/*{this.renderList.bind(this)(NEXT)}*/}
             </div>)

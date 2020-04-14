@@ -79,7 +79,9 @@ class PolicyManager {
       });
       await p;
       // Deleting the tab will trigger all cleaning actions in memoryManager through the onRemoved trigger.
-      memoryManager.closed_history.push(copy(tab)); // making a simple json copy, could be even simpler.
+      let copiedTab = copy(tab);// making a simple json copy, could be even simpler.
+      copiedTab.deletion_time = Date.now();
+      memoryManager.closed_history.push(copiedTab);
       logger("Tab ".concat(tabId, " killed by policy"));
     } catch {
       logger("Tab ".concat(tabId, " not found"));
