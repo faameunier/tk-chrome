@@ -335,7 +335,7 @@ class MemoryManager {
         });
         await p;
       } catch {
-        logger(this, "Tab " + tabId + " collected by garbage cleaner");
+        logger(this, "Tab " + tabId + " collected by garbage collector");
         await this.deleteTab(tabId);
       }
     }
