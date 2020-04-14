@@ -23,8 +23,13 @@ const styles = theme => ({
     },
     secondaryButton: {
         marginTop: 20,
+        marginDown: 20,
         color: '#1b9e74',
         borderColor: '#1b9e74',
-    }
+    },
+    notification: {
+        maxWidth: 150,
+    },
+
 });
 export default withStyles(styles)(Settings);
