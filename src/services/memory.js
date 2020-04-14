@@ -311,7 +311,6 @@ class MemoryManager {
     logger(this, 'Restoring tab ' + tabId);
     let restoredTab = this.closed_history.filter((tab) => { return tab.tabId === tabId })[0];
     // let cache = LRUfactory.fromJSON(restoredTab.cache);
-    let stats = restoredTab.statistics;
     let tab = await new Promise((resolve, reject) => {
       chrome.tabs.create({ url: restoredTab.full_url, active: false }, (tab) => {
         if (chrome.runtime.lastError) {
@@ -322,9 +321,10 @@ class MemoryManager {
       });
     });
     await this.createTab(tab);
-    this.tabs[tab.id].statistics = stats;
+    this.tabs[tab.id].statistics = copy(restoredTab.statistics);
     // this.tabs[tab.tabId].cache = cache;  // do not restore cache as history is lost
     await this.protectTab(tab.id);
+    this.tabs[tab.id].cache.write(restoredTab.url, this.tabs[tab.id].statistics); // hack :D
   }
 
   async protectTab(tabId) {

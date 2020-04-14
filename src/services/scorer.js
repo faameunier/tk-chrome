@@ -40,11 +40,11 @@ class DefaultScorer extends AbstractScorer {
       tStats.protection_timestamp = 0;
     }
     if (!tStats.last_active_timestamp) {
-      tStats.last_active_timestamp = 0;
+      tStats.last_active_timestamp = Date.now();
     }
-    if ((stats.total_active_time + stats.total_inactive_time + stats.total_cached_time >= memoryManager.settings.scorer.min_active)
-      && (Date.now() - stats.protection_timestamp >= memoryManager.settings.scorer.protection_time)) {
-      return Math.log(Math.min(Math.max(stats.total_active_time, 10000), 3600 * 1000)) * stats.total_active_time / (stats.total_inactive_time + stats.total_active_time) * Math.max(1, Math.exp(-(Date.now() - stats.last_active_timestamp)) * 100000);
+    if ((tStats.total_active_time + tStats.total_inactive_time + tStats.total_cached_time >= memoryManager.settings.scorer.min_active)
+      && (Date.now() - tStats.protection_timestamp >= memoryManager.settings.scorer.protection_time)) {
+      return Math.log(Math.min(Math.max(tStats.total_active_time, 10000), 3600 * 1000)) * tStats.total_active_time / (tStats.total_inactive_time + tStats.total_active_time) * Math.max(1, Math.exp(-(Date.now() - tStats.last_active_timestamp)) * 100000);
     } else {
       return MAXIMUM_SCORE;
     }
