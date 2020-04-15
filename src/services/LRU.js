@@ -1,5 +1,5 @@
 class State {
-  constructor(key, value, next=null, prev=null) {
+  constructor(key, value, next = null, prev = null) {
     this.key = key;
     this.value = value;
     this.next = next;
@@ -8,7 +8,7 @@ class State {
 }
 
 class LRUfactory {
-  static fromString(str){
+  static fromString(str) {
     let tmp = JSON.parse(str);
     return LRUfactory.fromJSON(tmp);
   }
@@ -16,7 +16,7 @@ class LRUfactory {
   static fromJSON(obj) {
     var cache = new LRU(obj.limit);
     var nodes = obj.nodes;
-    for(let node of nodes) {
+    for (let node of nodes) {
       cache.write(node.key, node.value);
     }
     return cache;
@@ -24,7 +24,7 @@ class LRUfactory {
 }
 
 class LRU {
-  constructor(limit=10) {
+  constructor(limit = 10) {
     logger(this, "Creating new LRU cache")
     this.size = 0;
     this.limit = limit;
@@ -33,10 +33,10 @@ class LRU {
     this.cache = {};
   }
 
-  write(key, value){
+  write(key, value) {
     this.ensureLimit();
 
-    if(!this.head) {
+    if (!this.head) {
       this.head = this.tail = new State(key, value);
     } else {
       var node = new State(key, value, this.head);
@@ -49,8 +49,8 @@ class LRU {
     logger(this, "New value stored into cache")
   }
 
-  read(key){
-    if(this.cache[key]){
+  read(key) {
+    if (this.cache[key]) {
       logger(this, 'Key found in cache');
       var value = this.cache[key].value;
       this.remove(key);
@@ -60,23 +60,23 @@ class LRU {
     return false;
   }
 
-  ensureLimit(){
-    if(this.size === this.limit){
+  ensureLimit() {
+    if (this.size === this.limit) {
       logger(this, "Cache maxed out, removing tail");
       this.remove(this.tail.key);
     }
   }
 
-  remove(key){
+  remove(key) {
     var node = this.cache[key];
 
-    if(node.prev !== null) {
+    if (node.prev !== null) {
       node.prev.next = node.next;
     } else {
       this.head = node.next;
     }
 
-    if(node.next !== null) {
+    if (node.next !== null) {
       node.next.prev = node.prev;
     } else {
       this.tail = node.prev
@@ -115,7 +115,7 @@ class LRU {
 
   toJSON() {
     var nodes = [];
-    for(let node of this){
+    for (let node of this) {
       nodes.unshift({
         'key': node.key,
         'value': node.value
