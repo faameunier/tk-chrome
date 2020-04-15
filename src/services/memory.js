@@ -322,6 +322,7 @@ class MemoryManager {
     });
     await this.createTab(tab);
     this.tabs[tab.id].statistics = copy(restoredTab.statistics);
+    await this.updateStatistics(this.tabs[tab.id], fromCache = true);
     // this.tabs[tab.tabId].cache = cache;  // do not restore cache as history is lost
     await this.protectTab(tab.id);
     this.tabs[tab.id].cache.write(restoredTab.url, this.tabs[tab.id].statistics); // hack :D
