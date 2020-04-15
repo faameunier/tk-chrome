@@ -120,6 +120,7 @@ class Settings extends PureComponent {
         chrome.storage.onChanged.addListener( function(changes) {
             const changesSettings= changes['settings'];
             if (changesSettings){
+                console.log("SEND SETTINGS LISTENER", changesSettings['newValue']['policy']['target_tabs']);
                 self.setState({settings: changesSettings['newValue'], renderSaveBoolean: true});
             }
         });
@@ -168,6 +169,7 @@ class Settings extends PureComponent {
         }
 
         if (!this.state.customizedBool) {
+            console.log("SEND SETTINGS", settings['policy']['target_tabs']);
             chrome.runtime.sendMessage({messageType: 'SETTINGS', settings:settings});
         }
     }

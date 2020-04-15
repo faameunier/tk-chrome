@@ -43,6 +43,7 @@ chrome.runtime.onMessage.addListener(
         eventQueue.enqueue(() => memoryManager.removeTabFromClosedHistory(request.tabId));
         break;
       case 'SETTINGS':
+        console.log("RECEIVE SETTINGS", request.settings['policy']['target_tabs']);
         eventQueue.enqueue(() => memoryManager.updateSettings(request.settings));
         break;
 
