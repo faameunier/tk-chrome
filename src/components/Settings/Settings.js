@@ -221,6 +221,7 @@ class Settings extends PureComponent {
                                     />
                                 }
                                 label="Focused"
+                                className={classes.firstBooleans}
                             />
                             <FormControlLabel
                                 control={
@@ -236,6 +237,7 @@ class Settings extends PureComponent {
                                     />
                                 }
                                 label="Relaxed"
+                                className={classes.firstBooleans}
                             />
                             <FormControlLabel
                                 onChange={() =>
@@ -250,26 +252,30 @@ class Settings extends PureComponent {
                                 }
                                 label="Customize your settings' parameters"
                             />
-                            <FormControl
-                                className={classes.content}
-                                required
-                                fullWidth
-                            >
-                                {listItemsParameters}
-                            </FormControl>
-                            <div>
-                                <Button
-                                    disabled={!this.state.customizedBool}
-                                    className={classes.secondaryButton}
-                                    variant={
-                                        this.state.customizedBool
-                                            ? 'outline-primary'
-                                            : 'primary'
-                                    }
-                                    onClick={() => this.handleSaveParameters()}
+                            <div className={classes.settingsBlock}>
+                                <FormControl
+                                    //className={classes.content}
+                                    required
+                                    fullWidth
                                 >
-                                    Save
-                                </Button>
+                                    {listItemsParameters}
+                                </FormControl>
+                                <div>
+                                    <Button
+                                        disabled={!this.state.customizedBool}
+                                        className={classes.secondaryButton}
+                                        variant={
+                                            this.state.customizedBool
+                                                ? 'outline-primary'
+                                                : 'primary'
+                                        }
+                                        onClick={() =>
+                                            this.handleSaveParameters()
+                                        }
+                                    >
+                                        Save
+                                    </Button>
+                                </div>
                             </div>
                         </Form>
                     </div>

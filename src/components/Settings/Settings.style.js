@@ -21,8 +21,8 @@ const styles = (theme) => ({
         //height: '100vh',
     },
     secondaryButton: {
-        marginTop: 20,
-        marginDown: 5,
+        marginTop: 10,
+        //marginDown: 5,
         color: '#1b9e74',
         borderColor: '#1b9e74',
     },
@@ -38,8 +38,16 @@ const styles = (theme) => ({
     },
     title: {
         fontWeight: 'bold',
-        fontSize: 18,
+        fontSize: 17,
         marginLeft: 10,
+    },
+    settingsBlock: {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    firstBooleans: {
+        maxWidth: '40%',
     },
 })
 export default withStyles(styles)(Settings)
