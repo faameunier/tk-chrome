@@ -104,6 +104,7 @@ class Settings extends PureComponent {
                         settings: {policy: {target_tabs: 100}}, renderSaveBoolean:false};
     }
     componentDidMount(){
+        this.mounted = true;
         chrome.storage.local.get(['beginHour','endHour','focusedMode','relaxedMode','customizedBool', 'settings'], (result)=>{
             const beginHour = result.beginHour || 0;
             const endHour = result.endHour || 24;
@@ -116,14 +117,15 @@ class Settings extends PureComponent {
             const settings = result.settings || {policy: {target_tabs: 100}};
             this.setState({beginHour, endHour, focusedMode, relaxedMode, customizedBool, settings});
         });
-
-        let self=this;
         chrome.storage.onChanged.addListener( function(changes) {
             const changesSettings= changes['settings'];
-            if (changesSettings){
-                self.setState({settings: changesSettings['newValue'], renderSaveBoolean: true});
+            if (this.mounted && changesSettings){
+                this.setState({settings: changesSettings['newValue'], renderSaveBoolean: true});
             }
-        });
+        }.bind(this));
+    }
+    componentWillUnmount(){
+      this.mounted = false;
     }
     componentDidUpdate(prevProps, prevState) {
         if (prevState.beginHour !== this.state.beginHour || prevState.endHour !== this.state.endHour){
@@ -169,6 +171,7 @@ class Settings extends PureComponent {
         }
 
         if (!this.state.customizedBool) {
+            console.log("SEND SETTINGS", settings['policy']['target_tabs']);
             chrome.runtime.sendMessage({messageType: 'SETTINGS', settings:settings});
         }
     }

@@ -23,19 +23,22 @@ class Home extends PureComponent {
 
     }
     componentDidMount(){
+        this.mounted = true;
         chrome.storage.local.get([CLOSED_HISTORY], (result)=>{
             const closed_history = result.closed_history || [];
             this.setState({closed_history});
             console.log("DidMOunt", closed_history.length, closed_history)
         });
         this.setState({nextList: []});
-        let self=this;
         chrome.storage.onChanged.addListener( function(changes) {
             const changesClosedHistory = changes[CLOSED_HISTORY];
-            if (changesClosedHistory){
-                self.setState({closed_history: changesClosedHistory['newValue'], renderSaveBoolean:true});
+            if (this.mounted && changesClosedHistory){
+                this.setState({closed_history: changesClosedHistory['newValue'], renderSaveBoolean:true});
             }
-        });
+        }.bind(this));
+    }
+    componentWillUnmount(){
+        this.mounted = false;
     }
     componentDidUpdate(prevProps, prevState) {
         if (this.state.renderSaveBoolean){

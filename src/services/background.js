@@ -1,5 +1,3 @@
-eventQueue.enqueue(() => memoryManager.load());
-
 chrome.runtime.onInstalled.addListener(function() {
   eventQueue.enqueue(() => memoryManager.reset());
   logger('Extention installed :D');
@@ -27,19 +25,30 @@ chrome.tabs.onRemoved.addListener(function(tabId, removeInfo) {
 
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
-    switch (request.messageType) {
-        case 'RESTORE':
-            eventQueue.enqueue(() => memoryManager.restoreTab(request.tabId));
-            eventQueue.enqueue(() => memoryManager.removeTabFromClosedHistory(request.tabId));
-            break;
-        case 'SETTINGS':
-            eventQueue.enqueue(() => memoryManager.updateSettings(request.settings));
-            break;
-
-        default:
-            break;
+    function sendResponsePromisified(data) {
+      return new Promise((resolve, reject) => {
+        try {
+          resolve(sendResponse(data));
+        } catch (e) {
+          reject(e);
+        }
+      });
     }
-    eventQueue.enqueue(() => sendResponse({answer: 1}));
+
+    switch (request.messageType) {
+      case 'RESTORE':
+        eventQueue.enqueue(() => memoryManager.restoreTab(request.tabId));
+        eventQueue.enqueue(() => memoryManager.removeTabFromClosedHistory(request.tabId));
+        break;
+      case 'SETTINGS':
+        console.log("RECEIVE SETTINGS", request.settings['policy']['target_tabs']);
+        eventQueue.enqueue(() => memoryManager.updateSettings(request.settings));
+        break;
+
+      default:
+        break;
+    }
+    eventQueue.enqueue(() => sendResponsePromisified({ answer: 1 }));
   });
 /*
 // TODO find usecase to understand when it is triggered.

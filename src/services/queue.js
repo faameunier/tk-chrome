@@ -2,23 +2,38 @@ class EventQueue {
   queue = [];
   pendingPromise = false;
 
-  constructor(){
-    if(!EventQueue.instance){
+  constructor() {
+    if (!EventQueue.instance) {
       logger(this, "Instanciating empty EventQueue");
-      EventQueue.instance = this; 
+      EventQueue.instance = this;
     }
     return EventQueue.instance;
   }
 
   enqueue(promise) {
+    if (this.queue.length === 0) {
+        return memoryManager.load().then(
+            function success() {
+                return new Promise((resolve, reject) => {
+                    this.queue.push({
+                        promise,
+                        resolve,
+                        reject,
+                    });
+                    this.dequeue();
+                });
+            }.bind(this), function failure() {
+                 logger(this, "There is an error in the Enqueue Callback");
+            }.bind(this));
+    }
     return new Promise((resolve, reject) => {
-        this.queue.push({
-            promise,
-            resolve,
-            reject,
-        });
-        this.dequeue();
-    });
+                  this.queue.push({
+                    promise,
+                    resolve,
+                    reject,
+                  });
+                  this.dequeue();
+                });
   }
 
   dequeue() {
@@ -30,8 +45,8 @@ class EventQueue {
       this.workingOnPromise = true;
       logger(this, 'Queue killed');
       memoryManager.log().then((value) => {
-        memoryManager.save().then((value) => {
-          PolicyManager.run().then((value) => {
+        PolicyManager.run().then((value) => {
+          memoryManager.save().then((value) => {
             if (this.queue.length === 0) {
               this.workingOnPromise = false;
             } else {
