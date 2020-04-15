@@ -1,1 +1,1 @@
-export { default } from './PrimaryText.style';
+export { default } from './PrimaryText.style'

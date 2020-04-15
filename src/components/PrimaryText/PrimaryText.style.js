@@ -1,11 +1,11 @@
-import { withStyles } from '@material-ui/core/styles';
+import { withStyles } from '@material-ui/core/styles'
 
-import PrimaryText from './PrimaryText';
+import PrimaryText from './PrimaryText'
 
 const styles = {
-  container: {
-    display: 'flex',
-  },
-};
+    container: {
+        display: 'flex',
+    },
+}
 
-export default withStyles(styles)(PrimaryText);
+export default withStyles(styles)(PrimaryText)

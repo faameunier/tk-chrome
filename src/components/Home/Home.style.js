@@ -1,23 +1,23 @@
-import { withStyles } from '@material-ui/core/styles';
+import { withStyles } from '@material-ui/core/styles'
 
-import Home from './Home';
+import Home from './Home'
 
-const styles = theme => ({
+const styles = (theme) => ({
     title: {
         fontSize: 16,
         display: 'flex',
-        flexDirection: 'row' ,
-  },
+        flexDirection: 'row',
+    },
     greenTitle: {
         fontSize: 16,
         display: 'flex',
-        flexDirection: 'row' ,
+        flexDirection: 'row',
         color: '#1b9e74',
         borderBottom: `2px solid #1b9e74`,
         maxWidth: 225,
-  },
+    },
     boldText: {
-        fontWeight: "bold",
+        fontWeight: 'bold',
     },
     middleText: {
         marginLeft: theme.spacing(0.5),
@@ -32,13 +32,12 @@ const styles = theme => ({
         maxWidth: 200,
     },
     timeDisplay: {
-        fontWeight: "bold",
+        fontWeight: 'bold',
         fontSize: 14,
     },
     gridAvatarWithTime: {
         display: 'flex',
         flexDirection: 'column',
-    }
-
-});
-export default withStyles(styles)(Home);
+    },
+})
+export default withStyles(styles)(Home)

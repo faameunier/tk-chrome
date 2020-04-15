@@ -1,1 +1,1 @@
-export { default } from './Home.style';
+export { default } from './Home.style'
