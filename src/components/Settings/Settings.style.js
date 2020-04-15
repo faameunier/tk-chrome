@@ -15,10 +15,9 @@ const styles = theme => ({
 
     qualityWrapper: {
         display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
+        flexDirection: 'column',
+        //alignItems: 'center',
         //width: '100%',
-        justifyContent: 'space-between',
         //height: '100vh',
     },
     secondaryButton: {
@@ -29,6 +28,15 @@ const styles = theme => ({
     },
     notification: {
         maxWidth: 150,
+    },
+    introductionBlock : {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    title: {
+        fontWeight: "bold",
+        fontSize: 16,
     },
 
 });

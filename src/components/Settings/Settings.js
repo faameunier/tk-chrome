@@ -10,6 +10,7 @@ import Slider from '@material-ui/core/Slider';
 import Tooltip from "@material-ui/core/Tooltip/Tooltip";
 import TextField from '@material-ui/core/TextField';
 import FormControl from '@material-ui/core/FormControl';
+import TuneIcon from '@material-ui/icons/Tune';
 import { withSnackbar } from 'notistack';
 
 
@@ -226,11 +227,12 @@ class Settings extends PureComponent {
         return(
             <div className="card todo-list-container">
                 <div className="card-body" >
-                    <PrimaryText
-                            text={
-                              'Select the suiting option or customize it.'
-                            }
-                          />
+                    <div className={classes.introductionBlock}>
+                        <TuneIcon/>
+                        <Typography variant="h3" className={classes.title}>
+                            Select the suiting mode or customize it.
+                        </Typography>
+                    </div>
                     <div className={classes.textField}>
                         <div className={classes.activeBar}>
                            {/*<h1 className={"bold-title"}>Active hours:</h1>*/}
@@ -247,7 +249,7 @@ class Settings extends PureComponent {
                             {/*onChange={(e,v) => this.handleSliderChange(e,v)}*/}
                           {/*/>*/}
                         </div>
-                       <h1 className={"bold-title"}>Select Tabby's operating mode:</h1>
+                       {/*<h1 className={"bold-title"}>Select Tabby's operating mode:</h1>*/}
                         <Form className={classes.qualityWrapper} >
                           <Typography variant="h6" gutterBottom>
                             <FormControlLabel
@@ -256,7 +258,7 @@ class Settings extends PureComponent {
                                   onChange={()=>this.handleBoolChange(IS_FOCUSED_MODE)}
                                   value="secondary"
                                   color="primary" />}
-                              label="Focused Mode"
+                              label="Focused"
                             />
                           </Typography>
                             <Typography variant="h6" gutterBottom>
@@ -266,18 +268,17 @@ class Settings extends PureComponent {
                                     onChange={()=>this.handleBoolChange(IS_RELAXED_MODE)}
                                   value="secondary"
                                   color="primary" />}
-                              label="Relaxed Mode"
+                              label="Relaxed"
+                            />
+                          </Typography>
+                          <Typography variant="h6" gutterBottom>
+                            <FormControlLabel
+                              onChange={()=>this.handleBoolChange(IS_CUSTOMIZED_MODE)}
+                              control={<Checkbox checked={this.state.customizedBool} value="" color="primary" />}
+                              label="Customize your settings' parameters"
                             />
                           </Typography>
                         </Form>
-                      <Typography variant="h6" gutterBottom>
-                        <FormControlLabel
-                          onChange={()=>this.handleBoolChange(IS_CUSTOMIZED_MODE)}
-                          control={<Checkbox checked={this.state.customizedBool} value="" color="primary" />}
-                          label="Customize your settings' parameters"
-                        />
-                      </Typography>
-
                       <FormControl className={classes.content} required fullWidth>
                         {listItemsParameters}
                       </FormControl>
