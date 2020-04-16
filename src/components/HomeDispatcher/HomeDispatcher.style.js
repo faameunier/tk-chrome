@@ -1,4 +1,4 @@
-import {withStyles} from '@material-ui/core/styles';
+import { withStyles } from '@material-ui/core/styles';
 
 import HomeDispatcher from './HomeDispatcher';
 import Tab from '@material-ui/core/Tab/Tab';

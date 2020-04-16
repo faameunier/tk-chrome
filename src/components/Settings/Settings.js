@@ -1,4 +1,4 @@
-import React, {PureComponent} from 'react';
+import React, { PureComponent } from 'react';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import Checkbox from '@material-ui/core/Checkbox';
@@ -7,7 +7,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import TextField from '@material-ui/core/TextField';
 import FormControl from '@material-ui/core/FormControl';
 import TuneIcon from '@material-ui/icons/Tune';
-import {withSnackbar} from 'notistack';
+import { withSnackbar } from 'notistack';
 
 const IS_RELAXED_MODE = 'IS_RELAXED_MODE';
 const IS_FOCUSED_MODE = 'IS_FOCUSED_MODE';
@@ -24,7 +24,7 @@ class Settings extends PureComponent {
       focusedMode: false,
       relaxedMode: false,
       customizedBool: false,
-      settings: {policy: {target_tabs: 100}},
+      settings: { policy: { target_tabs: 100 } },
       renderSaveBoolean: false,
     };
   }
@@ -32,46 +32,46 @@ class Settings extends PureComponent {
   componentDidMount() {
     this.mounted = true;
     chrome.storage.local.get(
-        [
-          'beginHour',
-          'endHour',
-          'focusedMode',
-          'relaxedMode',
-          'customizedBool',
-          'settings',
-        ],
-        (result) => {
-          const beginHour = result.beginHour || 0;
-          const endHour = result.endHour || 24;
-          const focusedMode = result.focusedMode || false;
-          let relaxedMode = result.relaxedMode || false;
-          const customizedBool = result.customizedBool || false;
-          // if (!customizedBool && !relaxedMode && !customizedBool){
-          //     relaxedMode = true;
-          // }
-          const settings = result.settings || {
-            policy: {target_tabs: 100},
-          };
-          this.setState({
-            beginHour,
-            endHour,
-            focusedMode,
-            relaxedMode,
-            customizedBool,
-            settings,
-          });
-        },
+      [
+        'beginHour',
+        'endHour',
+        'focusedMode',
+        'relaxedMode',
+        'customizedBool',
+        'settings',
+      ],
+      (result) => {
+        const beginHour = result.beginHour || 0;
+        const endHour = result.endHour || 24;
+        const focusedMode = result.focusedMode || false;
+        let relaxedMode = result.relaxedMode || false;
+        const customizedBool = result.customizedBool || false;
+        // if (!customizedBool && !relaxedMode && !customizedBool){
+        //     relaxedMode = true;
+        // }
+        const settings = result.settings || {
+          policy: { target_tabs: 100 },
+        };
+        this.setState({
+          beginHour,
+          endHour,
+          focusedMode,
+          relaxedMode,
+          customizedBool,
+          settings,
+        });
+      }
     );
     chrome.storage.onChanged.addListener(
-        function(changes) {
-          const changesSettings = changes['settings'];
-          if (this.mounted && changesSettings) {
-            this.setState({
-              settings: changesSettings['newValue'],
-              renderSaveBoolean: true,
-            });
-          }
-        }.bind(this),
+      function (changes) {
+        const changesSettings = changes['settings'];
+        if (this.mounted && changesSettings) {
+          this.setState({
+            settings: changesSettings['newValue'],
+            renderSaveBoolean: true,
+          });
+        }
+      }.bind(this)
     );
   }
 
@@ -81,15 +81,15 @@ class Settings extends PureComponent {
 
   componentDidUpdate(prevProps, prevState) {
     if (
-        prevState.beginHour !== this.state.beginHour ||
-        prevState.endHour !== this.state.endHour
+      prevState.beginHour !== this.state.beginHour ||
+      prevState.endHour !== this.state.endHour
     ) {
       this.saveActiveHoursToLocal();
     }
     if (
-        prevState.relaxedMode !== this.state.relaxedMode ||
-        prevState.focusedMode !== this.state.focusedMode ||
-        prevState.customizedBool !== this.state.customizedBool
+      prevState.relaxedMode !== this.state.relaxedMode ||
+      prevState.focusedMode !== this.state.focusedMode ||
+      prevState.customizedBool !== this.state.customizedBool
     ) {
       this.saveSettingsToState();
       this.saveCasesBool();
@@ -143,7 +143,7 @@ class Settings extends PureComponent {
   }
 
   forceRender() {
-    this.setState({renderSaveBoolean: false});
+    this.setState({ renderSaveBoolean: false });
   }
 
   handleSaveParameters() {
@@ -169,118 +169,104 @@ class Settings extends PureComponent {
   handleChangeParameters = (parameter) => (event) => {
     let settings = this.state.settings;
     settings['policy'][parameter] = event.target.value;
-    this.setState({settings: settings, renderSaveBoolean: true});
+    this.setState({ settings: settings, renderSaveBoolean: true });
   };
 
   render() {
-    const {classes} = this.props;
+    const { classes } = this.props;
     const inputsParameters = [
       {
         label: 'Optimal number of tabs ',
         value: this.state.settings.policy.target_tabs,
         onChange: OPTIMAL_NUMBER_TABS,
-        inputProps: {min: '1', max: '100', step: '1'},
+        inputProps: { min: '1', max: '100', step: '1' },
       },
     ];
     const listItemsParameters = inputsParameters.map((item, index) => (
-        <TextField
-            key={index}
-            disabled={!this.state.customizedBool}
-            label={item.label}
-            onChange={this.handleChangeParameters(item.onChange)}
-            value={item.value}
-            className={classes.textField}
-            type="number"
-            inputProps={item.inputProps}
-        />
+      <TextField
+        key={index}
+        disabled={!this.state.customizedBool}
+        label={item.label}
+        onChange={this.handleChangeParameters(item.onChange)}
+        value={item.value}
+        className={classes.textField}
+        type="number"
+        inputProps={item.inputProps}
+      />
     ));
     return (
-        <div className="card todo-list-container">
-          <div className="card-body">
-            <div className={classes.introductionBlock}>
-              <TuneIcon/>
-              <Typography variant="h3" className={classes.title}>
-                Select the suiting mode or customize it.
-              </Typography>
-            </div>
-            <div className={classes.textField}>
-              <div className={classes.activeBar}></div>
-              {/*<h1 className={"bold-title"}>Select Tabby's operating mode:</h1>*/}
-              <Form className={classes.settingsWrapper}>
-                <FormControlLabel
-                    control={
-                      <Checkbox
-                          checked={this.state.focusedMode}
-                          onChange={() =>
-                              this.handleBoolChange(
-                                  IS_FOCUSED_MODE,
-                              )
-                          }
-                          value="secondary"
-                          color="primary"
-                      />
+      <div className="card todo-list-container">
+        <div className="card-body">
+          <div className={classes.introductionBlock}>
+            <TuneIcon />
+            <Typography variant="h3" className={classes.title}>
+              Select the suiting mode or customize it.
+            </Typography>
+          </div>
+          <div className={classes.textField}>
+            <div className={classes.activeBar}></div>
+            {/*<h1 className={"bold-title"}>Select Tabby's operating mode:</h1>*/}
+            <Form className={classes.settingsWrapper}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={this.state.focusedMode}
+                    onChange={() => this.handleBoolChange(IS_FOCUSED_MODE)}
+                    value="secondary"
+                    color="primary"
+                  />
+                }
+                label="Focused"
+                className={classes.firstBooleans}
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={this.state.relaxedMode}
+                    onChange={() => this.handleBoolChange(IS_RELAXED_MODE)}
+                    value="secondary"
+                    color="primary"
+                  />
+                }
+                label="Relaxed"
+                className={classes.firstBooleans}
+              />
+              <FormControlLabel
+                onChange={() => this.handleBoolChange(IS_CUSTOMIZED_MODE)}
+                control={
+                  <Checkbox
+                    checked={this.state.customizedBool}
+                    value=""
+                    color="primary"
+                  />
+                }
+                label="Customize your settings' parameters"
+              />
+              <div className={classes.settingsBlock}>
+                <FormControl
+                  //className={classes.content}
+                  required
+                  fullWidth
+                >
+                  {listItemsParameters}
+                </FormControl>
+                <div>
+                  <Button
+                    disabled={!this.state.customizedBool}
+                    className={classes.secondaryButton}
+                    variant={
+                      this.state.customizedBool ? 'outline-primary' : 'primary'
                     }
-                    label="Focused"
-                    className={classes.firstBooleans}
-                />
-                <FormControlLabel
-                    control={
-                      <Checkbox
-                          checked={this.state.relaxedMode}
-                          onChange={() =>
-                              this.handleBoolChange(
-                                  IS_RELAXED_MODE,
-                              )
-                          }
-                          value="secondary"
-                          color="primary"
-                      />
-                    }
-                    label="Relaxed"
-                    className={classes.firstBooleans}
-                />
-                <FormControlLabel
-                    onChange={() =>
-                        this.handleBoolChange(IS_CUSTOMIZED_MODE)
-                    }
-                    control={
-                      <Checkbox
-                          checked={this.state.customizedBool}
-                          value=""
-                          color="primary"
-                      />
-                    }
-                    label="Customize your settings' parameters"
-                />
-                <div className={classes.settingsBlock}>
-                  <FormControl
-                      //className={classes.content}
-                      required
-                      fullWidth
+                    onClick={() => this.handleSaveParameters()}
                   >
-                    {listItemsParameters}
-                  </FormControl>
-                  <div>
-                    <Button
-                        disabled={!this.state.customizedBool}
-                        className={classes.secondaryButton}
-                        variant={
-                          this.state.customizedBool
-                              ? 'outline-primary'
-                              : 'primary'
-                        }
-                        onClick={() =>
-                            this.handleSaveParameters()
-                        }
-                    >
-                      Save
-                    </Button>
-                  </div>
+                    Save
+                  </Button>
                 </div>
-              </Form>
-            </div>
+              </div>
+            </Form>
           </div>
         </div>
+      </div>
     );
   }
 }

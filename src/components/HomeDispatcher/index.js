@@ -1,1 +1,1 @@
-export {default} from './HomeDispatcher.style';
+export { default } from './HomeDispatcher.style';

@@ -1,4 +1,4 @@
-import {withStyles} from '@material-ui/core/styles';
+import { withStyles } from '@material-ui/core/styles';
 
 import Home from './Home';
 
@@ -38,6 +38,9 @@ const styles = (theme) => ({
   gridAvatarWithTime: {
     display: 'flex',
     flexDirection: 'column',
+  },
+  listWebsites: {
+    marginTop: 20,
   },
 });
 export default withStyles(styles)(Home);

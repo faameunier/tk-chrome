@@ -1,4 +1,4 @@
-const logger = function(...args) {
+const logger = function (...args) {
   if (ENV === 'debug' || ENV === 'dev') {
     let pre = new Date().toUTCString();
     if (typeof args[0] === 'object') {
@@ -29,7 +29,7 @@ function getDomain(str) {
 
 function storageSet(args) {
   return new Promise((resolve, reject) => {
-    chrome.storage.local.set(args, function() {
+    chrome.storage.local.set(args, function () {
       resolve();
     });
   });
@@ -37,7 +37,7 @@ function storageSet(args) {
 
 function storageGet(args) {
   return new Promise((resolve, reject) => {
-    chrome.storage.local.get(args, function(data) {
+    chrome.storage.local.get(args, function (data) {
       resolve(data);
     });
   });

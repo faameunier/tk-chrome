@@ -1,19 +1,19 @@
-import React, {PureComponent} from 'react';
+import React, { PureComponent } from 'react';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import Paper from '@material-ui/core/Paper';
 import Settings from '../Settings';
 import Home from '../Home';
-import {SnackbarProvider} from 'notistack';
+import { SnackbarProvider } from 'notistack';
 
 class HomeDispatcher extends PureComponent {
   constructor(props) {
     super(props);
-    this.state = {appBarValue: 'HOME'};
+    this.state = { appBarValue: 'HOME' };
   }
 
   componentDidMount() {
-    this.setState({appBarValue: 'HOME'});
+    this.setState({ appBarValue: 'HOME' });
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -23,55 +23,47 @@ class HomeDispatcher extends PureComponent {
   }
 
   handleChange(event, newValue) {
-    this.setState({appBarValue: newValue});
+    this.setState({ appBarValue: newValue });
   }
 
   dispatchPage() {
     switch (this.state.appBarValue) {
       case 'HOME':
-        return <Home/>;
+        return <Home />;
       case 'SETTINGS':
-        return <Settings/>;
+        return <Settings />;
       default:
         return <div>This is an error page</div>;
     }
   }
 
   render() {
-    const {classes} = this.props;
+    const { classes } = this.props;
     return (
-        <SnackbarProvider
-            maxSnack={2}
-            classes={{
-              root: classes.notification,
-            }}
-        >
-          <div className={classes.homeContainer}>
-            <Paper square>
-              <Tabs
-                  value={
-                    this.state.appBarValue
-                        ? this.state.appBarValue
-                        : 'HOME'
-                  }
-                  onChange={(e, v) => this.handleChange(e, v)}
-              >
-                <Tab
-                    label="Home"
-                    value={'HOME'}
-                    className={classes.tab}
-                />
-                <Tab
-                    label="Settings"
-                    value={'SETTINGS'}
-                    className={classes.tab}
-                />
-                {/*<Tab label="Debug" value={"DEBUG"} disabled className={classes.tab}/>*/}
-              </Tabs>
-              <div>{this.dispatchPage()}</div>
-            </Paper>
-          </div>
-        </SnackbarProvider>
+      <SnackbarProvider
+        maxSnack={2}
+        classes={{
+          root: classes.notification,
+        }}
+      >
+        <div className={classes.homeContainer}>
+          <Paper square>
+            <Tabs
+              value={this.state.appBarValue ? this.state.appBarValue : 'HOME'}
+              onChange={(e, v) => this.handleChange(e, v)}
+            >
+              <Tab label="Home" value={'HOME'} className={classes.tab} />
+              <Tab
+                label="Settings"
+                value={'SETTINGS'}
+                className={classes.tab}
+              />
+              {/*<Tab label="Debug" value={"DEBUG"} disabled className={classes.tab}/>*/}
+            </Tabs>
+            <div>{this.dispatchPage()}</div>
+          </Paper>
+        </div>
+      </SnackbarProvider>
     );
   }
 }

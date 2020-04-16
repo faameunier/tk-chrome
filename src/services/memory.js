@@ -59,7 +59,7 @@ class MemoryManager {
       },
       scorer: {
         min_active: 3 * 1000,
-        protection_time: 10 * 60 * 1000,
+        protection_time: 5 * 60 * 1000,
         cached_decay: 0.7,
       },
     };
@@ -211,7 +211,7 @@ class MemoryManager {
     logger(this, 'Tab assigned to new window');
     if (!this.tabs[tabId]) {
       logger(this, 'OOS Missing tab found');
-      await this.createTab({id: tabId, windowId: windowId});
+      await this.createTab({ id: tabId, windowId: windowId });
       // missing tab is assigned to window and THAT'S IT
     } else {
       this.tabs[tabId].windowId = windowId;
@@ -246,7 +246,7 @@ class MemoryManager {
           logger(this, 'Old state restored from cache');
         } else {
           await this.createStatistics(stored_tab);
-          logger(this, 'State couldn\'t be restored');
+          logger(this, "State couldn't be restored");
         }
         stored_tab.cache.write(old_url, old_statistics);
       }
@@ -289,21 +289,18 @@ class MemoryManager {
     let now = Date.now();
     if (fromCache) {
       activitySwitch = true; // restored from cache is considered a reactivation
-      iTab.statistics.total_cached_time +=
-          now - iTab.statistics.updated_at;
+      iTab.statistics.total_cached_time += now - iTab.statistics.updated_at;
       iTab.statistics.updated_at = now; // protip
       iTab.statistics.activated += 1;
     } else {
       if (iTab.active) {
-        iTab.statistics.total_active_time +=
-            now - iTab.statistics.updated_at;
+        iTab.statistics.total_active_time += now - iTab.statistics.updated_at;
         iTab.statistics.last_active_timestamp = now;
       } else {
         if (activitySwitch || iTab.statistics.activated === 0) {
           iTab.statistics.activated += 1;
         }
-        iTab.statistics.total_inactive_time +=
-            now - iTab.statistics.updated_at;
+        iTab.statistics.total_inactive_time += now - iTab.statistics.updated_at;
       }
       iTab.statistics.updated_at = now;
     }
@@ -312,8 +309,8 @@ class MemoryManager {
   async updateAllStatistics() {
     let now = Date.now();
     if (
-        now - this.runtime_events.last_full_stats_update >=
-        this.settings.memory.min_time_full_stats_update
+      now - this.runtime_events.last_full_stats_update >=
+      this.settings.memory.min_time_full_stats_update
     ) {
       logger(this, 'Running full stats');
       var tab_ids = Object.keys(this.tabs);
@@ -338,14 +335,14 @@ class MemoryManager {
     // let cache = LRUfactory.fromJSON(restoredTab.cache);
     let tab = await new Promise((resolve, reject) => {
       chrome.tabs.create(
-          {url: restoredTab.full_url, active: false},
-          (tab) => {
-            if (chrome.runtime.lastError) {
-              reject(false);
-            } else {
-              resolve(tab);
-            }
-          },
+        { url: restoredTab.full_url, active: false },
+        (tab) => {
+          if (chrome.runtime.lastError) {
+            reject(false);
+          } else {
+            resolve(tab);
+          }
+        }
       );
     });
     await this.createTab(tab);
@@ -353,8 +350,8 @@ class MemoryManager {
     // this.tabs[tab.tabId].cache = cache;  // do not restore cache as history is lost
     await this.protectTab(tab.id);
     this.tabs[tab.id].cache.write(
-        restoredTab.url,
-        this.tabs[tab.id].statistics,
+      restoredTab.url,
+      this.tabs[tab.id].statistics
     ); // hack :D
     await this.updateStatistics(this.tabs[tab.id], true);
   }
@@ -372,8 +369,8 @@ class MemoryManager {
   async cleanTabsDelay() {
     let now = Date.now();
     if (
-        now - this.runtime_events.last_garbage_collector >=
-        this.settings.memory.min_time_garbage_collector
+      now - this.runtime_events.last_garbage_collector >=
+      this.settings.memory.min_time_garbage_collector
     ) {
       await this.cleanTabs();
       this.runtime_events.last_garbage_collector = now;
@@ -386,7 +383,7 @@ class MemoryManager {
       let tabId = tab_ids[i];
       try {
         let p = new Promise((resolve, reject) => {
-          chrome.tabs.get(parseInt(tabId), function(tab) {
+          chrome.tabs.get(parseInt(tabId), function (tab) {
             if (chrome.runtime.lastError) {
               reject(false);
             } else {

@@ -105,7 +105,7 @@ class LRU {
     }
   }
 
-  * [Symbol.iterator]() {
+  *[Symbol.iterator]() {
     var node = this.head;
     while (node) {
       yield node;
