@@ -1,10 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { withStyles, makeStyles } from '@material-ui/core/styles';
+import {withStyles, makeStyles} from '@material-ui/core/styles';
 import Slider from '@material-ui/core/Slider';
 import Tooltip from '@material-ui/core/Tooltip';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   root: {
     width: 300 + theme.spacing(3) * 2,
   },
@@ -14,12 +14,12 @@ const useStyles = makeStyles(theme => ({
 }));
 
 function ValueLabelComponent(props) {
-  const { children, open, value } = props;
+  const {children, open, value} = props;
 
   return (
-    <Tooltip open={open} enterTouchDelay={0} placement="top" title={value}>
-      {children}
-    </Tooltip>
+      <Tooltip open={open} enterTouchDelay={0} placement="top" title={value}>
+        {children}
+      </Tooltip>
   );
 }
 
@@ -28,8 +28,6 @@ ValueLabelComponent.propTypes = {
   open: PropTypes.bool.isRequired,
   value: PropTypes.number.isRequired,
 };
-
-
 
 const AirbnbSlider = withStyles({
   root: {
@@ -73,11 +71,11 @@ const AirbnbSlider = withStyles({
 
 function AirbnbThumbComponent(props) {
   return (
-    <span {...props}>
-      <span className="bar" />
-      <span className="bar" />
-      <span className="bar" />
-    </span>
+      <span {...props}>
+            <span className="bar"/>
+            <span className="bar"/>
+            <span className="bar"/>
+        </span>
   );
 }
 
@@ -85,12 +83,14 @@ export default function CustomizedSlider() {
   const classes = useStyles();
 
   return (
-    <div className={classes.root}>
-      <AirbnbSlider
-        ThumbComponent={AirbnbThumbComponent}
-        getAriaLabel={index => (index === 0 ? 'Minimum price' : 'Maximum price')}
-        defaultValue={[20, 40]}
-      />
-    </div>
+      <div className={classes.root}>
+        <AirbnbSlider
+            ThumbComponent={AirbnbThumbComponent}
+            getAriaLabel={(index) =>
+                index === 0 ? 'Minimum price' : 'Maximum price'
+            }
+            defaultValue={[20, 40]}
+        />
+      </div>
   );
 }
