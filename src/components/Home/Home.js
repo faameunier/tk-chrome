@@ -26,7 +26,6 @@ class Home extends PureComponent {
     chrome.storage.local.get([CLOSED_HISTORY], (result) => {
       const closed_history = result.closed_history || [];
       this.setState({ closed_history });
-      console.log('DidMOunt', closed_history.length, closed_history);
     });
     this.setState({ nextList: [] });
     chrome.storage.onChanged.addListener(

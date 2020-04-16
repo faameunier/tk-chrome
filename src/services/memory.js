@@ -363,7 +363,6 @@ class MemoryManager {
 
   async updateSettings(settings) {
     this.settings = settings;
-    console.log('SETTINGS CHANGED');
   }
 
   async cleanTabsDelay() {

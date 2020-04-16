@@ -126,7 +126,6 @@ class Settings extends PureComponent {
     }
 
     if (!this.state.customizedBool) {
-      console.log('SEND SETTINGS', settings['policy']['target_tabs']);
       chrome.runtime.sendMessage({
         messageType: 'SETTINGS',
         settings: settings,
