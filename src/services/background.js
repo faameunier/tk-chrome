@@ -52,10 +52,6 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       );
       break;
     case 'SETTINGS':
-      console.log(
-        'RECEIVE SETTINGS',
-        request.settings['policy']['target_tabs']
-      );
       eventQueue.enqueue(() => memoryManager.updateSettings(request.settings));
       break;
 

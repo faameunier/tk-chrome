@@ -30,7 +30,6 @@ class Settings extends PureComponent {
   }
 
   componentDidMount() {
-    this.mounted = true;
     chrome.storage.local.get(
       [
         'beginHour',
@@ -62,21 +61,11 @@ class Settings extends PureComponent {
         });
       }
     );
-    chrome.storage.onChanged.addListener(
-      function (changes) {
-        const changesSettings = changes['settings'];
-        if (this.mounted && changesSettings) {
-          this.setState({
-            settings: changesSettings['newValue'],
-            renderSaveBoolean: true,
-          });
-        }
-      }.bind(this)
-    );
+    chrome.storage.onChanged.addListener(this.onChangedCallback.bind(this));
   }
 
   componentWillUnmount() {
-    this.mounted = false;
+    chrome.storage.onChanged.removeListener(this.onChangedCallback.bind(this));
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -104,6 +93,15 @@ class Settings extends PureComponent {
       beginHour: this.state.beginHour,
       endHour: this.state.endHour,
     });
+  }
+  onChangedCallback(changes) {
+    const changesSettings = changes['settings'];
+    if (changesSettings) {
+      this.setState({
+        settings: changesSettings['newValue'],
+        renderSaveBoolean: true,
+      });
+    }
   }
 
   handleBoolChange(changeType) {
