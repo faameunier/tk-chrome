@@ -4,13 +4,30 @@ class EventQueue {
 
   constructor() {
     if (!EventQueue.instance) {
-      logger(this, "Instanciating empty EventQueue");
+      logger(this, 'Instanciating empty EventQueue');
       EventQueue.instance = this;
     }
     return EventQueue.instance;
   }
 
   enqueue(promise) {
+    if (this.queue.length === 0) {
+      return memoryManager.load().then(
+        function success() {
+          return new Promise((resolve, reject) => {
+            this.queue.push({
+              promise,
+              resolve,
+              reject,
+            });
+            this.dequeue();
+          });
+        }.bind(this),
+        function failure() {
+          logger(this, 'There is an error in the Enqueue Callback');
+        }.bind(this)
+      );
+    }
     return new Promise((resolve, reject) => {
       this.queue.push({
         promise,
@@ -45,18 +62,19 @@ class EventQueue {
     }
     try {
       this.workingOnPromise = true;
-      item.promise()
+      item
+        .promise()
         .then((value) => {
-          logger(this, 'Processing next event')
+          logger(this, 'Processing next event');
           this.workingOnPromise = false;
           item.resolve(value);
           this.dequeue();
         })
-        .catch(err => {
+        .catch((err) => {
           this.workingOnPromise = false;
           item.reject(err);
           this.dequeue();
-        })
+        });
     } catch (err) {
       this.workingOnPromise = false;
       item.reject(err);

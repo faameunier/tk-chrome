@@ -25,7 +25,7 @@ class LRUfactory {
 
 class LRU {
   constructor(limit = 10) {
-    logger(this, "Creating new LRU cache")
+    logger(this, 'Creating new LRU cache');
     this.size = 0;
     this.limit = limit;
     this.head = null;
@@ -46,7 +46,7 @@ class LRU {
 
     this.cache[key] = this.head;
     this.size++;
-    logger(this, "New value stored into cache")
+    logger(this, 'New value stored into cache');
   }
 
   read(key) {
@@ -62,7 +62,7 @@ class LRU {
 
   ensureLimit() {
     if (this.size === this.limit) {
-      logger(this, "Cache maxed out, removing tail");
+      logger(this, 'Cache maxed out, removing tail');
       this.remove(this.tail.key);
     }
   }
@@ -79,12 +79,12 @@ class LRU {
     if (node.next !== null) {
       node.next.prev = node.prev;
     } else {
-      this.tail = node.prev
+      this.tail = node.prev;
     }
 
     delete this.cache[key];
     this.size--;
-    logger(this, "Old value removed from cache");
+    logger(this, 'Old value removed from cache');
   }
 
   clear() {
@@ -92,7 +92,7 @@ class LRU {
     this.tail = null;
     this.size = 0;
     this.cache = {};
-    logger(this, "Cache cleared")
+    logger(this, 'Cache cleared');
   }
 
   forEach(fn) {
@@ -117,14 +117,15 @@ class LRU {
     var nodes = [];
     for (let node of this) {
       nodes.unshift({
-        'key': node.key,
-        'value': node.value
-      })
-    };
-    return {
-      "limit": this.limit,
-      "size": this.size,
-      "nodes": nodes
+        key: node.key,
+        value: node.value,
+      });
     }
+
+    return {
+      limit: this.limit,
+      size: this.size,
+      nodes: nodes,
+    };
   }
 }

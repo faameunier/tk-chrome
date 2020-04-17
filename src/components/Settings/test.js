@@ -4,7 +4,7 @@ import { withStyles, makeStyles } from '@material-ui/core/styles';
 import Slider from '@material-ui/core/Slider';
 import Tooltip from '@material-ui/core/Tooltip';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   root: {
     width: 300 + theme.spacing(3) * 2,
   },
@@ -28,8 +28,6 @@ ValueLabelComponent.propTypes = {
   open: PropTypes.bool.isRequired,
   value: PropTypes.number.isRequired,
 };
-
-
 
 const AirbnbSlider = withStyles({
   root: {
@@ -88,7 +86,9 @@ export default function CustomizedSlider() {
     <div className={classes.root}>
       <AirbnbSlider
         ThumbComponent={AirbnbThumbComponent}
-        getAriaLabel={index => (index === 0 ? 'Minimum price' : 'Maximum price')}
+        getAriaLabel={(index) =>
+          index === 0 ? 'Minimum price' : 'Maximum price'
+        }
         defaultValue={[20, 40]}
       />
     </div>

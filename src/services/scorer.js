@@ -42,9 +42,25 @@ class DefaultScorer extends AbstractScorer {
     if (!tStats.last_active_timestamp) {
       tStats.last_active_timestamp = Date.now();
     }
-    if ((tStats.total_active_time + tStats.total_inactive_time + tStats.total_cached_time >= memoryManager.settings.scorer.min_active)
-      && (Date.now() - tStats.protection_timestamp >= memoryManager.settings.scorer.protection_time)) {
-      return Math.log(Math.min(Math.max(tStats.total_active_time, 10000), 3600 * 1000)) * tStats.total_active_time / (tStats.total_inactive_time + tStats.total_active_time) * Math.max(1, Math.exp(-(Date.now() - tStats.last_active_timestamp)) * 100000);
+    if (
+      tStats.total_active_time +
+        tStats.total_inactive_time +
+        tStats.total_cached_time >=
+        memoryManager.settings.scorer.min_active &&
+      Date.now() - tStats.protection_timestamp >=
+        memoryManager.settings.scorer.protection_time
+    ) {
+      return (
+        ((Math.log(
+          Math.min(Math.max(tStats.total_active_time, 10000), 3600 * 1000)
+        ) *
+          tStats.total_active_time) /
+          (tStats.total_inactive_time + tStats.total_active_time)) *
+        Math.max(
+          1,
+          Math.exp(-(Date.now() - tStats.last_active_timestamp)) * 100000
+        )
+      );
     } else {
       return MAXIMUM_SCORE;
     }
@@ -54,7 +70,7 @@ class DefaultScorer extends AbstractScorer {
     var cachedScores = [];
     let acc = (state) => {
       cachedScores.push(this.scoreStatistics(state.value));
-    }
+    };
     if (cache) {
       cache.forEach(acc);
     }
@@ -66,9 +82,10 @@ class DefaultScorer extends AbstractScorer {
     for (var i = 0; i < scores.length; i++) {
       let temp = scores[i];
       if (i === 0) {
-        result += temp
+        result += temp;
       } else if (temp !== MAXIMUM_SCORE) {
-        result += (temp * Math.pow(memoryManager.settings.scorer.cached_decay, i));
+        result +=
+          temp * Math.pow(memoryManager.settings.scorer.cached_decay, i);
       }
     }
     return Math.min(result, MAXIMUM_SCORE);
