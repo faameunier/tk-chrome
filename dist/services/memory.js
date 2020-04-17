@@ -104,7 +104,6 @@ class MemoryManager {
 
           this.loaded = true;
         } catch (e) {
-          console.log(e);
           logger(this, 'Loading fail, init memory');
           this.loaded = true;
         }
@@ -119,8 +118,7 @@ class MemoryManager {
 
   async setActivated(tabId, windowId) {
     if (!this.tabs[tabId]) {
-      logger(this, 'OOS Unknown activated tab, creating shell');
-      await this.createTab({
+      await this.backfillTab({
         id: tabId,
         active: true,
         windowId: windowId
@@ -222,8 +220,7 @@ class MemoryManager {
     logger(this, 'Tab assigned to new window');
 
     if (!this.tabs[tabId]) {
-      logger(this, 'OOS Missing tab found');
-      await this.createTab({
+      await this.backfillTab({
         id: tabId,
         windowId: windowId
       }); // missing tab is assigned to window and THAT'S IT
@@ -236,8 +233,7 @@ class MemoryManager {
     logger(this, 'Updating tab ' + tabId);
 
     if (!this.tabs[tabId]) {
-      logger(this, 'OOS Missing tab found');
-      await this.createTab(tab);
+      await this.backfillTab(tab);
     }
 
     if (this.tabs[tabId].windowId !== tab.windowId) {
@@ -401,6 +397,27 @@ class MemoryManager {
     if (now - this.runtime_events.last_garbage_collector >= this.settings.memory.min_time_garbage_collector) {
       await this.cleanTabs();
       this.runtime_events.last_garbage_collector = now;
+    }
+  }
+
+  async backfillTab(tab) {
+    logger(this, 'OOS, trying to backfill tab ' + tab.id);
+
+    try {
+      let realTab = await new Promise((resolve, reject) => {
+        chrome.tabs.get(parseInt(tab.id), function (data) {
+          if (chrome.runtime.lastError) {
+            reject(false);
+          } else {
+            resolve(data);
+          }
+        });
+      });
+      await this.createTab(realTab);
+      logger(this, 'Backfill succesful');
+    } catch (e) {
+      logger(this, 'Tab couldn\'t be retrieved, creating empty tab...');
+      await this.createTab(tab);
     }
   }
 
