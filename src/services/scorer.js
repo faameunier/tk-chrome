@@ -46,9 +46,9 @@ class DefaultScorer extends AbstractScorer {
       tStats.total_active_time +
         tStats.total_inactive_time +
         tStats.total_cached_time >=
-        settingsManager.scorer.min_active &&
+        settingsManager.settings.scorer.min_active &&
       Date.now() - tStats.protection_timestamp >=
-        settingsManager.scorer.protection_time
+        settingsManager.settings.scorer.protection_time
     ) {
       return (
         ((Math.log(
@@ -84,7 +84,8 @@ class DefaultScorer extends AbstractScorer {
       if (i === 0) {
         result += temp;
       } else if (temp !== MAXIMUM_SCORE) {
-        result += temp * Math.pow(settingsManager.scorer.cached_decay, i);
+        result +=
+          temp * Math.pow(settingsManager.settings.scorer.cached_decay, i);
       }
     }
     return Math.min(result, MAXIMUM_SCORE);

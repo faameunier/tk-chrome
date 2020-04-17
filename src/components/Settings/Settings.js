@@ -13,7 +13,7 @@ const IS_RELAXED_MODE = 'IS_RELAXED_MODE';
 const IS_FOCUSED_MODE = 'IS_FOCUSED_MODE';
 const IS_CUSTOMIZED_MODE = 'IS_CUSTOMIZED_MODE';
 const OPTIMAL_NUMBER_TABS = 'target_tabs';
-const POLICY = 'POLICY';
+const POLICY = 'policy';
 
 class Settings extends PureComponent {
   constructor(props) {
@@ -126,7 +126,7 @@ class Settings extends PureComponent {
     const inputsParameters = [
       {
         label: 'Optimal number of tabs ',
-        value: this.state.settings.policy.target_tabs,
+        source: this.state.settings,
         path: POLICY,
         parameter: OPTIMAL_NUMBER_TABS,
         inputProps: { min: '1', max: '100', step: '1' },
@@ -138,7 +138,7 @@ class Settings extends PureComponent {
         disabled={!this.state.customizedBool}
         label={item.label}
         onChange={this.handleChangeParameters(item.path, item.parameter)}
-        value={item.value}
+        value={item.source[item.path][item.parameter]}
         className={classes.textField}
         type="number"
         inputProps={item.inputProps}

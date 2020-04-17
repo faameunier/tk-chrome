@@ -56,11 +56,9 @@ class SettingsManager {
       try {
         logger(this, 'Loading settings from storage');
         if (typeof data.tabby_settings !== 'undefined') {
-          logger(this, 'SETTINGS ARE NOT UNDEFINED');
           this.settings = data.tabby_settings;
           this.profile = data.tabby_profile;
         } else {
-          logger(this, 'SETTINGS ARE UNDEFINED');
           this.reset();
         }
       } catch {

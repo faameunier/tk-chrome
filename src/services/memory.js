@@ -144,7 +144,7 @@ class MemoryManager {
           // No impact on stats until proven otherwise
           new_tab.cache = tab.cache;
         } else {
-          new_tab.cache = new LRU(settingsManager.memory.cache_size);
+          new_tab.cache = new LRU(settingsManager.settings.memory.cache_size);
         }
         if (typeof tab.pinned !== 'undefined') {
           new_tab.pinned = tab.pinned;
@@ -285,7 +285,7 @@ class MemoryManager {
     let now = Date.now();
     if (
       now - this.runtime_events.last_full_stats_update >=
-      settingsManager.memory.min_time_full_stats_update
+      settingsManager.settings.memory.min_time_full_stats_update
     ) {
       logger(this, 'Running full stats');
       var tab_ids = Object.keys(this.tabs);
@@ -340,7 +340,7 @@ class MemoryManager {
     let now = Date.now();
     if (
       now - this.runtime_events.last_garbage_collector >=
-      settingsManager.memory.min_time_garbage_collector
+      settingsManager.settings.memory.min_time_garbage_collector
     ) {
       await this.cleanTabs();
       this.runtime_events.last_garbage_collector = now;
