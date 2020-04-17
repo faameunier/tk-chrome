@@ -13,14 +13,12 @@ const IS_RELAXED_MODE = 'IS_RELAXED_MODE';
 const IS_FOCUSED_MODE = 'IS_FOCUSED_MODE';
 const IS_CUSTOMIZED_MODE = 'IS_CUSTOMIZED_MODE';
 const OPTIMAL_NUMBER_TABS = 'target_tabs';
+const POLICY = 'POLICY';
 
 class Settings extends PureComponent {
   constructor(props) {
     super(props);
     this.state = {
-      open: false,
-      beginHour: 0,
-      endHour: 24,
       focusedMode: false,
       relaxedMode: false,
       customizedBool: false,
@@ -28,48 +26,44 @@ class Settings extends PureComponent {
       renderSaveBoolean: false,
     };
     this.onChangedCallback = function (changes) {
-      const changesSettings = changes['settings'];
+      const changesSettings = changes['tabby_settings'];
+      const changesProfile = changes['tabby_profile'];
       if (changesSettings) {
         this.setState({
           settings: changesSettings['newValue'],
           renderSaveBoolean: true,
         });
       }
+      if (changesProfile) {
+        this.setState({
+          focusedMode: changesProfile['newValue']['focused'],
+          relaxedMode: changesProfile['newValue']['relaxed'],
+          customizedBool: changesProfile['newValue']['customized'],
+        });
+      }
     }.bind(this);
   }
 
   componentDidMount() {
-    chrome.storage.local.get(
-      [
-        'beginHour',
-        'endHour',
-        'focusedMode',
-        'relaxedMode',
-        'customizedBool',
-        'settings',
-      ],
-      (result) => {
-        const beginHour = result.beginHour || 0;
-        const endHour = result.endHour || 24;
-        const focusedMode = result.focusedMode || false;
-        let relaxedMode = result.relaxedMode || false;
-        const customizedBool = result.customizedBool || false;
-        // if (!customizedBool && !relaxedMode && !customizedBool){
-        //     relaxedMode = true;
-        // }
-        const settings = result.settings || {
-          policy: { target_tabs: 100 },
-        };
-        this.setState({
-          beginHour,
-          endHour,
-          focusedMode,
-          relaxedMode,
-          customizedBool,
-          settings,
-        });
-      }
-    );
+    chrome.storage.local.get(['tabby_profile', 'tabby_settings'], (result) => {
+      const profile = result.tabby_profile || {
+        focused: false,
+        relaxed: false,
+        customized: false,
+      };
+      const focusedMode = profile.focused;
+      const relaxedMode = profile.relaxed;
+      const customizedBool = profile.customized;
+      const settings = result.tabby_settings || {
+        policy: { target_tabs: 100 },
+      };
+      this.setState({
+        focusedMode,
+        relaxedMode,
+        customizedBool,
+        settings,
+      });
+    });
     chrome.storage.onChanged.addListener(this.onChangedCallback);
   }
 
@@ -78,65 +72,23 @@ class Settings extends PureComponent {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if (
-      prevState.beginHour !== this.state.beginHour ||
-      prevState.endHour !== this.state.endHour
-    ) {
-      this.saveActiveHoursToLocal();
-    }
-    if (
-      prevState.relaxedMode !== this.state.relaxedMode ||
-      prevState.focusedMode !== this.state.focusedMode ||
-      prevState.customizedBool !== this.state.customizedBool
-    ) {
-      this.saveSettingsToState();
-      this.saveCasesBool();
-    }
     if (this.state.renderSaveBoolean) {
       this.forceRender();
     }
   }
 
-  saveActiveHoursToLocal() {
-    chrome.storage.local.set({
-      beginHour: this.state.beginHour,
-      endHour: this.state.endHour,
-    });
-  }
-
   handleBoolChange(changeType) {
-    this.setState({
-      relaxedMode: changeType === IS_RELAXED_MODE,
-      focusedMode: changeType === IS_FOCUSED_MODE,
-      customizedBool: changeType === IS_CUSTOMIZED_MODE,
+    chrome.runtime.sendMessage({
+      messageType: 'SETTINGS_PROFILE',
+      profile: {
+        relaxed: changeType === IS_RELAXED_MODE,
+        focused: changeType === IS_FOCUSED_MODE,
+        customized: changeType === IS_CUSTOMIZED_MODE,
+      },
     });
     if (changeType === IS_RELAXED_MODE || changeType === IS_FOCUSED_MODE) {
       this.notifyUser();
     }
-  }
-
-  saveSettingsToState() {
-    let settings = this.state.settings;
-    if (this.state.focusedMode) {
-      settings['policy']['target_tabs'] = 5;
-    } else if (this.state.relaxedMode) {
-      settings['policy']['target_tabs'] = 12;
-    }
-
-    if (!this.state.customizedBool) {
-      chrome.runtime.sendMessage({
-        messageType: 'SETTINGS',
-        settings: settings,
-      });
-    }
-  }
-
-  saveCasesBool() {
-    chrome.storage.local.set({
-      relaxedMode: this.state.relaxedMode,
-      focusedMode: this.state.focusedMode,
-      customizedBool: this.state.customizedBool,
-    });
   }
 
   forceRender() {
@@ -145,7 +97,7 @@ class Settings extends PureComponent {
 
   handleSaveParameters() {
     chrome.runtime.sendMessage({
-      messageType: 'SETTINGS',
+      messageType: 'SETTINGS_PARAMETERS',
       settings: this.state.settings,
     });
     this.notifyUser();
@@ -163,9 +115,9 @@ class Settings extends PureComponent {
     });
   }
 
-  handleChangeParameters = (parameter) => (event) => {
+  handleChangeParameters = (path, parameter) => (event) => {
     let settings = this.state.settings;
-    settings['policy'][parameter] = event.target.value;
+    settings[path][parameter] = event.target.value;
     this.setState({ settings: settings, renderSaveBoolean: true });
   };
 
@@ -175,7 +127,8 @@ class Settings extends PureComponent {
       {
         label: 'Optimal number of tabs ',
         value: this.state.settings.policy.target_tabs,
-        onChange: OPTIMAL_NUMBER_TABS,
+        path: POLICY,
+        parameter: OPTIMAL_NUMBER_TABS,
         inputProps: { min: '1', max: '100', step: '1' },
       },
     ];
@@ -184,7 +137,7 @@ class Settings extends PureComponent {
         key={index}
         disabled={!this.state.customizedBool}
         label={item.label}
-        onChange={this.handleChangeParameters(item.onChange)}
+        onChange={this.handleChangeParameters(item.path, item.parameter)}
         value={item.value}
         className={classes.textField}
         type="number"

@@ -127,3 +127,19 @@ handleSliderChange(event, value);
 {
   /*/>*/
 }
+
+if (
+      prevState.beginHour !== this.state.beginHour ||
+      prevState.endHour !== this.state.endHour
+    ) {
+      this.saveActiveHoursToLocal();
+    }
+
+
+
+  saveActiveHoursToLocal() {
+    chrome.storage.local.set({
+      beginHour: this.state.beginHour,
+      endHour: this.state.endHour,
+    });
+  }
