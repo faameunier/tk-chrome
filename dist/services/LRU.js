@@ -5,6 +5,7 @@ class State {
     this.next = next;
     this.prev = prev;
   }
+
 }
 
 class LRUfactory {
@@ -16,11 +17,14 @@ class LRUfactory {
   static fromJSON(obj) {
     var cache = new LRU(obj.limit);
     var nodes = obj.nodes;
+
     for (let node of nodes) {
       cache.write(node.key, node.value);
     }
+
     return cache;
   }
+
 }
 
 class LRU {
@@ -53,10 +57,11 @@ class LRU {
     if (this.cache[key]) {
       logger(this, 'Key found in cache');
       var value = this.cache[key].value;
-      this.remove(key);
-      // this.write(key, value); // not a standard LRU cache, last state in stored
+      this.remove(key); // this.write(key, value); // not a standard LRU cache, last state in stored
+
       return value;
     }
+
     return false;
   }
 
@@ -98,6 +103,7 @@ class LRU {
   forEach(fn) {
     var node = this.head;
     var counter = 0;
+
     while (node) {
       fn(node, counter);
       node = node.next;
@@ -107,6 +113,7 @@ class LRU {
 
   *[Symbol.iterator]() {
     var node = this.head;
+
     while (node) {
       yield node;
       node = node.next;
@@ -115,17 +122,19 @@ class LRU {
 
   toJSON() {
     var nodes = [];
+
     for (let node of this) {
       nodes.unshift({
         key: node.key,
-        value: node.value,
+        value: node.value
       });
     }
 
     return {
       limit: this.limit,
       size: this.size,
-      nodes: nodes,
+      nodes: nodes
     };
   }
+
 }

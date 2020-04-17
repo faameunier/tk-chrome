@@ -40,14 +40,7 @@ class Settings extends PureComponent {
 
   componentDidMount() {
     chrome.storage.local.get(
-      [
-        'beginHour',
-        'endHour',
-        'focusedMode',
-        'relaxedMode',
-        'customizedBool',
-        'settings',
-      ],
+      ['beginHour', 'endHour', 'focusedMode', 'relaxedMode', 'customizedBool', 'settings'],
       (result) => {
         const beginHour = result.beginHour || 0;
         const endHour = result.endHour || 24;
@@ -78,10 +71,7 @@ class Settings extends PureComponent {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if (
-      prevState.beginHour !== this.state.beginHour ||
-      prevState.endHour !== this.state.endHour
-    ) {
+    if (prevState.beginHour !== this.state.beginHour || prevState.endHour !== this.state.endHour) {
       this.saveActiveHoursToLocal();
     }
     if (
@@ -230,13 +220,7 @@ class Settings extends PureComponent {
               />
               <FormControlLabel
                 onChange={() => this.handleBoolChange(IS_CUSTOMIZED_MODE)}
-                control={
-                  <Checkbox
-                    checked={this.state.customizedBool}
-                    value=""
-                    color="primary"
-                  />
-                }
+                control={<Checkbox checked={this.state.customizedBool} value="" color="primary" />}
                 label="Customize your settings' parameters"
               />
               <div className={classes.settingsBlock}>
@@ -251,9 +235,7 @@ class Settings extends PureComponent {
                   <Button
                     disabled={!this.state.customizedBool}
                     className={classes.secondaryButton}
-                    variant={
-                      this.state.customizedBool ? 'outline-primary' : 'primary'
-                    }
+                    variant={this.state.customizedBool ? 'outline-primary' : 'primary'}
                     onClick={() => this.handleSaveParameters()}
                   >
                     Save

@@ -86,13 +86,7 @@ class MemoryManager {
 
   async load() {
     if (!this.loaded) {
-      await storageGet([
-        'tabs',
-        'closed_history',
-        'current_scores',
-        'settings',
-        'runtime_events',
-      ]).then((data) => {
+      await storageGet(['tabs', 'closed_history', 'current_scores', 'settings', 'runtime_events']).then((data) => {
         try {
           logger(this, 'Loading state from storage');
           this.closed_history = data.closed_history;
@@ -117,9 +111,6 @@ class MemoryManager {
   async log() {
     await this.updateAllStatistics();
     await this.cleanTabsDelay();
-    if (ENV === 'debug') {
-      console.log(this.tabs);
-    }
   }
 
   async setActivated(tabId, windowId) {
@@ -315,10 +306,7 @@ class MemoryManager {
 
   async updateAllStatistics() {
     let now = Date.now();
-    if (
-      now - this.runtime_events.last_full_stats_update >=
-      this.settings.memory.min_time_full_stats_update
-    ) {
+    if (now - this.runtime_events.last_full_stats_update >= this.settings.memory.min_time_full_stats_update) {
       logger(this, 'Running full stats');
       var tab_ids = Object.keys(this.tabs);
       for (var i = 0; i < tab_ids.length; i++) {
@@ -341,25 +329,19 @@ class MemoryManager {
     })[0];
     // let cache = LRUfactory.fromJSON(restoredTab.cache);
     let tab = await new Promise((resolve, reject) => {
-      chrome.tabs.create(
-        { url: restoredTab.full_url, active: false },
-        (tab) => {
-          if (chrome.runtime.lastError) {
-            reject(false);
-          } else {
-            resolve(tab);
-          }
+      chrome.tabs.create({ url: restoredTab.full_url, active: false }, (tab) => {
+        if (chrome.runtime.lastError) {
+          reject(false);
+        } else {
+          resolve(tab);
         }
-      );
+      });
     });
     await this.createTab(tab);
     this.tabs[tab.id].statistics = copy(restoredTab.statistics);
     // this.tabs[tab.tabId].cache = cache;  // do not restore cache as history is lost
     await this.protectTab(tab.id);
-    this.tabs[tab.id].cache.write(
-      restoredTab.url,
-      this.tabs[tab.id].statistics
-    ); // hack :D
+    this.tabs[tab.id].cache.write(restoredTab.url, this.tabs[tab.id].statistics); // hack :D
     await this.updateStatistics(this.tabs[tab.id], true);
   }
 
@@ -374,10 +356,7 @@ class MemoryManager {
 
   async cleanTabsDelay() {
     let now = Date.now();
-    if (
-      now - this.runtime_events.last_garbage_collector >=
-      this.settings.memory.min_time_garbage_collector
-    ) {
+    if (now - this.runtime_events.last_garbage_collector >= this.settings.memory.min_time_garbage_collector) {
       await this.cleanTabs();
       this.runtime_events.last_garbage_collector = now;
     }

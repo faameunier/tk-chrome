@@ -2,14 +2,22 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const webpack = require('webpack');
 
-module.exports = {
-  mode: 'development',
+var common = {
   entry: {
     jquery: 'jquery',
-    popup: './src/app/popup.js',
+    popup: { import: './src/app/popup.js', dependOn: 'jquery' },
   },
-  devtool: 'inline-source-map',
+  output: {
+    filename: '[name].bundle.js',
+    path: path.resolve(__dirname, 'dist'),
+  },
+  optimization: {
+    splitChunks: {
+      chunks: 'all',
+    },
+  },
   plugins: [
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
@@ -27,27 +35,12 @@ module.exports = {
         copyUnmodified: true,
       }
     ),
-    new CopyWebpackPlugin(
-      [
-        { from: './src/assets', to: './assets', flatten: false },
-        { from: './src/services', to: './services', flatten: false },
-      ],
-      {
-        copyUnmodified: false,
-      }
-    ),
+    new CopyWebpackPlugin([{ from: './src/assets', to: './assets', flatten: false }], {
+      copyUnmodified: false,
+    }),
   ],
-  output: {
-    filename: '[name].bundle.js',
-    path: path.resolve(__dirname, 'dist'),
-  },
   module: {
     rules: [
-      {
-        test: /\.js$/,
-        include: path.resolve(__dirname, 'src'),
-        loader: 'babel-loader',
-      },
       {
         test: /\.css$/,
         include: path.resolve(__dirname, 'src'),
@@ -66,3 +59,32 @@ module.exports = {
     ],
   },
 };
+
+var createConfig = function (env) {
+  let config = common;
+  if (env == 'dev') {
+    common['mode'] = 'development';
+    common['devtool'] = 'inline-source-map';
+    common.module.rules.push({
+      test: /\.js$/,
+      include: path.resolve(__dirname, 'src'),
+      loader: 'babel-loader',
+      options: {
+        envName: 'dev',
+      },
+    });
+  } else {
+    common['mode'] = 'production';
+    common.module.rules.push({
+      test: /\.js$/,
+      include: path.resolve(__dirname, 'src'),
+      loader: 'babel-loader',
+      options: {
+        envName: 'prod',
+      },
+    });
+  }
+  return config;
+};
+
+module.exports = (env) => createConfig(env);
