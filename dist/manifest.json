@@ -1,13 +1,9 @@
 {
   "name": "Tab Killer",
-  "version": "0.0",
+  "version": "0.1",
+  "version_name": "0.1 alpha",
   "description": "The tab serial killer",
-  "permissions": [
-    "http://*/*",
-    "https://*/*",
-    "tabs",
-    "storage"
-  ],
+  "permissions": ["http://*/*", "https://*/*", "tabs", "storage"],
   "background": {
     "scripts": [
       "./lib/lodash.js",
