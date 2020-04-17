@@ -12,21 +12,13 @@ class EventQueue {
 
   enqueue(promise) {
     if (this.queue.length === 0) {
-      return memoryManager.load().then(
-        function success() {
-          return new Promise((resolve, reject) => {
-            this.queue.push({
-              promise,
-              resolve,
-              reject,
-            });
-            this.dequeue();
-          });
-        }.bind(this),
-        function failure() {
-          logger(this, 'There is an error in the Enqueue Callback');
-        }.bind(this)
-      );
+      new Promise((resolve, reject) => {
+        this.queue.push({
+          promise: () => memoryManager.load(),
+          resolve,
+          reject,
+        });
+      });
     }
     return new Promise((resolve, reject) => {
       this.queue.push({

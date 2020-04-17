@@ -1,1 +1,66 @@
-chrome.runtime.onInstalled.addListener(function(){eventQueue.enqueue(()=>memoryManager.reset()),logger("Extention installed :D")}),chrome.tabs.onCreated.addListener(function(a){eventQueue.enqueue(()=>memoryManager.createTab(a))}),chrome.tabs.onUpdated.addListener(function(a,b,c){eventQueue.enqueue(()=>memoryManager.updateTab(a,b,c))}),chrome.tabs.onActivated.addListener(function(a){eventQueue.enqueue(()=>memoryManager.setActivated(a.tabId,a.windowId))}),chrome.tabs.onAttached.addListener(function(a,b){eventQueue.enqueue(()=>memoryManager.changeWindow(a,b.newWindowId))}),chrome.tabs.onRemoved.addListener(function(a,b){eventQueue.enqueue(()=>memoryManager.deleteTab(a,b.windowId,b.isWindowClosing))}),chrome.runtime.onMessage.addListener(function(a,b,c){function d(a){return new Promise((b,d)=>{try{b(c(a))}catch(a){d(a)}})}switch(a.messageType){case"RESTORE":eventQueue.enqueue(()=>memoryManager.restoreTab(a.tabId)),eventQueue.enqueue(()=>memoryManager.removeTabFromClosedHistory(a.tabId));break;case"SETTINGS":eventQueue.enqueue(()=>memoryManager.updateSettings(a.settings));break;default:}eventQueue.enqueue(()=>d({answer:1}))});
+chrome.runtime.onInstalled.addListener(function () {
+  eventQueue.enqueue(() => memoryManager.reset());
+  logger('Extention installed :D');
+});
+
+chrome.tabs.onCreated.addListener(function (tab) {
+  eventQueue.enqueue(() => memoryManager.createTab(tab));
+});
+
+chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
+  eventQueue.enqueue(() => memoryManager.updateTab(tabId, changeInfo, tab));
+});
+
+chrome.tabs.onActivated.addListener(function (activeInfo) {
+  eventQueue.enqueue(() =>
+    memoryManager.setActivated(activeInfo.tabId, activeInfo.windowId)
+  );
+});
+
+chrome.tabs.onAttached.addListener(function (tabId, attachInfo) {
+  eventQueue.enqueue(() =>
+    memoryManager.changeWindow(tabId, attachInfo.newWindowId)
+  );
+});
+
+chrome.tabs.onRemoved.addListener(function (tabId, removeInfo) {
+  eventQueue.enqueue(() =>
+    memoryManager.deleteTab(
+      tabId,
+      removeInfo.windowId,
+      removeInfo.isWindowClosing
+    )
+  );
+});
+
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+  function sendResponsePromisified(data) {
+    return new Promise((resolve, reject) => {
+      try {
+        resolve(sendResponse(data));
+      } catch (e) {
+        reject(e);
+      }
+    });
+  }
+
+  switch (request.messageType) {
+    case 'RESTORE':
+      eventQueue.enqueue(() => memoryManager.restoreTab(request.tabId));
+      eventQueue.enqueue(() =>
+        memoryManager.removeTabFromClosedHistory(request.tabId)
+      );
+      break;
+    case 'SETTINGS':
+      eventQueue.enqueue(() => memoryManager.updateSettings(request.settings));
+      break;
+
+    default:
+      break;
+  }
+  eventQueue.enqueue(() => sendResponsePromisified({ answer: 1 }));
+});
+/*
+// TODO find usecase to understand when it is triggered.
+chrome.tabs.onReplaced.addListener(function(integer addedTabId, integer removedTabId) {});
+*/

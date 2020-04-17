@@ -1,1 +1,174 @@
-class PolicyManager{constructor(){}static async run(){let a=this.buildWindows();this.backfillRuns(a),this.cleanRuntimeWindows(a);let b=_.pick(memoryManager.current_scores,Object.keys(memoryManager.tabs)),c=Object.keys(a),d=_.map(c,b=>this.runWindow(a,b)),e=await Promise.all(d),f=Date.now(),g=!1;for(var h=0;h<c.length;h++)e[h][0]&&(memoryManager.runtime_events.last_policy_runs[c[h]]=f,b=Object.assign(b,e[h][1]),g=!0);memoryManager.current_scores=b,g&&(await memoryManager.save())}static buildWindows(){return _.groupBy(memoryManager.tabs,a=>a.windowId)}static backfillRuns(a){let b=Date.now(),c=Object.keys(memoryManager.runtime_events.last_policy_runs),d=Object.keys(a),e=_.difference(d,c);for(var f=0;f<e.length;f++)memoryManager.runtime_events.last_policy_runs[e[f]]=b}static cleanRuntimeWindows(a){let b=Object.keys(memoryManager.runtime_events.last_policy_runs),c=Object.keys(a),d=_.difference(b,c);for(var e=0;e<d.length;e++)delete memoryManager.runtime_events.last_policy_runs[d[e]]}static async runWindow(a,b){let c=a[b];if(c.length>memoryManager.settings.policy.target_tabs&&this.exponentialTrigger(c,b)){if(c=_.filter(c,a=>a.active==memoryManager.settings.policy.active&&a.pinned==memoryManager.settings.policy.pinned&&a.audible==memoryManager.settings.policy.audible),0===c.length)return[!1,{}];let a=await Promise.all(_.map(c,a=>Scorer.score(a))),e=_.zipObject(_.map(c,a=>a.tabId),a);a=_.zip(_.map(c,a=>a.tabId),a),a.sort((a,b)=>a[1]>b[1]?1:-1),logger(b.toString().concat(" window scored: ",JSON.stringify(a)));let f=a.shift();if(f[1]===MAXIMUM_SCORE)return[!1,{}];f=f[0];for(var d=0;0<a.length;){let b=a.pop()[1];b===MAXIMUM_SCORE&&(d+=1)}if(d<c.length-memoryManager.settings.policy.target_tabs)return await this.killTab(f,_.find(c,a=>a.tabId===f)),[!0,e]}return[!1,{}]}static async killTab(a,b){try{let c=new Promise((b,c)=>{chrome.tabs.remove(parseInt(a),function(){let a=chrome.runtime.lastError;a?c("Tab not found"):b()})});await c;let d=copy(b);d.deletion_time=Date.now(),memoryManager.closed_history.push(d),memoryManager.closed_history=memoryManager.closed_history.slice(0,MAXIMUM_HISTORY_SIZE),logger("Tab ".concat(a," killed by policy"))}catch(b){logger("Tab ".concat(a," not found"))}}static exponentialTrigger(a,b){let c=a.length,d=memoryManager.runtime_events.last_policy_runs[b];return Date.now()-memoryManager.runtime_events.last_policy_runs[b]>=memoryManager.settings.policy.min_time*Math.pow(memoryManager.settings.policy.decay,Math.max(0,c-memoryManager.settings.policy.target_tabs))}}
+class PolicyManager {
+  constructor() {}
+
+  static async run() {
+    let windows = this.buildWindows();
+    this.backfillRuns(windows);
+    this.cleanRuntimeWindows(windows);
+
+    let allScores = _.pick(
+      memoryManager.current_scores,
+      Object.keys(memoryManager.tabs)
+    ); // keeping a-only tabs that still exist
+
+    let windowIds = Object.keys(windows);
+    let promises = _.map(windowIds, (windowId) =>
+      this.runWindow(windows, windowId)
+    );
+    let results = await Promise.all(promises); // Running every windows update in parallel.
+
+    let now = Date.now();
+    let any = false;
+
+    for (var i = 0; i < windowIds.length; i++) {
+      if (results[i][0]) {
+        // The policy ran on the i-th window
+        memoryManager.runtime_events.last_policy_runs[windowIds[i]] = now;
+        allScores = Object.assign(allScores, results[i][1]);
+        any = true;
+      }
+    }
+
+    memoryManager.current_scores = allScores;
+
+    if (any) {
+      // force update localstorage memory if an action was taken, might be useless if the queue awaits
+      await memoryManager.save();
+    }
+  }
+
+  static buildWindows() {
+    // Groups tabs per window
+    return _.groupBy(memoryManager.tabs, (tab) => {
+      return tab.windowId;
+    });
+  }
+
+  static backfillRuns(windows) {
+    // Adds windows to known execution time.
+    // New windows are defaulted with current timestamp.
+    let now = Date.now();
+    let known_windows = Object.keys(
+      memoryManager.runtime_events.last_policy_runs
+    );
+    let current_windows = Object.keys(windows);
+    let unknown_windows = _.difference(current_windows, known_windows);
+    for (var i = 0; i < unknown_windows.length; i++) {
+      memoryManager.runtime_events.last_policy_runs[unknown_windows[i]] = now;
+    }
+  }
+
+  static cleanRuntimeWindows(windows) {
+    // Remove phantom windows that were deleted
+    let known_windows = Object.keys(
+      memoryManager.runtime_events.last_policy_runs
+    );
+    let current_windows = Object.keys(windows);
+    let unknown_windows = _.difference(known_windows, current_windows);
+    for (var i = 0; i < unknown_windows.length; i++) {
+      delete memoryManager.runtime_events.last_policy_runs[unknown_windows[i]];
+    }
+  }
+
+  static async runWindow(windows, windowId) {
+    // Run policy for a given window
+    // Returns true if the policy was run, false otherwise
+    let tabs = windows[windowId];
+    if (tabs.length > memoryManager.settings.policy.target_tabs) {
+      // if too many tabs
+      if (this.exponentialTrigger(tabs, windowId)) {
+        // if we waited enough
+        tabs = _.filter(tabs, (tab) => {
+          return (
+            tab.active == memoryManager.settings.policy.active &&
+            tab.pinned == memoryManager.settings.policy.pinned &&
+            tab.audible == memoryManager.settings.policy.audible
+          );
+        });
+        if (tabs.length === 0) {
+          return [false, {}];
+        }
+        let scores = await Promise.all(_.map(tabs, (tab) => Scorer.score(tab)));
+
+        let objScores = _.zipObject(
+          _.map(tabs, (tab) => tab.tabId),
+          scores
+        ); // save scores
+
+        scores = _.zip(
+          _.map(tabs, (tab) => tab.tabId),
+          scores
+        ); // [[tabId1, score1], [tabId2, score2]...]
+        scores.sort((s1, s2) => (s1[1] > s2[1] ? 1 : -1)); // ascending sort
+        logger(
+          windowId.toString().concat(' window scored: ', JSON.stringify(scores))
+        );
+        let deleteMe = scores.shift();
+
+        if (deleteMe[1] === MAXIMUM_SCORE) {
+          return [false, {}];
+        } else {
+          deleteMe = deleteMe[0];
+        }
+        // safety hack, do not remove an old tab only because you have new ones
+        var count = 0;
+        while (scores.length > 0) {
+          let temp = scores.pop()[1];
+          if (temp === MAXIMUM_SCORE) {
+            count += 1;
+          }
+        }
+        if (count < tabs.length - memoryManager.settings.policy.target_tabs) {
+          await this.killTab(
+            deleteMe,
+            _.find(tabs, (tab) => tab.tabId === deleteMe)
+          );
+          return [true, objScores]; // updating tab scores
+        }
+      }
+    }
+    return [false, {}]; // old scores are kept for windows without a run
+  }
+
+  static async killTab(tabId, tab) {
+    try {
+      let p = new Promise((resolve, reject) => {
+        chrome.tabs.remove(parseInt(tabId), function (tab) {
+          let error = chrome.runtime.lastError;
+          if (error) {
+            reject('Tab not found');
+          } else {
+            resolve();
+          }
+        });
+      });
+      await p;
+      // Deleting the tab will trigger all cleaning actions in memoryManager through the onRemoved trigger.
+      let copiedTab = copy(tab); // making a simple json copy, could be even simpler.
+      copiedTab.deletion_time = Date.now();
+      memoryManager.closed_history.push(copiedTab);
+      memoryManager.closed_history = memoryManager.closed_history.slice(
+        0,
+        MAXIMUM_HISTORY_SIZE
+      );
+      logger('Tab '.concat(tabId, ' killed by policy'));
+    } catch {
+      logger('Tab '.concat(tabId, ' not found'));
+    }
+  }
+
+  static exponentialTrigger(tabs, windowId) {
+    // Time condition to run the full policy
+    let n_tabs = tabs.length;
+    let last_policy_run =
+      memoryManager.runtime_events.last_policy_runs[windowId];
+    return (
+      Date.now() - memoryManager.runtime_events.last_policy_runs[windowId] >=
+      memoryManager.settings.policy.min_time *
+        Math.pow(
+          memoryManager.settings.policy.decay,
+          Math.max(0, n_tabs - memoryManager.settings.policy.target_tabs)
+        )
+    );
+  }
+}

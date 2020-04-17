@@ -28,7 +28,10 @@ module.exports = {
       }
     ),
     new CopyWebpackPlugin(
-      [{ from: './src/assets', to: './assets', flatten: false }],
+      [
+        { from: './src/assets', to: './assets', flatten: false },
+        { from: './src/services', to: './services', flatten: false },
+      ],
       {
         copyUnmodified: false,
       }

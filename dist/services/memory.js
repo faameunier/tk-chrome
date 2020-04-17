@@ -1,1 +1,409 @@
-function _defineProperty(a,b,c){return b in a?Object.defineProperty(a,b,{value:c,enumerable:!0,configurable:!0,writable:!0}):a[b]=c,a}class MemoryManager{constructor(){return _defineProperty(this,"empty_stats",{total_active_time:0,total_inactive_time:0,total_cached_time:0,last_active_timestamp:null,activated:0,updated_at:null,protection_timestamp:null}),_defineProperty(this,"empty_tab",{tabId:null,url:null,full_url:null,statistics:{},pinned:!1,active:!1,audible:!1,favIconUrl:null,title:null,windowId:null,cache:[]}),MemoryManager.instance||(logger(this,"Instanciating empty MemoryManager"),MemoryManager.instance=this,this.init()),MemoryManager.instance}async init(){this.tabs={},this.closed_history=[],this.current_scores={},this.runtime_events={last_full_stats_update:Date.now(),last_garbage_collector:Date.now(),last_policy_runs:{}},this.settings={memory:{cache_size:5,min_time_full_stats_update:1000,min_time_garbage_collector:5000},policy:{target_tabs:12,score_threshold:50,decay:.8,min_time:3000,active:!1,pinned:!1,audible:!1},scorer:{min_active:3000,protection_time:300000,cached_decay:.7}}}async reset(){this.init(),await this.save(),await this.load()}async save(){logger(this,"Saved"),await storageSet({tabs:JSON.stringify(this.tabs),closed_history:this.closed_history,settings:this.settings,current_scores:this.current_scores,runtime_events:this.runtime_events})}async load(){await storageGet(["tabs","closed_history","current_scores","settings","runtime_events"]).then(a=>{try{logger(this,"Loading state from storage"),this.closed_history=a.closed_history,this.runtime_events=a.runtime_events,this.current_scores=current_scores,this.tabs=JSON.parse(a.tabs),this.settings=a.settings;for(let a of Object.keys(this.tabs)){let b=this.tabs[a];b.cache=LRUfactory.fromJSON(b.cache)}}catch(a){logger(this,"Loading fail, init memory")}})}async log(){await this.updateAllStatistics(),await this.cleanTabsDelay(),"debug"===ENV&&console.log(this.tabs)}async setActivated(a,b){if(!this.tabs[a])return logger(this,"OOS Unknown activated tab, creating shell"),await this.createTab({id:a,active:!0,windowId:b}),null;this.tabs[a].windowId!==b&&(logger(this,"OOS Tab "+a+"is in wrong window"),await this.changeWindow(a,b));let c=_.filter(Object.values(this.tabs),a=>a.windowId==b);for(var d=0;d<c.length;d++){let b=c[d];b.active&&b.tabId!==a&&(await this.updateStatistics(b,!1,!1),b.active=!1)}await this.updateStatistics(this.tabs[a],!1,!0),this.tabs[a].active=!0}async createTab(a){if(!(a.id in this.tabs)&&"undefined"!=typeof a.id){let b=copy(this.empty_tab);return b.tabId=a.id,b.pinned=a.pinned,b.windowId=a.windowId,"undefined"!=typeof a.url&&(b.url=getDomain(a.url),b.full_url=a.url),b.cache="undefined"==typeof a.cache?new LRU(this.settings.memory.cache_size):a.cache,b.pinned="undefined"!=typeof a.pinned&&a.pinned,b.audible="undefined"!=typeof a.audible&&a.audible,"undefined"!=typeof a.favIconUrl&&(b.favIconUrl=a.favIconUrl),"undefined"!=typeof a.title&&(b.title=a.title),"undefined"==typeof a.statistics?await this.createStatistics(b):b.statistics=a.statistics,this.tabs[a.id]=b,a.active&&(await this.setActivated(a.id,a.windowId)),logger(this,"Tab "+a.id+" added to memory"),a.id}logger(this,"Skipping tab creation")}async changeWindow(a,b){logger(this,"Tab assigned to new window"),this.tabs[a]?this.tabs[a].windowId=b:(logger(this,"OOS Missing tab found"),await this.createTab({id:a,windowId:b}))}async updateTab(a,b,c){logger(this,"Updating tab "+a),this.tabs[a]||(logger(this,"OOS Missing tab found"),await this.createTab(c)),this.tabs[a].windowId!==c.windowId&&(logger(this,"OOS tab in wrong window"),await this.changeWindow(a,c.windowId));let d=this.tabs[a];if("undefined"!=typeof b.url){let a=getDomain(b.url),c=b.url,e=d.url;if(d.url=a,d.full_url=c,a!==e){await this.updateStatistics(d,!1,!1);let b=d.statistics,c=d.cache.read(a);c?(d.statistics=c,await this.updateStatistics(d,!0,!1),logger(this,"Old state restored from cache")):(await this.createStatistics(d),logger(this,"State couldn't be restored")),d.cache.write(e,b)}}"undefined"!=typeof b.pinned&&(d.pinned=b.pinned),"undefined"!=typeof b.audible&&(d.audible=b.audible),"undefined"!=typeof b.favIconUrl&&(d.favIconUrl=b.favIconUrl),"undefined"!=typeof b.title&&(d.title=b.title)}async deleteTab(a){logger(this,"Deleting tab "+a);try{delete this.tabs[a]}catch(a){logger(this,"OOS trying to delete unknown tab")}}async createStatistics(a){let b=copy(this.empty_stats),c=Date.now();a.active&&(b.last_active_timestamp=c,b.activated=1),b.updated_at=c,a.statistics=b}async updateStatistics(a,b=!1,c=!1){let d=Date.now();b?(c=!0,a.statistics.total_cached_time+=d-a.statistics.updated_at,a.statistics.updated_at=d,a.statistics.activated+=1):(a.active?(a.statistics.total_active_time+=d-a.statistics.updated_at,a.statistics.last_active_timestamp=d):((c||0===a.statistics.activated)&&(a.statistics.activated+=1),a.statistics.total_inactive_time+=d-a.statistics.updated_at),a.statistics.updated_at=d)}async updateAllStatistics(){let a=Date.now();if(a-this.runtime_events.last_full_stats_update>=this.settings.memory.min_time_full_stats_update){logger(this,"Running full stats");for(var b=Object.keys(this.tabs),c=0;c<b.length;c++)await this.updateStatistics(this.tabs[b[c]]);this.runtime_events.last_full_stats_update=a}}async removeTabFromClosedHistory(a){this.closed_history=this.closed_history.filter(b=>b.tabId!==a)}async restoreTab(a){logger(this,"Restoring tab "+a);let b=this.closed_history.filter(b=>b.tabId===a)[0],c=await new Promise((a,c)=>{chrome.tabs.create({url:b.full_url,active:!1},b=>{chrome.runtime.lastError?c(!1):a(b)})});await this.createTab(c),this.tabs[c.id].statistics=copy(b.statistics),await this.protectTab(c.id),this.tabs[c.id].cache.write(b.url,this.tabs[c.id].statistics),await this.updateStatistics(this.tabs[c.id],!0)}async protectTab(a){this.tabs[a].statistics.protection_timestamp=Date.now(),logger(this,"Tab "+a+" protected temporarily")}async updateSettings(a){this.settings=a}async cleanTabsDelay(){let a=Date.now();a-this.runtime_events.last_garbage_collector>=this.settings.memory.min_time_garbage_collector&&(await this.cleanTabs(),this.runtime_events.last_garbage_collector=a)}async cleanTabs(){var a=Object.keys(this.tabs);for(let b,c=0;c<a.length;c++){b=a[c];try{let a=new Promise((a,c)=>{chrome.tabs.get(parseInt(b),function(){chrome.runtime.lastError?c(!1):a()})});await a}catch(a){logger(this,"Tab "+b+" collected by garbage collector"),await this.deleteTab(b)}}}}var memoryManager=new MemoryManager;
+class MemoryManager {
+  empty_stats = {
+    total_active_time: 0,
+    total_inactive_time: 0,
+    total_cached_time: 0,
+    last_active_timestamp: null,
+    activated: 0,
+    updated_at: null,
+    protection_timestamp: null,
+  };
+
+  empty_tab = {
+    tabId: null,
+    url: null,
+    full_url: null,
+    statistics: {},
+    pinned: false,
+    active: false,
+    audible: false,
+    favIconUrl: null,
+    title: null,
+    windowId: null,
+    cache: [],
+  };
+
+  constructor() {
+    if (!MemoryManager.instance) {
+      logger(this, 'Instanciating empty MemoryManager');
+      MemoryManager.instance = this;
+      this.init();
+      this.loaded = false;
+    }
+    return MemoryManager.instance;
+  }
+
+  async init() {
+    this.tabs = {};
+    this.closed_history = [];
+    this.current_scores = {};
+    this.runtime_events = {
+      last_full_stats_update: Date.now(),
+      last_garbage_collector: Date.now(),
+      last_policy_runs: {},
+    };
+    this.settings = {
+      memory: {
+        cache_size: 5,
+        min_time_full_stats_update: 1 * 1000,
+        min_time_garbage_collector: 5 * 1000,
+      },
+      policy: {
+        target_tabs: 12,
+        score_threshold: 50,
+        decay: 0.8,
+        min_time: 3 * 1000,
+
+        active: false,
+        pinned: false,
+        audible: false,
+      },
+      scorer: {
+        min_active: 3 * 1000,
+        protection_time: 5 * 60 * 1000,
+        cached_decay: 0.7,
+      },
+    };
+  }
+
+  async reset() {
+    logger(this, 'Hard reset');
+    this.init();
+    await this.save();
+    await this.load();
+  }
+
+  async save() {
+    logger(this, 'Saved');
+    await storageSet({
+      tabs: JSON.stringify(this.tabs),
+      closed_history: this.closed_history,
+      settings: this.settings,
+      current_scores: this.current_scores,
+      runtime_events: this.runtime_events,
+    });
+  }
+
+  async load() {
+    if (!this.loaded) {
+      await storageGet([
+        'tabs',
+        'closed_history',
+        'current_scores',
+        'settings',
+        'runtime_events',
+      ]).then((data) => {
+        try {
+          logger(this, 'Loading state from storage');
+          this.closed_history = data.closed_history;
+          this.runtime_events = data.runtime_events;
+          this.current_scores = data.current_scores;
+          this.tabs = JSON.parse(data.tabs);
+          this.settings = data.settings;
+          for (let key of Object.keys(this.tabs)) {
+            let tab = this.tabs[key];
+            tab.cache = LRUfactory.fromJSON(tab.cache);
+          }
+          this.loaded = true;
+        } catch (e) {
+          console.log(e);
+          logger(this, 'Loading fail, init memory');
+          this.loaded = true;
+        }
+      });
+    }
+  }
+
+  async log() {
+    await this.updateAllStatistics();
+    await this.cleanTabsDelay();
+    if (ENV === 'debug') {
+      console.log(this.tabs);
+    }
+  }
+
+  async setActivated(tabId, windowId) {
+    if (!this.tabs[tabId]) {
+      logger(this, 'OOS Unknown activated tab, creating shell');
+      await this.createTab({
+        id: tabId,
+        active: true,
+        windowId: windowId,
+      });
+      // createTab will call setActivated again.
+      return null;
+    }
+    if (this.tabs[tabId].windowId !== windowId) {
+      // when called from createTab, this cannot happen
+      logger(this, 'OOS Tab ' + tabId + 'is in wrong window');
+      await this.changeWindow(tabId, windowId); // Setting to the tab to the current window
+      // If tab wasn't active, no problem.
+      // If tab was active... no problem neither :) then the active tab is unknown.
+      // and stats will be updated right after.
+    }
+
+    let win = _.filter(Object.values(this.tabs), (tab) => {
+      return tab.windowId == windowId;
+    });
+
+    for (var i = 0; i < win.length; i++) {
+      let tab = win[i];
+      if (tab.active && tab.tabId !== tabId) {
+        await this.updateStatistics(tab, false, false);
+        tab.active = false;
+      }
+    }
+
+    await this.updateStatistics(this.tabs[tabId], false, true);
+    this.tabs[tabId].active = true;
+  }
+
+  async createTab(tab) {
+    if (!(tab.id in this.tabs)) {
+      // avoid setting back stats to zero when a tab is restored
+      if (typeof tab.id !== 'undefined') {
+        let new_tab = copy(this.empty_tab);
+
+        new_tab.tabId = tab.id;
+        new_tab.pinned = tab.pinned;
+        new_tab.windowId = tab.windowId;
+        if (typeof tab.url !== 'undefined') {
+          // No impact on stats until proven otherwise
+          new_tab.url = getDomain(tab.url);
+          new_tab.full_url = tab.url;
+        }
+        if (typeof tab.cache !== 'undefined') {
+          // No impact on stats until proven otherwise
+          new_tab.cache = tab.cache;
+        } else {
+          new_tab.cache = new LRU(this.settings.memory.cache_size);
+        }
+        if (typeof tab.pinned !== 'undefined') {
+          new_tab.pinned = tab.pinned;
+        } else {
+          new_tab.pinned = false;
+        }
+        if (typeof tab.audible !== 'undefined') {
+          new_tab.audible = tab.audible;
+        } else {
+          new_tab.audible = false;
+        }
+        if (typeof tab.favIconUrl !== 'undefined') {
+          new_tab.favIconUrl = tab.favIconUrl;
+        }
+        if (typeof tab.title !== 'undefined') {
+          new_tab.title = tab.title;
+        }
+        if (typeof tab.statistics !== 'undefined') {
+          new_tab.statistics = tab.statistics;
+        } else {
+          await this.createStatistics(new_tab);
+        }
+
+        this.tabs[tab.id] = new_tab;
+
+        if (tab.active) {
+          await this.setActivated(tab.id, tab.windowId);
+        }
+
+        logger(this, 'Tab ' + tab.id + ' added to memory');
+        return tab.id;
+      }
+    }
+    logger(this, 'Skipping tab creation');
+  }
+
+  async changeWindow(tabId, windowId) {
+    // windowId should exist before calling me
+    logger(this, 'Tab assigned to new window');
+    if (!this.tabs[tabId]) {
+      logger(this, 'OOS Missing tab found');
+      await this.createTab({ id: tabId, windowId: windowId });
+      // missing tab is assigned to window and THAT'S IT
+    } else {
+      this.tabs[tabId].windowId = windowId;
+    }
+  }
+
+  async updateTab(tabId, changes, tab) {
+    logger(this, 'Updating tab ' + tabId);
+    if (!this.tabs[tabId]) {
+      logger(this, 'OOS Missing tab found');
+      await this.createTab(tab);
+    }
+    if (this.tabs[tabId].windowId !== tab.windowId) {
+      logger(this, 'OOS tab in wrong window');
+      await this.changeWindow(tabId, tab.windowId);
+    }
+    let stored_tab = this.tabs[tabId];
+    if (typeof changes.url !== 'undefined') {
+      let new_url = getDomain(changes.url);
+
+      let new_full_url = changes.url;
+      let old_url = stored_tab.url;
+      stored_tab.url = new_url;
+      stored_tab.full_url = new_full_url;
+      if (new_url !== old_url) {
+        await this.updateStatistics(stored_tab, false, false);
+        let old_statistics = stored_tab.statistics;
+        let cached = stored_tab.cache.read(new_url);
+        if (cached) {
+          stored_tab.statistics = cached;
+          await this.updateStatistics(stored_tab, true, false);
+          logger(this, 'Old state restored from cache');
+        } else {
+          await this.createStatistics(stored_tab);
+          logger(this, "State couldn't be restored");
+        }
+        stored_tab.cache.write(old_url, old_statistics);
+      }
+    }
+    if (typeof changes.pinned !== 'undefined') {
+      stored_tab.pinned = changes.pinned;
+    }
+    if (typeof changes.audible !== 'undefined') {
+      stored_tab.audible = changes.audible;
+    }
+    if (typeof changes.favIconUrl !== 'undefined') {
+      stored_tab.favIconUrl = changes.favIconUrl;
+    }
+    if (typeof changes.title !== 'undefined') {
+      stored_tab.title = changes.title;
+    }
+  }
+
+  async deleteTab(tabId, windowId, isWindowClosing) {
+    logger(this, 'Deleting tab ' + tabId);
+    try {
+      delete this.tabs[tabId];
+    } catch {
+      logger(this, 'OOS trying to delete unknown tab');
+    }
+  }
+
+  async createStatistics(iTab) {
+    let tmp = copy(this.empty_stats);
+    let now = Date.now();
+    if (iTab.active) {
+      tmp.last_active_timestamp = now;
+      tmp.activated = 1;
+    }
+    tmp.updated_at = now;
+    iTab.statistics = tmp;
+  }
+
+  async updateStatistics(iTab, fromCache = false, activitySwitch = false) {
+    let now = Date.now();
+    if (fromCache) {
+      activitySwitch = true; // restored from cache is considered a reactivation
+      iTab.statistics.total_cached_time += now - iTab.statistics.updated_at;
+      iTab.statistics.updated_at = now; // protip
+      iTab.statistics.activated += 1;
+    } else {
+      if (iTab.active) {
+        iTab.statistics.total_active_time += now - iTab.statistics.updated_at;
+        iTab.statistics.last_active_timestamp = now;
+      } else {
+        if (activitySwitch || iTab.statistics.activated === 0) {
+          iTab.statistics.activated += 1;
+        }
+        iTab.statistics.total_inactive_time += now - iTab.statistics.updated_at;
+      }
+      iTab.statistics.updated_at = now;
+    }
+  }
+
+  async updateAllStatistics() {
+    let now = Date.now();
+    if (
+      now - this.runtime_events.last_full_stats_update >=
+      this.settings.memory.min_time_full_stats_update
+    ) {
+      logger(this, 'Running full stats');
+      var tab_ids = Object.keys(this.tabs);
+      for (var i = 0; i < tab_ids.length; i++) {
+        await this.updateStatistics(this.tabs[tab_ids[i]]);
+      }
+      this.runtime_events.last_full_stats_update = now;
+    }
+  }
+
+  async removeTabFromClosedHistory(tabId) {
+    this.closed_history = this.closed_history.filter((tab) => {
+      return tab.tabId !== tabId;
+    });
+  }
+
+  async restoreTab(tabId) {
+    logger(this, 'Restoring tab ' + tabId);
+    let restoredTab = this.closed_history.filter((tab) => {
+      return tab.tabId === tabId;
+    })[0];
+    // let cache = LRUfactory.fromJSON(restoredTab.cache);
+    let tab = await new Promise((resolve, reject) => {
+      chrome.tabs.create(
+        { url: restoredTab.full_url, active: false },
+        (tab) => {
+          if (chrome.runtime.lastError) {
+            reject(false);
+          } else {
+            resolve(tab);
+          }
+        }
+      );
+    });
+    await this.createTab(tab);
+    this.tabs[tab.id].statistics = copy(restoredTab.statistics);
+    // this.tabs[tab.tabId].cache = cache;  // do not restore cache as history is lost
+    await this.protectTab(tab.id);
+    this.tabs[tab.id].cache.write(
+      restoredTab.url,
+      this.tabs[tab.id].statistics
+    ); // hack :D
+    await this.updateStatistics(this.tabs[tab.id], true);
+  }
+
+  async protectTab(tabId) {
+    this.tabs[tabId].statistics.protection_timestamp = Date.now();
+    logger(this, 'Tab ' + tabId + ' protected temporarily');
+  }
+
+  async updateSettings(settings) {
+    this.settings = settings;
+  }
+
+  async cleanTabsDelay() {
+    let now = Date.now();
+    if (
+      now - this.runtime_events.last_garbage_collector >=
+      this.settings.memory.min_time_garbage_collector
+    ) {
+      await this.cleanTabs();
+      this.runtime_events.last_garbage_collector = now;
+    }
+  }
+
+  async cleanTabs() {
+    var tab_ids = Object.keys(this.tabs);
+    for (let i = 0; i < tab_ids.length; i++) {
+      let tabId = tab_ids[i];
+      try {
+        let p = new Promise((resolve, reject) => {
+          chrome.tabs.get(parseInt(tabId), function (tab) {
+            if (chrome.runtime.lastError) {
+              reject(false);
+            } else {
+              resolve();
+            }
+          });
+        });
+        await p;
+      } catch {
+        logger(this, 'Tab ' + tabId + ' collected by garbage collector');
+        await this.deleteTab(tabId);
+      }
+    }
+  }
+}
+
+var memoryManager = new MemoryManager();

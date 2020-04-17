@@ -28,6 +28,7 @@ class MemoryManager {
       logger(this, 'Instanciating empty MemoryManager');
       MemoryManager.instance = this;
       this.init();
+      this.loaded = false;
     }
     return MemoryManager.instance;
   }
@@ -66,6 +67,7 @@ class MemoryManager {
   }
 
   async reset() {
+    logger(this, 'Hard reset');
     this.init();
     await this.save();
     await this.load();
@@ -83,28 +85,33 @@ class MemoryManager {
   }
 
   async load() {
-    await storageGet([
-      'tabs',
-      'closed_history',
-      'current_scores',
-      'settings',
-      'runtime_events',
-    ]).then((data) => {
-      try {
-        logger(this, 'Loading state from storage');
-        this.closed_history = data.closed_history;
-        this.runtime_events = data.runtime_events;
-        this.current_scores = current_scores;
-        this.tabs = JSON.parse(data.tabs);
-        this.settings = data.settings;
-        for (let key of Object.keys(this.tabs)) {
-          let tab = this.tabs[key];
-          tab.cache = LRUfactory.fromJSON(tab.cache);
+    if (!this.loaded) {
+      await storageGet([
+        'tabs',
+        'closed_history',
+        'current_scores',
+        'settings',
+        'runtime_events',
+      ]).then((data) => {
+        try {
+          logger(this, 'Loading state from storage');
+          this.closed_history = data.closed_history;
+          this.runtime_events = data.runtime_events;
+          this.current_scores = data.current_scores;
+          this.tabs = JSON.parse(data.tabs);
+          this.settings = data.settings;
+          for (let key of Object.keys(this.tabs)) {
+            let tab = this.tabs[key];
+            tab.cache = LRUfactory.fromJSON(tab.cache);
+          }
+          this.loaded = true;
+        } catch (e) {
+          console.log(e);
+          logger(this, 'Loading fail, init memory');
+          this.loaded = true;
         }
-      } catch {
-        logger(this, 'Loading fail, init memory');
-      }
-    });
+      });
+    }
   }
 
   async log() {
