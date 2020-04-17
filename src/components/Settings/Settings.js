@@ -27,6 +27,15 @@ class Settings extends PureComponent {
       settings: { policy: { target_tabs: 100 } },
       renderSaveBoolean: false,
     };
+    this.onChangedCallback = function (changes) {
+      const changesSettings = changes['settings'];
+      if (changesSettings) {
+        this.setState({
+          settings: changesSettings['newValue'],
+          renderSaveBoolean: true,
+        });
+      }
+    }.bind(this);
   }
 
   componentDidMount() {
@@ -61,11 +70,11 @@ class Settings extends PureComponent {
         });
       }
     );
-    chrome.storage.onChanged.addListener(this.onChangedCallback.bind(this));
+    chrome.storage.onChanged.addListener(this.onChangedCallback);
   }
 
   componentWillUnmount() {
-    chrome.storage.onChanged.removeListener(this.onChangedCallback.bind(this));
+    chrome.storage.onChanged.removeListener(this.onChangedCallback);
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -93,15 +102,6 @@ class Settings extends PureComponent {
       beginHour: this.state.beginHour,
       endHour: this.state.endHour,
     });
-  }
-  onChangedCallback(changes) {
-    const changesSettings = changes['settings'];
-    if (changesSettings) {
-      this.setState({
-        settings: changesSettings['newValue'],
-        renderSaveBoolean: true,
-      });
-    }
   }
 
   handleBoolChange(changeType) {

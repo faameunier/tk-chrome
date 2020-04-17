@@ -16,12 +16,6 @@ class HomeDispatcher extends PureComponent {
     this.setState({ appBarValue: 'HOME' });
   }
 
-  componentDidUpdate(prevProps, prevState) {
-    if (prevState.appBarValue !== this.state.appBarValue) {
-      console.log(this.state.appBarValue);
-    }
-  }
-
   handleChange(event, newValue) {
     this.setState({ appBarValue: newValue });
   }

@@ -19,6 +19,15 @@ class Home extends PureComponent {
   constructor(props) {
     super(props);
     this.state = { renderSaveBoolean: false };
+    this.onChangedCallback = function (changes) {
+      const changesClosedHistory = changes[CLOSED_HISTORY];
+      if (changesClosedHistory) {
+        this.setState({
+          closed_history: changesClosedHistory['newValue'],
+          renderSaveBoolean: true,
+        });
+      }
+    }.bind(this);
   }
 
   componentDidMount() {
@@ -27,11 +36,11 @@ class Home extends PureComponent {
       this.setState({ closed_history });
     });
     this.setState({ nextList: [] });
-    chrome.storage.onChanged.addListener(this.onChangedCallback.bind(this));
+    chrome.storage.onChanged.addListener(this.onChangedCallback);
   }
 
   componentWillUnmount() {
-    chrome.storage.onChanged.removeListener(this.onChangedCallback.bind(this));
+    chrome.storage.onChanged.removeListener(this.onChangedCallback);
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -39,15 +48,7 @@ class Home extends PureComponent {
       this.forceRender();
     }
   }
-  onChangedCallback(changes) {
-    const changesClosedHistory = changes[CLOSED_HISTORY];
-    if (changesClosedHistory) {
-      this.setState({
-        closed_history: changesClosedHistory['newValue'],
-        renderSaveBoolean: true,
-      });
-    }
-  }
+
   removeItem(key) {
     let items = this.state.closed_history.reverse();
     this.restoreTab(items, key, RESTORE);
