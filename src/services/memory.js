@@ -28,6 +28,7 @@ class MemoryManager {
       logger(this, 'Instanciating empty MemoryManager');
       MemoryManager.instance = this;
       this.init();
+      this.loaded = false;
     }
     return MemoryManager.instance;
   }
@@ -44,6 +45,7 @@ class MemoryManager {
   }
 
   async reset() {
+    logger(this, 'Hard reset');
     this.init();
     await this.save();
     await this.load();
@@ -60,17 +62,13 @@ class MemoryManager {
   }
 
   async load() {
-    await storageGet([
-      'tabs',
-      'closed_history',
-      'current_scores',
-      'runtime_events',
-    ]).then((data) => {
+    if (!this.loaded) {
+      let data = await storageGet(['tabs', 'closed_history', 'current_scores', 'runtime_events']);
       try {
         logger(this, 'Loading state from storage');
         this.closed_history = data.closed_history;
         this.runtime_events = data.runtime_events;
-        this.current_scores = current_scores;
+        this.current_scores = data.current_scores;
         this.tabs = JSON.parse(data.tabs);
         for (let key of Object.keys(this.tabs)) {
           let tab = this.tabs[key];
@@ -78,22 +76,20 @@ class MemoryManager {
         }
       } catch {
         logger(this, 'Loading fail, init memory');
+        await this.save(); // for save for consistency with settings manager
       }
-    });
+      this.loaded = true;
+    }
   }
 
   async log() {
     await this.updateAllStatistics();
     await this.cleanTabsDelay();
-    if (ENV === 'debug') {
-      console.log(this.tabs);
-    }
   }
 
   async setActivated(tabId, windowId) {
     if (!this.tabs[tabId]) {
-      logger(this, 'OOS Unknown activated tab, creating shell');
-      await this.createTab({
+      await this.backfillTab({
         id: tabId,
         active: true,
         windowId: windowId,
@@ -137,7 +133,7 @@ class MemoryManager {
         new_tab.windowId = tab.windowId;
         if (typeof tab.url !== 'undefined') {
           // No impact on stats until proven otherwise
-          new_tab.url = getDomain(tab.url);
+          new_tab.url = getDomain(tab.url) || tab.url;
           new_tab.full_url = tab.url;
         }
         if (typeof tab.cache !== 'undefined') {
@@ -185,8 +181,7 @@ class MemoryManager {
     // windowId should exist before calling me
     logger(this, 'Tab assigned to new window');
     if (!this.tabs[tabId]) {
-      logger(this, 'OOS Missing tab found');
-      await this.createTab({ id: tabId, windowId: windowId });
+      await this.backfillTab({ id: tabId, windowId: windowId });
       // missing tab is assigned to window and THAT'S IT
     } else {
       this.tabs[tabId].windowId = windowId;
@@ -196,8 +191,7 @@ class MemoryManager {
   async updateTab(tabId, changes, tab) {
     logger(this, 'Updating tab ' + tabId);
     if (!this.tabs[tabId]) {
-      logger(this, 'OOS Missing tab found');
-      await this.createTab(tab);
+      await this.backfillTab(tab);
     }
     if (this.tabs[tabId].windowId !== tab.windowId) {
       logger(this, 'OOS tab in wrong window');
@@ -205,7 +199,7 @@ class MemoryManager {
     }
     let stored_tab = this.tabs[tabId];
     if (typeof changes.url !== 'undefined') {
-      let new_url = getDomain(changes.url);
+      let new_url = getDomain(changes.url) || changes.url;
 
       let new_full_url = changes.url;
       let old_url = stored_tab.url;
@@ -309,25 +303,19 @@ class MemoryManager {
     })[0];
     // let cache = LRUfactory.fromJSON(restoredTab.cache);
     let tab = await new Promise((resolve, reject) => {
-      chrome.tabs.create(
-        { url: restoredTab.full_url, active: false },
-        (tab) => {
-          if (chrome.runtime.lastError) {
-            reject(false);
-          } else {
-            resolve(tab);
-          }
+      chrome.tabs.create({ url: restoredTab.full_url, active: false }, (tab) => {
+        if (chrome.runtime.lastError) {
+          reject(false);
+        } else {
+          resolve(tab);
         }
-      );
+      });
     });
     await this.createTab(tab);
     this.tabs[tab.id].statistics = copy(restoredTab.statistics);
     // this.tabs[tab.tabId].cache = cache;  // do not restore cache as history is lost
     await this.protectTab(tab.id);
-    this.tabs[tab.id].cache.write(
-      restoredTab.url,
-      this.tabs[tab.id].statistics
-    ); // hack :D
+    this.tabs[tab.id].cache.write(restoredTab.url, this.tabs[tab.id].statistics); // hack :D
     await this.updateStatistics(this.tabs[tab.id], true);
   }
 
@@ -344,6 +332,26 @@ class MemoryManager {
     ) {
       await this.cleanTabs();
       this.runtime_events.last_garbage_collector = now;
+    }
+  }
+
+  async backfillTab(tab) {
+    logger(this, 'OOS, trying to backfill tab ' + tab.id);
+    try {
+      let realTab = await new Promise((resolve, reject) => {
+        chrome.tabs.get(parseInt(tab.id), function (data) {
+          if (chrome.runtime.lastError) {
+            reject(false);
+          } else {
+            resolve(data);
+          }
+        });
+      });
+      await this.createTab(realTab);
+      logger(this, 'Backfill succesful');
+    } catch (e) {
+      logger(this, "Tab couldn't be retrieved, creating empty tab...");
+      await this.createTab(tab);
     }
   }
 

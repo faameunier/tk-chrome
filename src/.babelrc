@@ -1,10 +1,29 @@
 {
    "presets": [
+   [
+      "@babel/preset-env",
+      {
+        "targets": {
+          "browsers": [
+            "Chrome >= 59"
+          ]
+        }
+      }
+    ],
     "@babel/preset-react"
   ],
   "plugins":[
     ["@babel/plugin-proposal-decorators", {"legacy": true}], 
     "@babel/plugin-proposal-class-properties"
   ],
-  "comments": false
+  "env": {
+    "prod": {
+      "presets": [['minify', {
+        builtIns: false,
+        evaluate: true,
+        mangle: true,
+      }]],
+      "comments": false
+    },
+  }
 }

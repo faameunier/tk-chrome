@@ -45,22 +45,14 @@ class HomeDispatcher extends PureComponent {
         <div className={classes.homeContainer}>
           <Paper square>
             <div className={classes.gridLogoTabs}>
-              <Avatar
-                alt="logoTabby"
-                src={'../../assets/static/icons/tabby.png'}
-                className={classes.logoAvatar}
-              />
+              <Avatar alt="logoTabby" src={'../../assets/static/icons/tabby.png'} className={classes.logoAvatar} />
               <Tabs
                 value={this.state.appBarValue ? this.state.appBarValue : 'HOME'}
                 onChange={(e, v) => this.handleChange(e, v)}
                 className={classes.allTabs}
               >
                 <Tab label="Home" value={'HOME'} className={classes.tab} />
-                <Tab
-                  label="Settings"
-                  value={'SETTINGS'}
-                  className={classes.tab}
-                />
+                <Tab label="Settings" value={'SETTINGS'} className={classes.tab} />
                 {/*<Tab label="Debug" value={"DEBUG"} disabled className={classes.tab}/>*/}
               </Tabs>
             </div>

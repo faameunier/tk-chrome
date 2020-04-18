@@ -49,8 +49,8 @@ class Settings extends PureComponent {
       renderSaveBoolean: false,
     };
     this.onChangedCallback = function (changes) {
-      const changesSettings = changes['tabby_settings'];
-      const changesProfile = changes['tabby_active_profile'];
+      const changesSettings = changes['settings'];
+      const changesProfile = changes['active_profile'];
       if (changesSettings) {
         this.setState({
           settings: changesSettings['newValue'],
@@ -69,13 +69,13 @@ class Settings extends PureComponent {
 
   componentDidMount() {
     chrome.storage.local.get(
-      ['tabby_active_profile', 'tabby_settings'],
+      ['active_profile', 'settings'],
       (result) => {
-        const profile = result.tabby_active_profile || RELAXED;
+        const profile = result.active_profile || RELAXED;
         const focusedMode = profile === FOCUSED;
         const relaxedMode = profile === RELAXED;
         const customizedBool = profile === CUSTOMIZED;
-        const settings = result.tabby_settings || INIT_RELAXED_PROFILE;
+        const settings = result.settings || INIT_RELAXED_PROFILE;
         this.setState({
           focusedMode,
           relaxedMode,
