@@ -9,30 +9,59 @@ import FormControl from '@material-ui/core/FormControl';
 import TuneIcon from '@material-ui/icons/Tune';
 import { withSnackbar } from 'notistack';
 
-const IS_RELAXED_MODE = 'IS_RELAXED_MODE';
-const IS_FOCUSED_MODE = 'IS_FOCUSED_MODE';
-const IS_CUSTOMIZED_MODE = 'IS_CUSTOMIZED_MODE';
 const OPTIMAL_NUMBER_TABS = 'target_tabs';
+const POLICY = 'policy';
+const RELAXED = 'relaxed';
+const FOCUSED = 'focused';
+const CUSTOMIZED = 'customized';
+
+const INIT_RELAXED_PROFILE = {
+  memory: {
+    cache_size: 5,
+    min_time_full_stats_update: 1 * 1000,
+    min_time_garbage_collector: 5 * 1000,
+  },
+  policy: {
+    target_tabs: 12,
+    score_threshold: 50,
+    decay: 0.8,
+    min_time: 3 * 1000,
+
+    active: false,
+    pinned: false,
+    audible: false,
+  },
+  scorer: {
+    min_active: 3 * 1000,
+    protection_time: 5 * 60 * 1000,
+    cached_decay: 0.7,
+  },
+};
 
 class Settings extends PureComponent {
   constructor(props) {
     super(props);
     this.state = {
-      open: false,
-      beginHour: 0,
-      endHour: 24,
       focusedMode: false,
       relaxedMode: false,
       customizedBool: false,
-      settings: { policy: { target_tabs: 100 } },
+      settings: INIT_RELAXED_PROFILE,
       renderSaveBoolean: false,
     };
     this.onChangedCallback = function (changes) {
-      const changesSettings = changes['settings'];
+      const changesSettings = changes['tabby_settings'];
+      const changesProfile = changes['tabby_active_profile'];
       if (changesSettings) {
         this.setState({
           settings: changesSettings['newValue'],
           renderSaveBoolean: true,
+        });
+      }
+      if (changesProfile) {
+        this.setState({
+          focusedMode: changesProfile['newValue'] === FOCUSED,
+          relaxedMode: changesProfile['newValue'] === RELAXED,
+          customizedBool: changesProfile['newValue'] === CUSTOMIZED,
         });
       }
     }.bind(this);
@@ -40,29 +69,14 @@ class Settings extends PureComponent {
 
   componentDidMount() {
     chrome.storage.local.get(
-      [
-        'beginHour',
-        'endHour',
-        'focusedMode',
-        'relaxedMode',
-        'customizedBool',
-        'settings',
-      ],
+      ['tabby_active_profile', 'tabby_settings'],
       (result) => {
-        const beginHour = result.beginHour || 0;
-        const endHour = result.endHour || 24;
-        const focusedMode = result.focusedMode || false;
-        let relaxedMode = result.relaxedMode || false;
-        const customizedBool = result.customizedBool || false;
-        // if (!customizedBool && !relaxedMode && !customizedBool){
-        //     relaxedMode = true;
-        // }
-        const settings = result.settings || {
-          policy: { target_tabs: 100 },
-        };
+        const profile = result.tabby_active_profile || RELAXED;
+        const focusedMode = profile === FOCUSED;
+        const relaxedMode = profile === RELAXED;
+        const customizedBool = profile === CUSTOMIZED;
+        const settings = result.tabby_settings || INIT_RELAXED_PROFILE;
         this.setState({
-          beginHour,
-          endHour,
           focusedMode,
           relaxedMode,
           customizedBool,
@@ -78,65 +92,19 @@ class Settings extends PureComponent {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if (
-      prevState.beginHour !== this.state.beginHour ||
-      prevState.endHour !== this.state.endHour
-    ) {
-      this.saveActiveHoursToLocal();
-    }
-    if (
-      prevState.relaxedMode !== this.state.relaxedMode ||
-      prevState.focusedMode !== this.state.focusedMode ||
-      prevState.customizedBool !== this.state.customizedBool
-    ) {
-      this.saveSettingsToState();
-      this.saveCasesBool();
-    }
     if (this.state.renderSaveBoolean) {
       this.forceRender();
     }
   }
 
-  saveActiveHoursToLocal() {
-    chrome.storage.local.set({
-      beginHour: this.state.beginHour,
-      endHour: this.state.endHour,
-    });
-  }
-
   handleBoolChange(changeType) {
-    this.setState({
-      relaxedMode: changeType === IS_RELAXED_MODE,
-      focusedMode: changeType === IS_FOCUSED_MODE,
-      customizedBool: changeType === IS_CUSTOMIZED_MODE,
+    chrome.runtime.sendMessage({
+      messageType: 'SETTINGS_PROFILE',
+      profile: changeType,
     });
-    if (changeType === IS_RELAXED_MODE || changeType === IS_FOCUSED_MODE) {
+    if (changeType === RELAXED || changeType === FOCUSED) {
       this.notifyUser();
     }
-  }
-
-  saveSettingsToState() {
-    let settings = this.state.settings;
-    if (this.state.focusedMode) {
-      settings['policy']['target_tabs'] = 5;
-    } else if (this.state.relaxedMode) {
-      settings['policy']['target_tabs'] = 12;
-    }
-
-    if (!this.state.customizedBool) {
-      chrome.runtime.sendMessage({
-        messageType: 'SETTINGS',
-        settings: settings,
-      });
-    }
-  }
-
-  saveCasesBool() {
-    chrome.storage.local.set({
-      relaxedMode: this.state.relaxedMode,
-      focusedMode: this.state.focusedMode,
-      customizedBool: this.state.customizedBool,
-    });
   }
 
   forceRender() {
@@ -145,7 +113,7 @@ class Settings extends PureComponent {
 
   handleSaveParameters() {
     chrome.runtime.sendMessage({
-      messageType: 'SETTINGS',
+      messageType: 'SETTINGS_PARAMETERS',
       settings: this.state.settings,
     });
     this.notifyUser();
@@ -159,13 +127,13 @@ class Settings extends PureComponent {
         horizontal: 'right',
       },
       transitionDuration: 750,
-      autoHideDuration: 2000,
+      autoHideDuration: 1500,
     });
   }
 
-  handleChangeParameters = (parameter) => (event) => {
+  handleChangeParameters = (path, parameter) => (event) => {
     let settings = this.state.settings;
-    settings['policy'][parameter] = event.target.value;
+    settings[path][parameter] = event.target.value;
     this.setState({ settings: settings, renderSaveBoolean: true });
   };
 
@@ -174,8 +142,9 @@ class Settings extends PureComponent {
     const inputsParameters = [
       {
         label: 'Optimal number of tabs ',
-        value: this.state.settings.policy.target_tabs,
-        onChange: OPTIMAL_NUMBER_TABS,
+        source: this.state.settings,
+        path: POLICY,
+        parameter: OPTIMAL_NUMBER_TABS,
         inputProps: { min: '1', max: '100', step: '1' },
       },
     ];
@@ -184,8 +153,8 @@ class Settings extends PureComponent {
         key={index}
         disabled={!this.state.customizedBool}
         label={item.label}
-        onChange={this.handleChangeParameters(item.onChange)}
-        value={item.value}
+        onChange={this.handleChangeParameters(item.path, item.parameter)}
+        value={item.source[item.path][item.parameter]}
         className={classes.textField}
         type="number"
         inputProps={item.inputProps}
@@ -208,7 +177,7 @@ class Settings extends PureComponent {
                 control={
                   <Checkbox
                     checked={this.state.focusedMode}
-                    onChange={() => this.handleBoolChange(IS_FOCUSED_MODE)}
+                    onChange={() => this.handleBoolChange(FOCUSED)}
                     value="secondary"
                     color="primary"
                   />
@@ -220,7 +189,7 @@ class Settings extends PureComponent {
                 control={
                   <Checkbox
                     checked={this.state.relaxedMode}
-                    onChange={() => this.handleBoolChange(IS_RELAXED_MODE)}
+                    onChange={() => this.handleBoolChange(RELAXED)}
                     value="secondary"
                     color="primary"
                   />
@@ -229,7 +198,7 @@ class Settings extends PureComponent {
                 className={classes.firstBooleans}
               />
               <FormControlLabel
-                onChange={() => this.handleBoolChange(IS_CUSTOMIZED_MODE)}
+                onChange={() => this.handleBoolChange(CUSTOMIZED)}
                 control={
                   <Checkbox
                     checked={this.state.customizedBool}

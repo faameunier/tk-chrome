@@ -12,21 +12,24 @@ class EventQueue {
 
   enqueue(promise) {
     if (this.queue.length === 0) {
-      return memoryManager.load().then(
-        function success() {
-          return new Promise((resolve, reject) => {
-            this.queue.push({
-              promise,
-              resolve,
-              reject,
+      return settingsManager
+        .load()
+        .then(() => memoryManager.load())
+        .then(
+          function success() {
+            return new Promise((resolve, reject) => {
+              this.queue.push({
+                promise,
+                resolve,
+                reject,
+              });
+              this.dequeue();
             });
-            this.dequeue();
-          });
-        }.bind(this),
-        function failure() {
-          logger(this, 'There is an error in the Enqueue Callback');
-        }.bind(this)
-      );
+          }.bind(this),
+          function failure() {
+            logger(this, 'There is an error in the Enqueue Callback');
+          }.bind(this)
+        );
     }
     return new Promise((resolve, reject) => {
       this.queue.push({
@@ -46,9 +49,9 @@ class EventQueue {
     if (!item) {
       this.workingOnPromise = true;
       logger(this, 'Queue killed');
-      memoryManager.log().then((value) => {
-        PolicyManager.run().then((value) => {
-          memoryManager.save().then((value) => {
+      memoryManager.log().then(() => {
+        PolicyManager.run().then(() => {
+          memoryManager.save().then(() => {
             if (this.queue.length === 0) {
               this.workingOnPromise = false;
             } else {

@@ -13,6 +13,7 @@
       "./services/utils.js",
       "./services/queue.js",
       "./services/LRU.js",
+      "./services/settings.js",
       "./services/memory.js",
       "./services/scorer.js",
       "./services/policy.js",
