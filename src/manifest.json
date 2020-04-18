@@ -9,6 +9,7 @@
       "./lib/lodash.js",
       "./lib/psl.min.js",
       "./config/env.js",
+      "./config/settingsProfiles.js",
       "./services/utils.js",
       "./services/queue.js",
       "./services/LRU.js",

@@ -3,43 +3,26 @@ class SettingsManager {
     if (!SettingsManager.instance) {
       logger(this, 'Instanciating empty SettingsManager');
       SettingsManager.instance = this;
-      this.init();
+      this.initProfiles();
+      this.load();
     }
     return SettingsManager.instance;
   }
 
   async init() {
-    this.profile = {
-      focused: false,
-      relaxed: true,
-      customized: false,
-    };
-    this.settings = {
-      memory: {
-        cache_size: 5,
-        min_time_full_stats_update: 1 * 1000,
-        min_time_garbage_collector: 5 * 1000,
-      },
-      policy: {
-        target_tabs: 12,
-        score_threshold: 50,
-        decay: 0.8,
-        min_time: 3 * 1000,
-
-        active: false,
-        pinned: false,
-        audible: false,
-      },
-      scorer: {
-        min_active: 3 * 1000,
-        protection_time: 5 * 60 * 1000,
-        cached_decay: 0.7,
-      },
+    this.active_profile = RELAXED;
+    this.settings = INIT_RELAXED_PROFILE;
+  }
+  async initProfiles() {
+    this.profiles = {
+      focused: INIT_FOCUSED_PROFILE,
+      relaxed: INIT_RELAXED_PROFILE,
     };
   }
 
   async reset() {
     this.init();
+    this.initProfiles();
     await this.save();
   }
 
@@ -47,17 +30,27 @@ class SettingsManager {
     logger(this, 'Saved');
     await storageSet({
       tabby_settings: this.settings,
-      tabby_profile: this.profile,
+      tabby_profiles: this.profiles,
+      tabby_active_profile: this.active_profile,
     });
   }
 
   async load() {
-    await storageGet(['tabby_settings', 'tabby_profile']).then((data) => {
+    await storageGet([
+      'tabby_settings',
+      'tabby_active_profile',
+      //'tabby_profiles',
+    ]).then((data) => {
       try {
         logger(this, 'Loading settings from storage');
-        if (typeof data.tabby_settings !== 'undefined') {
+        if (
+          typeof data.tabby_settings !== 'undefined' &&
+          //typeof data.tabby_profiles !== 'undefined' &&
+          typeof data.tabby_active_profile !== 'undefined'
+        ) {
           this.settings = data.tabby_settings;
-          this.profile = data.tabby_profile;
+          //this.profiles = data.tabby_profiles;
+          this.active_profile = data.tabby_active_profile;
         } else {
           this.reset();
         }
@@ -71,12 +64,10 @@ class SettingsManager {
     this.settings = settings;
     await this.save();
   }
-  async updateSettingsProfile(profile) {
-    this.profile = profile;
-    if (profile.focused) {
-      this.settings['policy']['target_tabs'] = 5;
-    } else if (profile.relaxed) {
-      this.settings['policy']['target_tabs'] = 12;
+  async updateSettingsProfile(active_profile) {
+    this.active_profile = active_profile;
+    if (active_profile !== CUSTOMIZED) {
+      this.settings = this.profiles[active_profile];
     }
     await this.save();
   }
