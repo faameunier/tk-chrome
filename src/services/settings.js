@@ -40,7 +40,7 @@ class SettingsManager {
 
   async load() {
     if (!this.loaded) {
-      let data = await storageGet(['settings', 'active_profile'])
+      let data = await storageGet(['settings', 'active_profile']);
       try {
         logger(this, 'Loading settings from storage');
         if (

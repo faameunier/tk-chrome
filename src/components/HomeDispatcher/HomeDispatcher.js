@@ -5,6 +5,8 @@ import Paper from '@material-ui/core/Paper';
 import Settings from '../Settings';
 import Home from '../Home';
 import { SnackbarProvider } from 'notistack';
+import Avatar from '@material-ui/core/Avatar/Avatar';
+import ListItemAvatar from '@material-ui/core/ListItemAvatar/ListItemAvatar';
 
 class HomeDispatcher extends PureComponent {
   constructor(props) {
@@ -42,14 +44,18 @@ class HomeDispatcher extends PureComponent {
       >
         <div className={classes.homeContainer}>
           <Paper square>
-            <Tabs
-              value={this.state.appBarValue ? this.state.appBarValue : 'HOME'}
-              onChange={(e, v) => this.handleChange(e, v)}
-            >
-              <Tab label="Home" value={'HOME'} className={classes.tab} />
-              <Tab label="Settings" value={'SETTINGS'} className={classes.tab} />
-              {/*<Tab label="Debug" value={"DEBUG"} disabled className={classes.tab}/>*/}
-            </Tabs>
+            <div className={classes.gridLogoTabs}>
+              <Avatar alt="logoTabby" src={'../../assets/static/icons/tabby.png'} className={classes.logoAvatar} />
+              <Tabs
+                value={this.state.appBarValue ? this.state.appBarValue : 'HOME'}
+                onChange={(e, v) => this.handleChange(e, v)}
+                className={classes.allTabs}
+              >
+                <Tab label="Home" value={'HOME'} className={classes.tab} />
+                <Tab label="Settings" value={'SETTINGS'} className={classes.tab} />
+                {/*<Tab label="Debug" value={"DEBUG"} disabled className={classes.tab}/>*/}
+              </Tabs>
+            </div>
             <div>{this.dispatchPage()}</div>
           </Paper>
         </div>

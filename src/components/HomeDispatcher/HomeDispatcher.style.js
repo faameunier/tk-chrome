@@ -14,5 +14,21 @@ const styles = (theme) => ({
   notification: {
     left: 150,
   },
+  gridLogoTabs: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'left',
+  },
+  allTabs: {
+    maxWidth: '75%',
+  },
+  logoAvatar: {
+    marginTop: theme.spacing(1),
+    marginLeft: theme.spacing(2),
+    marginRight: theme.spacing(1),
+    width: theme.spacing(7.5),
+    height: theme.spacing(7.5),
+  },
 });
 export default withStyles(styles)(HomeDispatcher);
