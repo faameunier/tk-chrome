@@ -45,27 +45,6 @@ class MemoryManager {
       last_garbage_collector: Date.now(),
       last_policy_runs: {}
     };
-    this.settings = {
-      memory: {
-        cache_size: 5,
-        min_time_full_stats_update: 1 * 1000,
-        min_time_garbage_collector: 5 * 1000
-      },
-      policy: {
-        target_tabs: 12,
-        score_threshold: 50,
-        decay: 0.8,
-        min_time: 3 * 1000,
-        active: false,
-        pinned: false,
-        audible: false
-      },
-      scorer: {
-        min_active: 3 * 1000,
-        protection_time: 5 * 60 * 1000,
-        cached_decay: 0.7
-      }
-    };
   }
 
   async reset() {
@@ -80,7 +59,6 @@ class MemoryManager {
     await storageSet({
       tabs: JSON.stringify(this.tabs),
       closed_history: this.closed_history,
-      settings: this.settings,
       current_scores: this.current_scores,
       runtime_events: this.runtime_events
     });
@@ -88,26 +66,25 @@ class MemoryManager {
 
   async load() {
     if (!this.loaded) {
-      await storageGet(['tabs', 'closed_history', 'current_scores', 'settings', 'runtime_events']).then(data => {
-        try {
-          logger(this, 'Loading state from storage');
-          this.closed_history = data.closed_history;
-          this.runtime_events = data.runtime_events;
-          this.current_scores = data.current_scores;
-          this.tabs = JSON.parse(data.tabs);
-          this.settings = data.settings;
+      let data = await storageGet(['tabs', 'closed_history', 'current_scores', 'runtime_events']);
 
-          for (let key of Object.keys(this.tabs)) {
-            let tab = this.tabs[key];
-            tab.cache = LRUfactory.fromJSON(tab.cache);
-          }
+      try {
+        logger(this, 'Loading state from storage');
+        this.closed_history = data.closed_history;
+        this.runtime_events = data.runtime_events;
+        this.current_scores = data.current_scores;
+        this.tabs = JSON.parse(data.tabs);
 
-          this.loaded = true;
-        } catch (e) {
-          logger(this, 'Loading fail, init memory');
-          this.loaded = true;
+        for (let key of Object.keys(this.tabs)) {
+          let tab = this.tabs[key];
+          tab.cache = LRUfactory.fromJSON(tab.cache);
         }
-      });
+      } catch (_unused) {
+        logger(this, 'Loading fail, init memory');
+        await this.save(); // for save for consistency with settings manager
+      }
+
+      this.loaded = true;
     }
   }
 
@@ -172,7 +149,7 @@ class MemoryManager {
           // No impact on stats until proven otherwise
           new_tab.cache = tab.cache;
         } else {
-          new_tab.cache = new LRU(this.settings.memory.cache_size);
+          new_tab.cache = new LRU(settingsManager.settings.memory.cache_size);
         }
 
         if (typeof tab.pinned !== 'undefined') {
@@ -290,7 +267,7 @@ class MemoryManager {
 
     try {
       delete this.tabs[tabId];
-    } catch (_unused) {
+    } catch (_unused2) {
       logger(this, 'OOS trying to delete unknown tab');
     }
   }
@@ -337,7 +314,7 @@ class MemoryManager {
   async updateAllStatistics() {
     let now = Date.now();
 
-    if (now - this.runtime_events.last_full_stats_update >= this.settings.memory.min_time_full_stats_update) {
+    if (now - this.runtime_events.last_full_stats_update >= settingsManager.settings.memory.min_time_full_stats_update) {
       logger(this, 'Running full stats');
       var tab_ids = Object.keys(this.tabs);
 
@@ -387,14 +364,10 @@ class MemoryManager {
     logger(this, 'Tab ' + tabId + ' protected temporarily');
   }
 
-  async updateSettings(settings) {
-    this.settings = settings;
-  }
-
   async cleanTabsDelay() {
     let now = Date.now();
 
-    if (now - this.runtime_events.last_garbage_collector >= this.settings.memory.min_time_garbage_collector) {
+    if (now - this.runtime_events.last_garbage_collector >= settingsManager.settings.memory.min_time_garbage_collector) {
       await this.cleanTabs();
       this.runtime_events.last_garbage_collector = now;
     }
@@ -416,7 +389,7 @@ class MemoryManager {
       await this.createTab(realTab);
       logger(this, 'Backfill succesful');
     } catch (e) {
-      logger(this, 'Tab couldn\'t be retrieved, creating empty tab...');
+      logger(this, "Tab couldn't be retrieved, creating empty tab...");
       await this.createTab(tab);
     }
   }
@@ -438,7 +411,7 @@ class MemoryManager {
           });
         });
         await p;
-      } catch (_unused2) {
+      } catch (_unused3) {
         logger(this, 'Tab ' + tabId + ' collected by garbage collector');
         await this.deleteTab(tabId);
       }

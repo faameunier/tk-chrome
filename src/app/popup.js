@@ -6,7 +6,7 @@ import React from 'react';
 import HomeDispatcher from '../components/HomeDispatcher';
 
 function App() {
-	return <HomeDispatcher />;
+  return <HomeDispatcher />;
 }
 
 ReactDOM.render(<App />, document.getElementById('app'));

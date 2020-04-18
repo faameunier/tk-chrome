@@ -1,4 +1,5 @@
 chrome.runtime.onInstalled.addListener(function () {
+  eventQueue.enqueue(() => settingsManager.reset());
   eventQueue.enqueue(() => memoryManager.reset());
   logger('Extention installed :D');
 });
@@ -39,8 +40,11 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       eventQueue.enqueue(() => memoryManager.restoreTab(request.tabId));
       eventQueue.enqueue(() => memoryManager.removeTabFromClosedHistory(request.tabId));
       break;
-    case 'SETTINGS':
-      eventQueue.enqueue(() => memoryManager.updateSettings(request.settings));
+    case 'SETTINGS_PARAMETERS':
+      eventQueue.enqueue(() => settingsManager.updateSettings(request.settings));
+      break;
+    case 'SETTINGS_PROFILE':
+      eventQueue.enqueue(() => settingsManager.updateSettingsProfile(request.profile));
       break;
 
     default:

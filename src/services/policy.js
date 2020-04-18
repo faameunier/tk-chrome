@@ -65,15 +65,15 @@ class PolicyManager {
     // Run policy for a given window
     // Returns true if the policy was run, false otherwise
     let tabs = windows[windowId];
-    if (tabs.length > memoryManager.settings.policy.target_tabs) {
+    if (tabs.length > settingsManager.settings.policy.target_tabs) {
       // if too many tabs
       if (this.exponentialTrigger(tabs, windowId)) {
         // if we waited enough
         tabs = _.filter(tabs, (tab) => {
           return (
-            tab.active == memoryManager.settings.policy.active &&
-            tab.pinned == memoryManager.settings.policy.pinned &&
-            tab.audible == memoryManager.settings.policy.audible
+            tab.active == settingsManager.settings.policy.active &&
+            tab.pinned == settingsManager.settings.policy.pinned &&
+            tab.audible == settingsManager.settings.policy.audible
           );
         });
         if (tabs.length === 0) {
@@ -107,7 +107,7 @@ class PolicyManager {
             count += 1;
           }
         }
-        if (count < tabs.length - memoryManager.settings.policy.target_tabs) {
+        if (count < tabs.length - settingsManager.settings.policy.target_tabs) {
           await this.killTab(
             deleteMe,
             _.find(tabs, (tab) => tab.tabId === deleteMe)
@@ -149,8 +149,11 @@ class PolicyManager {
     let last_policy_run = memoryManager.runtime_events.last_policy_runs[windowId];
     return (
       Date.now() - memoryManager.runtime_events.last_policy_runs[windowId] >=
-      memoryManager.settings.policy.min_time *
-        Math.pow(memoryManager.settings.policy.decay, Math.max(0, n_tabs - memoryManager.settings.policy.target_tabs))
+      settingsManager.settings.policy.min_time *
+        Math.pow(
+          settingsManager.settings.policy.decay,
+          Math.max(0, n_tabs - settingsManager.settings.policy.target_tabs)
+        )
     );
   }
 }
