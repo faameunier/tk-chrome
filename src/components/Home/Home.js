@@ -121,8 +121,8 @@ class Home extends PureComponent {
         <Typography variant="h6" className={classes.greenTitle}>
           {isNext ? 'Next tabs to be closed' : 'Tabs closed today'}
         </Typography>
-        <div>
-          <List dense={true} className={classes.listItems}>
+        <div className={classes.listItems}>
+          <List dense={true}>
             {filteredList.length === 0 ? (
               <p>No tabs closed in the last 2 hours.</p>
             ) : (
@@ -170,23 +170,20 @@ class Home extends PureComponent {
       ? this.filterList(this.state.closed_history).length
       : 0;
     return (
-      <div className="card todo-list-container">
-        <div className="card-body">
-          <Typography variant="h3" className={classes.title}>
-            <Typography className={classes.boldText}>
-              {numberClosedTabsLastHour ? numberClosedTabsLastHour : 'No'} tab
-              {numberClosedTabsLastHour === 1 ? '' : 's'}
-            </Typography>
-            <Typography className={classes.middleText}>
-              {' '}
-              {numberClosedTabsLastHour === 1 ? 'was' : 'were'} closed in the
-              last{' '}
-            </Typography>
-            <Typography className={classes.boldText}> 2 hours! </Typography>
+      <div className="card-body">
+        <Typography variant="h3" className={classes.title}>
+          <Typography className={classes.boldText}>
+            {numberClosedTabsLastHour ? numberClosedTabsLastHour : 'No'} tab
+            {numberClosedTabsLastHour === 1 ? '' : 's'}
           </Typography>
-          {this.renderList.bind(this)(REMOVED)}
-          {/*{this.renderList.bind(this)(NEXT)}*/}
-        </div>
+          <Typography className={classes.middleText}>
+            {' '}
+            {numberClosedTabsLastHour === 1 ? 'was' : 'were'} closed in the last{' '}
+          </Typography>
+          <Typography className={classes.boldText}> 2 hours! </Typography>
+        </Typography>
+        {this.renderList.bind(this)(REMOVED)}
+        {/*{this.renderList.bind(this)(NEXT)}*/}
       </div>
     );
   }

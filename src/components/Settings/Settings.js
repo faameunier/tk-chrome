@@ -161,76 +161,74 @@ class Settings extends PureComponent {
       />
     ));
     return (
-      <div className="card todo-list-container">
-        <div className="card-body">
-          <div className={classes.introductionBlock}>
-            <TuneIcon />
-            <Typography variant="h3" className={classes.title}>
-              Select the suiting mode or customize it.
-            </Typography>
-          </div>
-          <div className={classes.textField}>
-            <div className={classes.activeBar}></div>
-            {/*<h1 className={"bold-title"}>Select Tabby's operating mode:</h1>*/}
-            <Form className={classes.settingsWrapper}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={this.state.focusedMode}
-                    onChange={() => this.handleBoolChange(FOCUSED)}
-                    value="secondary"
-                    color="primary"
-                  />
-                }
-                label="Focused"
-                className={classes.firstBooleans}
-              />
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={this.state.relaxedMode}
-                    onChange={() => this.handleBoolChange(RELAXED)}
-                    value="secondary"
-                    color="primary"
-                  />
-                }
-                label="Relaxed"
-                className={classes.firstBooleans}
-              />
-              <FormControlLabel
-                onChange={() => this.handleBoolChange(CUSTOMIZED)}
-                control={
-                  <Checkbox
-                    checked={this.state.customizedBool}
-                    value=""
-                    color="primary"
-                  />
-                }
-                label="Customize your settings' parameters"
-              />
-              <div className={classes.settingsBlock}>
-                <FormControl
-                  //className={classes.content}
-                  required
-                  fullWidth
+      <div className="card-body">
+        <div className={classes.introductionBlock}>
+          <TuneIcon />
+          <Typography variant="h3" className={classes.title}>
+            Select the suiting mode or customize it.
+          </Typography>
+        </div>
+        <div className={classes.textField}>
+          <div className={classes.activeBar}></div>
+          {/*<h1 className={"bold-title"}>Select Tabby's operating mode:</h1>*/}
+          <Form className={classes.settingsWrapper}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={this.state.focusedMode}
+                  onChange={() => this.handleBoolChange(FOCUSED)}
+                  value="secondary"
+                  color="primary"
+                />
+              }
+              label="Focused"
+              className={classes.firstBooleans}
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={this.state.relaxedMode}
+                  onChange={() => this.handleBoolChange(RELAXED)}
+                  value="secondary"
+                  color="primary"
+                />
+              }
+              label="Relaxed"
+              className={classes.firstBooleans}
+            />
+            <FormControlLabel
+              onChange={() => this.handleBoolChange(CUSTOMIZED)}
+              control={
+                <Checkbox
+                  checked={this.state.customizedBool}
+                  value=""
+                  color="primary"
+                />
+              }
+              label="Customize your settings' parameters"
+            />
+            <div className={classes.settingsBlock}>
+              <FormControl
+                //className={classes.content}
+                required
+                fullWidth
+              >
+                {listItemsParameters}
+              </FormControl>
+              <div>
+                <Button
+                  disabled={!this.state.customizedBool}
+                  className={classes.secondaryButton}
+                  variant={
+                    this.state.customizedBool ? 'outline-primary' : 'primary'
+                  }
+                  onClick={() => this.handleSaveParameters()}
                 >
-                  {listItemsParameters}
-                </FormControl>
-                <div>
-                  <Button
-                    disabled={!this.state.customizedBool}
-                    className={classes.secondaryButton}
-                    variant={
-                      this.state.customizedBool ? 'outline-primary' : 'primary'
-                    }
-                    onClick={() => this.handleSaveParameters()}
-                  >
-                    Save
-                  </Button>
-                </div>
+                  Save
+                </Button>
               </div>
-            </Form>
-          </div>
+            </div>
+          </Form>
         </div>
       </div>
     );

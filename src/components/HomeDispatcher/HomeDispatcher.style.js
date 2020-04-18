@@ -18,13 +18,17 @@ const styles = (theme) => ({
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-evenly',
+    justifyContent: 'left',
   },
   allTabs: {
     maxWidth: '75%',
   },
   logoAvatar: {
-    border: `2px solid #1b9e74`,
+    marginTop: theme.spacing(1),
+    marginLeft: theme.spacing(2),
+    marginRight: theme.spacing(1),
+    width: theme.spacing(7.5),
+    height: theme.spacing(7.5),
   },
 });
 export default withStyles(styles)(HomeDispatcher);

@@ -47,7 +47,7 @@ class HomeDispatcher extends PureComponent {
             <div className={classes.gridLogoTabs}>
               <Avatar
                 alt="logoTabby"
-                src={'../../assets/static/icons/tabby_icon_128.png'}
+                src={'../../assets/static/icons/tabby.png'}
                 className={classes.logoAvatar}
               />
               <Tabs
