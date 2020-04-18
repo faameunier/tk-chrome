@@ -75,12 +75,7 @@ class Home extends PureComponent {
     const now = Date.now();
     return selectedList.filter((item) => {
       return (
-        now -
-          Math.max(
-            item.statistics.updated_at,
-            item.statistics.last_active_timestamp
-          ) <
-        TIME_PERIOD_TO_CONSIDER
+        now - Math.max(item.statistics.updated_at, item.statistics.last_active_timestamp) < TIME_PERIOD_TO_CONSIDER
       );
     });
   }
@@ -96,20 +91,14 @@ class Home extends PureComponent {
         selectedList = this.state.nextList ? this.state.nextList : [];
         break;
       default:
-        selectedList = this.state.closed_history
-          ? this.state.closed_history
-          : [];
+        selectedList = this.state.closed_history ? this.state.closed_history : [];
         selectedList = selectedList.map((website, i) => {
           const deletionTime = new Date(website.deletion_time);
-          const formatted_deletion_time = deletionTime
-            .toTimeString()
-            .split(' ')[0];
+          const formatted_deletion_time = deletionTime.toTimeString().split(' ')[0];
           website.hours_deletion = formatted_deletion_time.split(':')[0];
           website.minutes_deletion = formatted_deletion_time.split(':')[1];
           if (website.title && website.title.length > MAX_LENGTH_TITLE) {
-            website.title = website.title
-              .substring(0, MAX_LENGTH_TITLE)
-              .concat('...');
+            website.title = website.title.substring(0, MAX_LENGTH_TITLE).concat('...');
           }
           return website;
         });
@@ -136,19 +125,11 @@ class Home extends PureComponent {
                       <Avatar alt={website.title} src={website.favIconUrl} />
                     </ListItemAvatar>
                   </div>
-                  <ListItemText
-                    primary={website.url}
-                    secondary={website.title}
-                    className={classes.itemText}
-                  />
+                  <ListItemText primary={website.url} secondary={website.title} className={classes.itemText} />
                   <ListItemSecondaryAction>
                     <Button
                       size="large"
-                      onClick={
-                        isNext
-                          ? this.removeNextItem.bind(this, i)
-                          : this.removeItem.bind(this, i)
-                      }
+                      onClick={isNext ? this.removeNextItem.bind(this, i) : this.removeItem.bind(this, i)}
                       variant="outline-primary"
                       className={classes.button}
                     >
@@ -166,9 +147,7 @@ class Home extends PureComponent {
 
   render() {
     const { classes } = this.props;
-    const numberClosedTabsLastHour = this.state.closed_history
-      ? this.filterList(this.state.closed_history).length
-      : 0;
+    const numberClosedTabsLastHour = this.state.closed_history ? this.filterList(this.state.closed_history).length : 0;
     return (
       <div className="card-body">
         <Typography variant="h3" className={classes.title}>
