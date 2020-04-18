@@ -32,8 +32,8 @@ const INIT_RELAXED_PROFILE = {
     audible: false,
   },
   scorer: {
-    min_active: 3 * 1000,
-    protection_time: 5 * 60 * 1000,
+    min_active: 5 * 60 * 1000,
+    protection_time: 15 * 60 * 1000,
     cached_decay: 0.7,
   },
 };
