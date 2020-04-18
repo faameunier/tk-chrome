@@ -68,22 +68,19 @@ class Settings extends PureComponent {
   }
 
   componentDidMount() {
-    chrome.storage.local.get(
-      ['active_profile', 'settings'],
-      (result) => {
-        const profile = result.active_profile || RELAXED;
-        const focusedMode = profile === FOCUSED;
-        const relaxedMode = profile === RELAXED;
-        const customizedBool = profile === CUSTOMIZED;
-        const settings = result.settings || INIT_RELAXED_PROFILE;
-        this.setState({
-          focusedMode,
-          relaxedMode,
-          customizedBool,
-          settings,
-        });
-      }
-    );
+    chrome.storage.local.get(['active_profile', 'settings'], (result) => {
+      const profile = result.active_profile || RELAXED;
+      const focusedMode = profile === FOCUSED;
+      const relaxedMode = profile === RELAXED;
+      const customizedBool = profile === CUSTOMIZED;
+      const settings = result.settings || INIT_RELAXED_PROFILE;
+      this.setState({
+        focusedMode,
+        relaxedMode,
+        customizedBool,
+        settings,
+      });
+    });
     chrome.storage.onChanged.addListener(this.onChangedCallback);
   }
 
@@ -198,13 +195,7 @@ class Settings extends PureComponent {
             />
             <FormControlLabel
               onChange={() => this.handleBoolChange(CUSTOMIZED)}
-              control={
-                <Checkbox
-                  checked={this.state.customizedBool}
-                  value=""
-                  color="primary"
-                />
-              }
+              control={<Checkbox checked={this.state.customizedBool} value="" color="primary" />}
               label="Customize your settings' parameters"
             />
             <div className={classes.settingsBlock}>
@@ -219,9 +210,7 @@ class Settings extends PureComponent {
                 <Button
                   disabled={!this.state.customizedBool}
                   className={classes.secondaryButton}
-                  variant={
-                    this.state.customizedBool ? 'outline-primary' : 'primary'
-                  }
+                  variant={this.state.customizedBool ? 'outline-primary' : 'primary'}
                   onClick={() => this.handleSaveParameters()}
                 >
                   Save
