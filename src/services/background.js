@@ -51,8 +51,15 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         memoryManager.removeTabFromClosedHistory(request.tabId)
       );
       break;
-    case 'SETTINGS':
-      eventQueue.enqueue(() => memoryManager.updateSettings(request.settings));
+    case 'SETTINGS_PARAMETERS':
+      eventQueue.enqueue(() =>
+        settingsManager.updateSettings(request.settings)
+      );
+      break;
+    case 'SETTINGS_PROFILE':
+      eventQueue.enqueue(() =>
+        settingsManager.updateSettingsProfile(request.profile)
+      );
       break;
 
     default:
