@@ -12,24 +12,23 @@ class EventQueue {
 
   enqueue(promise) {
     if (this.queue.length === 0) {
-      return settingsManager
-        .load()
-        .then(() => memoryManager.load())
-        .then(
-          function success() {
-            return new Promise((resolve, reject) => {
-              this.queue.push({
-                promise,
-                resolve,
-                reject,
-              });
-              this.dequeue();
-            });
-          }.bind(this),
-          function failure() {
-            logger(this, 'There is an error in the Enqueue Callback');
-          }.bind(this)
-        );
+      // Settings and memory are lazy loaded
+      // These laoads are in case the program was
+      // deloaded from memory by the browser.
+      new Promise((resolve, reject) => {
+        this.queue.push({
+          promise: () => settingsManager.load(),
+          resolve,
+          reject,
+        });
+      });
+      new Promise((resolve, reject) => {
+        this.queue.push({
+          promise: () => memoryManager.load(),
+          resolve,
+          reject,
+        });
+      });
     }
     return new Promise((resolve, reject) => {
       this.queue.push({
@@ -52,6 +51,9 @@ class EventQueue {
       memoryManager.log().then(() => {
         PolicyManager.run().then(() => {
           memoryManager.save().then(() => {
+            // memory is saved only at the end of the queue
+            // to avoid useless savings when everything is chained.
+            // Settings are saved within the manager as these are rare events.
             if (this.queue.length === 0) {
               this.workingOnPromise = false;
             } else {

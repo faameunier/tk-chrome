@@ -1,1 +1,48 @@
-const logger=function(...a){if("debug"===ENV||"dev"===ENV){let b=new Date().toUTCString();"object"==typeof a[0]?(b+=" | "+a[0].constructor.name+" | ",b+=a[1]):b+=" | "+a[0],console.log(b)}};function copy(a){return JSON.parse(JSON.stringify(a))}function timeout(a){return new Promise(b=>setTimeout(b,a))}function getDomain(a){try{return psl.parse(new URL(a).hostname).domain}catch(b){return a}}function storageSet(a){return new Promise(b=>{chrome.storage.local.set(a,function(){b()})})}function storageGet(a){return new Promise(b=>{chrome.storage.local.get(a,function(a){b(a)})})}logger("Starting in "+ENV+" env.");
+const logger = function (...args) {
+  if (ENV === 'debug' || ENV === 'dev') {
+    let pre = new Date().toUTCString();
+
+    if (typeof args[0] === 'object') {
+      pre += ' | ' + args[0].constructor.name + ' | ';
+      pre += args[1];
+    } else {
+      pre += ' | ' + args[0];
+    }
+
+    console.log(pre);
+  }
+};
+
+function copy(obj) {
+  return JSON.parse(JSON.stringify(obj));
+}
+
+function timeout(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function getDomain(str) {
+  try {
+    return psl.parse(new URL(str).hostname).domain;
+  } catch (_unused) {
+    return str;
+  }
+}
+
+function storageSet(args) {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.set(args, function () {
+      resolve();
+    });
+  });
+}
+
+function storageGet(args) {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get(args, function (data) {
+      resolve(data);
+    });
+  });
+}
+
+logger('Starting in ' + ENV + ' env.');

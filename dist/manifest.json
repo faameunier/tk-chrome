@@ -1,14 +1,15 @@
 {
-  "name": "Tab Killer",
+  "name": "Tabby",
   "version": "0.1",
   "version_name": "0.1 alpha",
-  "description": "The tab serial killer",
+  "description": "Make Chrome focus-friendly",
   "permissions": ["http://*/*", "https://*/*", "tabs", "storage"],
   "background": {
     "scripts": [
       "./lib/lodash.js",
       "./lib/psl.min.js",
       "./config/env.js",
+      "./config/settingsProfiles.js",
       "./services/utils.js",
       "./services/queue.js",
       "./services/LRU.js",

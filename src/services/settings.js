@@ -3,8 +3,9 @@ class SettingsManager {
     if (!SettingsManager.instance) {
       logger(this, 'Instanciating empty SettingsManager');
       SettingsManager.instance = this;
+      this.init();
       this.initProfiles();
-      this.load();
+      this.loaded = false;
     }
     return SettingsManager.instance;
   }
@@ -13,6 +14,7 @@ class SettingsManager {
     this.active_profile = RELAXED;
     this.settings = INIT_RELAXED_PROFILE;
   }
+
   async initProfiles() {
     this.profiles = {
       focused: INIT_FOCUSED_PROFILE,
@@ -21,49 +23,50 @@ class SettingsManager {
   }
 
   async reset() {
+    logger(this, 'Hard reset');
     this.init();
     this.initProfiles();
     await this.save();
+    await this.load(); // setting loaded var if needed
   }
 
   async save() {
     logger(this, 'Saved');
     await storageSet({
-      tabby_settings: this.settings,
-      tabby_profiles: this.profiles,
-      tabby_active_profile: this.active_profile,
+      settings: this.settings,
+      active_profile: this.active_profile,
     });
   }
 
   async load() {
-    await storageGet([
-      'tabby_settings',
-      'tabby_active_profile',
-      //'tabby_profiles',
-    ]).then((data) => {
+    if (!this.loaded) {
+      let data = await storageGet(['settings', 'active_profile'])
       try {
         logger(this, 'Loading settings from storage');
         if (
-          typeof data.tabby_settings !== 'undefined' &&
-          //typeof data.tabby_profiles !== 'undefined' &&
-          typeof data.tabby_active_profile !== 'undefined'
+          typeof data.settings !== 'undefined' &&
+          //typeof data.profiles !== 'undefined' &&
+          typeof data.active_profile !== 'undefined'
         ) {
-          this.settings = data.tabby_settings;
-          //this.profiles = data.tabby_profiles;
-          this.active_profile = data.tabby_active_profile;
+          this.settings = data.settings;
+          //this.profiles = data.profiles;
+          this.active_profile = data.active_profile;
         } else {
-          this.reset();
+          throw 'Loading failed or version change';
         }
       } catch {
         logger(this, 'Loading settings fail');
-        this.reset();
+        await this.save();
       }
-    });
+      this.loaded = true;
+    }
   }
+
   async updateSettings(settings) {
     this.settings = settings;
     await this.save();
   }
+
   async updateSettingsProfile(active_profile) {
     this.active_profile = active_profile;
     if (active_profile !== CUSTOMIZED) {

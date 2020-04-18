@@ -10,16 +10,20 @@
         }
       }
     ],
-    ['minify', {
-      builtIns: false,
-      evaluate: true,
-      mangle: true
-    }],
   ],
   "plugins":[
     ["@babel/plugin-proposal-decorators", {"legacy": true}], 
     "@babel/plugin-proposal-class-properties"
   ],
   "sourceType": "script",
-  "comments": false
+  "env": {
+    "prod": {
+      "presets": [['minify', {
+        builtIns: false,
+        evaluate: true,
+        mangle: true
+      }]],
+      "comments": false
+    },
+  }
 }
