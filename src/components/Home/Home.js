@@ -163,6 +163,14 @@ class Home extends PureComponent {
         </Typography>
         {this.renderList.bind(this)(REMOVED)}
         {/*{this.renderList.bind(this)(NEXT)}*/}
+        <div className={classes.linkToForm}>
+          <a
+            href="https://docs.google.com/forms/d/e/1FAIpQLSdUEJHd0bL6ryFvZk220CoZp7cwvFxESorps7cngk0wQfyu-Q/viewform"
+            target="_blank"
+          >
+            Report a bug or send us a feedback?
+          </a>
+        </div>
       </div>
     );
   }

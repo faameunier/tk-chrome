@@ -46,5 +46,12 @@ const styles = (theme) => ({
     maxHeight: 300,
     overflowY: 'scroll',
   },
+  linkToForm: {
+    position: 'relative',
+    left: '55%',
+    fontSize: 10,
+    marginTop: 15,
+    maxWidth: '75%',
+  },
 });
 export default withStyles(styles)(Home);
