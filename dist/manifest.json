@@ -1,9 +1,9 @@
 {
   "name": "Tabby",
-  "version": "0.1",
-  "version_name": "0.1 alpha",
+  "version": "0.0.1",
+  "version_name": "beta",
   "description": "Make Chrome focus-friendly",
-  "permissions": ["http://*/*", "https://*/*", "tabs", "storage"],
+  "permissions": ["tabs", "storage"],
   "background": {
     "scripts": [
       "./lib/lodash.js",
