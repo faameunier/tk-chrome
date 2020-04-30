@@ -13,7 +13,8 @@ const RESTORE = 'RESTORE';
 const NEXT = 'NEXT';
 const REMOVED = 'REMOVED';
 const CLOSED_HISTORY = 'closed_history';
-const TIME_PERIOD_TO_CONSIDER = 3600000 * 2; // in microsecond
+const NUMBER_HOURS = 24;
+const TIME_PERIOD_TO_CONSIDER = 3600000 * NUMBER_HOURS; // in microsecond
 
 class Home extends PureComponent {
   constructor(props) {
@@ -108,12 +109,12 @@ class Home extends PureComponent {
     return (
       <div className={classes.listWebsites}>
         <Typography variant="h6" className={classes.greenTitle}>
-          {isNext ? 'Next tabs to be closed' : 'Tabs closed today'}
+          {isNext ? 'Next tabs to be closed' : `Last closed tabs`}
         </Typography>
         <div className={classes.listItems}>
           <List dense={true}>
             {filteredList.length === 0 ? (
-              <p>No tabs closed in the last 2 hours.</p>
+              <p>{`No tabs closed in the last ${NUMBER_HOURS} hours.`}</p>
             ) : (
               filteredList.map((website, i) => (
                 <ListItem key={i}>
@@ -159,7 +160,7 @@ class Home extends PureComponent {
             {' '}
             {numberClosedTabsLastHour === 1 ? 'was' : 'were'} closed in the last{' '}
           </Typography>
-          <Typography className={classes.boldText}> 2 hours! </Typography>
+          <Typography className={classes.boldText}> {`${NUMBER_HOURS} hours!`} </Typography>
         </Typography>
         {this.renderList.bind(this)(REMOVED)}
         {/*{this.renderList.bind(this)(NEXT)}*/}
