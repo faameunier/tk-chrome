@@ -29,7 +29,11 @@ const styles = (theme) => ({
     fontSize: 12,
   },
   itemText: {
-    maxWidth: 200,
+    maxWidth: 185,
+    wordWrap: 'break-word',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    maxHeight: 80,
   },
   timeDisplay: {
     fontWeight: 'bold',
