@@ -128,7 +128,7 @@ class Home extends PureComponent {
                       {`${website.hours_deletion}:${website.minutes_deletion}`}
                     </Typography>
                     <ListItemAvatar>
-                      <Avatar alt={website.title} src={website.favIconUrl} />
+                      <Avatar alt={website.title} src={website.favIconUrl} className={classes.avatarContainer} />
                     </ListItemAvatar>
                   </div>
                   <ListItemText

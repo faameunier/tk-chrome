@@ -8,6 +8,7 @@ import TextField from '@material-ui/core/TextField';
 import FormControl from '@material-ui/core/FormControl';
 import TuneIcon from '@material-ui/icons/Tune';
 import { withSnackbar } from 'notistack';
+import { isInteger } from '../utils';
 
 const OPTIMAL_NUMBER_TABS = 'target_tabs';
 const POLICY = 'policy';
@@ -130,8 +131,10 @@ class Settings extends PureComponent {
 
   handleChangeParameters = (path, parameter) => (event) => {
     let settings = this.state.settings;
-    settings[path][parameter] = event.target.value;
-    this.setState({ settings: settings, renderSaveBoolean: true });
+    if (isInteger(event.target.value)) {
+      settings[path][parameter] = event.target.value;
+      this.setState({ settings: settings, renderSaveBoolean: true });
+    }
   };
 
   render() {

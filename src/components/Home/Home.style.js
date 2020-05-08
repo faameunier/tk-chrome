@@ -57,5 +57,9 @@ const styles = (theme) => ({
     marginTop: 15,
     maxWidth: '75%',
   },
+  avatarContainer: {
+    maxWidth: theme.spacing(7),
+    maxHeight: theme.spacing(7),
+  },
 });
 export default withStyles(styles)(Home);
