@@ -110,16 +110,21 @@ class Settings extends PureComponent {
   }
 
   handleSaveParameters() {
-    chrome.runtime.sendMessage({
-      messageType: 'SETTINGS_PARAMETERS',
-      settings: this.state.settings,
-    });
-    this.notifyUser();
+    // TODO Add function to check for all potential values
+    let success = false;
+    if (this.state.settings[POLICY][OPTIMAL_NUMBER_TABS] && this.state.settings[POLICY][OPTIMAL_NUMBER_TABS] > 0) {
+      chrome.runtime.sendMessage({
+        messageType: 'SETTINGS_PARAMETERS',
+        settings: this.state.settings,
+      });
+      success = true;
+    }
+    this.notifyUser(success);
   }
 
-  notifyUser() {
-    this.props.enqueueSnackbar('New Settings are saved.', {
-      variant: 'success',
+  notifyUser(success) {
+    this.props.enqueueSnackbar(success ? 'New Settings are saved.' : 'Settings cannot be saved.', {
+      variant: success ? 'success' : 'error',
       anchorOrigin: {
         vertical: 'bottom',
         horizontal: 'right',
@@ -131,8 +136,9 @@ class Settings extends PureComponent {
 
   handleChangeParameters = (path, parameter) => (event) => {
     let settings = this.state.settings;
-    if (isInteger(event.target.value)) {
-      settings[path][parameter] = event.target.value;
+    const nextValue = event.target.value;
+    if (isInteger(nextValue) || nextValue.length === 0) {
+      settings[path][parameter] = nextValue;
       this.setState({ settings: settings, renderSaveBoolean: true });
     }
   };
@@ -157,6 +163,9 @@ class Settings extends PureComponent {
         value={item.source[item.path][item.parameter]}
         className={classes.textField}
         type="number"
+        onKeyUp={(event) => {
+          if (event.key == 'Enter') this.handleSaveParameters();
+        }}
         inputProps={item.inputProps}
       />
     ));
@@ -209,6 +218,7 @@ class Settings extends PureComponent {
               >
                 {listItemsParameters}
               </FormControl>
+              <TextField hidden key="hidden-textfield" disabled />
               <div>
                 <Button
                   disabled={!this.state.customizedBool}
