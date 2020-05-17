@@ -29,7 +29,11 @@ const styles = (theme) => ({
     fontSize: 12,
   },
   itemText: {
-    maxWidth: 200,
+    maxWidth: 185,
+    wordWrap: 'break-word',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    maxHeight: 80,
   },
   timeDisplay: {
     fontWeight: 'bold',
@@ -52,6 +56,10 @@ const styles = (theme) => ({
     fontSize: 10,
     marginTop: 15,
     maxWidth: '75%',
+  },
+  avatarContainer: {
+    maxWidth: theme.spacing(7),
+    maxHeight: theme.spacing(7),
   },
 });
 export default withStyles(styles)(Home);
