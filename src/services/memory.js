@@ -307,15 +307,34 @@ class MemoryManager {
       return tab.tabId === tabId;
     })[0];
     // let cache = LRUfactory.fromJSON(restoredTab.cache);
-    let tab = await new Promise((resolve, reject) => {
-      chrome.tabs.create({ url: restoredTab.full_url, active: false }, (tab) => {
-        if (chrome.runtime.lastError) {
-          reject(false);
-        } else {
-          resolve(tab);
-        }
+    let tab = null;
+    if (restoredTab.sessionId) {
+      tab = await new Promise((resolve, reject) => {
+        chrome.sessions.restore(restoredTab.sessionId, (session) => {
+          if (chrome.runtime.lastError) {
+            reject(false);
+          } else {
+            resolve(session.tab);
+          }
+        });
       });
-    });
+    }
+
+    if (tab) {
+      logger(this, 'Restoring tab from session');
+    } else {
+      logger(this, 'Creating shell tab');
+      tab = await new Promise((resolve, reject) => {
+        chrome.tabs.create({ url: restoredTab.full_url, active: false }, (tab) => {
+          if (chrome.runtime.lastError) {
+            reject(false);
+          } else {
+            resolve(tab);
+          }
+        });
+      });
+    }
+
     await this.createTab(tab);
     this.tabs[tab.id].statistics = copy(restoredTab.statistics);
     // this.tabs[tab.tabId].cache = cache;  // do not restore cache as history is lost

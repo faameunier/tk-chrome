@@ -1,9 +1,14 @@
 import _ from 'lodash';
-import { MAXIMUM_SCORE, MAXIMUM_HISTORY_SIZE } from '../config/env.js';
+import {
+  MAXIMUM_SCORE,
+  MAXIMUM_HISTORY_SIZE,
+  SESSIONS_TIMEOUT_MS,
+  SESSIONS_MAX_FUZZY_DELTA_MS,
+} from '../config/env.js';
 import { memoryManager } from './memory.js';
 import { settingsManager } from './settings.js';
 import { Scorer } from './scorer.js';
-import { logger, copy } from './utils.js';
+import { logger, copy, timeout } from './utils.js';
 
 class PolicyManager {
   constructor() {}
@@ -128,20 +133,45 @@ class PolicyManager {
 
   static async killTab(tabId, tab) {
     try {
-      let p = new Promise((resolve, reject) => {
+      let p = await new Promise((resolve, reject) => {
         chrome.tabs.remove(parseInt(tabId), function (tab) {
           let error = chrome.runtime.lastError;
           if (error) {
             reject('Tab not found');
           } else {
+            resolve('success');
+          }
+        });
+      });
+      await timeout(SESSIONS_TIMEOUT_MS); // There is no guarantee that Chrome sessions will be updated after that time.
+      p = await new Promise((resolve, reject) => {
+        chrome.sessions.getRecentlyClosed({ maxResults: 5 }, (sessions) => {
+          let error = chrome.runtime.lastError;
+          if (error) {
+            reject('getRecentlyClosed failed');
+          } else {
+            for (let i = 0; i < sessions.length; i++) {
+              // Closed tabs are explored from more recent to oldest
+              let sessionTab = sessions[i].tab;
+              let lastModified = sessions[i].lastModified;
+              if (sessionTab) {
+                if (
+                  sessionTab.url === tab.full_url &&
+                  Date.now() - lastModified * 1000 <= SESSIONS_MAX_FUZZY_DELTA_MS
+                ) {
+                  resolve(sessionTab.sessionId);
+                  break;
+                }
+              }
+            }
             resolve();
           }
         });
       });
-      await p;
       // Deleting the tab will trigger all cleaning actions in memoryManager through the onRemoved trigger.
       let copiedTab = copy(tab); // making a simple json copy, could be even simpler.
       copiedTab.deletion_time = Date.now();
+      copiedTab.sessionId = p;
       memoryManager.closed_history.push(copiedTab);
       memoryManager.closed_history = memoryManager.closed_history.slice(0, MAXIMUM_HISTORY_SIZE);
       logger('Tab '.concat(tabId, ' killed by policy'));
