@@ -19,7 +19,7 @@ const INIT_RELAXED_PROFILE = {
     audible: false,
   },
   scorer: {
-    min_active: 5 * 60 * 1000,
+    min_active: 5, // * 60 * 1000,
     protection_time: 15 * 60 * 1000,
     cached_decay: 0.7,
   },
@@ -42,8 +42,10 @@ const INIT_FOCUSED_PROFILE = {
     audible: false,
   },
   scorer: {
-    min_active: 5 * 60 * 1000,
+    min_active: 5, //* 60 * 1000,
     protection_time: 15 * 60 * 1000,
     cached_decay: 0.7,
   },
 };
+
+export { RELAXED, FOCUSED, CUSTOMIZED, INIT_FOCUSED_PROFILE, INIT_RELAXED_PROFILE };

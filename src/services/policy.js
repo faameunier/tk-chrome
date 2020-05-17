@@ -1,3 +1,10 @@
+import _ from 'lodash';
+import { MAXIMUM_SCORE, MAXIMUM_HISTORY_SIZE } from '../config/env.js';
+import { memoryManager } from './memory.js';
+import { settingsManager } from './settings.js';
+import { Scorer } from './scorer.js';
+import { logger, copy } from './utils.js';
+
 class PolicyManager {
   constructor() {}
 
@@ -157,3 +164,5 @@ class PolicyManager {
     );
   }
 }
+
+export { PolicyManager };

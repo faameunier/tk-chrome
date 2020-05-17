@@ -2,8 +2,8 @@
   "name": "tk-chrome",
   "version": "0.0.1",
   "scripts": {
-    "build-dev": "webpack --env dev && babel --env-name dev ./src/services -d ./dist/services",
-    "build-prod": "webpack --env prod  && babel --env-name prod ./src/services -d ./dist/services",
+    "build-dev": "webpack --env dev",
+    "build-prod": "webpack --env prod",
     "watch": "npm-watch"
   },
   "watch": {
@@ -29,7 +29,9 @@
     "css-loader": "^3.1.0",
     "file-loader": "^4.1.0",
     "html-webpack-plugin": "^4.2.0",
+    "lodash": "^4.17.15",
     "prettier": "^2.0.4",
+    "psl": "^1.8.0",
     "style-loader": "^0.23.1",
     "webpack": "github:webpack/webpack#master",
     "webpack-cli": "^3.3.6",

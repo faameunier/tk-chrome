@@ -1,3 +1,8 @@
+import { memoryManager } from './memory.js';
+import { settingsManager } from './settings.js';
+import { PolicyManager } from './policy.js';
+import { logger } from './utils.js';
+
 class EventQueue {
   queue = [];
   pendingPromise = false;
@@ -89,4 +94,4 @@ class EventQueue {
   }
 }
 
-var eventQueue = new EventQueue();
+export var eventQueue = new EventQueue();

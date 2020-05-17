@@ -5,21 +5,8 @@
   "description": "Make Chrome focus-friendly",
   "permissions": ["tabs", "storage"],
   "background": {
-    "scripts": [
-      "./lib/lodash.js",
-      "./lib/psl.min.js",
-      "./config/env.js",
-      "./config/settingsProfiles.js",
-      "./services/utils.js",
-      "./services/queue.js",
-      "./services/LRU.js",
-      "./services/settings.js",
-      "./services/memory.js",
-      "./services/scorer.js",
-      "./services/policy.js",
-      "./services/background.js"
-    ],
-    "persistent": false
+    "persistent": false,
+    "page": "./views/background.html"
   },
   "browser_action": {
     "default_popup": "./views/popup.html",

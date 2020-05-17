@@ -21,7 +21,12 @@
       "presets": [['minify', {
         builtIns: false,
         evaluate: true,
-        mangle: true,
+        mangle: {
+          topLevel: true,
+          eval: true
+        },
+        keepClassName: false,
+        keepFnName: false
       }]],
       "comments": false
     },

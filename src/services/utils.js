@@ -1,3 +1,6 @@
+import * as psl from 'psl';
+import { ENV } from '../config/env.js'
+
 const logger = function (...args) {
   if (ENV === 'debug' || ENV === 'dev') {
     let pre = new Date().toUTCString();
@@ -44,3 +47,4 @@ function storageGet(args) {
 }
 
 logger('Starting in ' + ENV + ' env.');
+export { logger, copy, timeout, getDomain, storageGet, storageSet };

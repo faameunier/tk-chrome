@@ -3,11 +3,12 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const webpack = require('webpack');
+const TerserPlugin = require('terser-webpack-plugin');
 
 var common = {
   entry: {
-    jquery: 'jquery',
-    popup: { import: './src/app/popup.js', dependOn: 'jquery' },
+    popup: { import: './src/app/popup.js' },
+    background: { import: './src/services/background.js' },
   },
   output: {
     filename: '[name].bundle.js',
@@ -22,19 +23,21 @@ var common = {
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
       title: 'Tabby',
+      chunks : ['popup'],
       template: './src/views/popup.html',
       filename: './views/popup.html',
+      cache: true,
     }),
-    new CopyWebpackPlugin(
-      [
-        { from: './src/manifest.json', to: './', flatten: true },
-        { from: './src/lib', to: './lib', flatten: false },
-        { from: './src/config', to: './config', flatten: false },
-      ],
-      {
-        copyUnmodified: true,
-      }
-    ),
+    new HtmlWebpackPlugin({
+      title: 'Tabby',
+      chunks : ['background'],
+      template: './src/views/background.html',
+      filename: './views/background.html',
+      cache: true,
+    }),
+    new CopyWebpackPlugin([{ from: './src/manifest.json', to: './', flatten: true }], {
+      copyUnmodified: true,
+    }),
     new CopyWebpackPlugin([{ from: './src/assets', to: './assets', flatten: false }], {
       copyUnmodified: false,
     }),

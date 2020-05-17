@@ -1,3 +1,5 @@
+import { logger } from './utils.js';
+
 class State {
   constructor(key, value, next = null, prev = null) {
     this.key = key;
@@ -129,3 +131,5 @@ class LRU {
     };
   }
 }
+
+export { LRUfactory, LRU };

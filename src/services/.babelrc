@@ -15,13 +15,17 @@
     ["@babel/plugin-proposal-decorators", {"legacy": true}], 
     "@babel/plugin-proposal-class-properties"
   ],
-  "sourceType": "script",
   "env": {
     "prod": {
       "presets": [['minify', {
         builtIns: false,
         evaluate: true,
-        mangle: true
+        mangle: {
+          topLevel: true,
+          eval: true
+        },
+        keepClassName: false,
+        keepFnName: false
       }]],
       "comments": false
     },

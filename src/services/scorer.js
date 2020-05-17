@@ -1,3 +1,7 @@
+import { copy } from './utils.js';
+import { settingsManager } from './settings.js';
+import { SCORER, MAXIMUM_SCORE } from '../config/env.js';
+
 class AbstractScorer {
   static async score(tab) {
     let sScore = this.scoreStatistics(tab.statistics);
@@ -91,3 +95,5 @@ class Scorer {
     }
   }
 }
+
+export { Scorer };
