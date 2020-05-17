@@ -7,8 +7,8 @@ const TerserPlugin = require('terser-webpack-plugin');
 
 var common = {
   entry: {
-    popup: { import: './src/app/popup.js' },
-    background: { import: './src/services/background.js' },
+    popup: { import: './src/app/popup.js'},
+    background: { import: './src/services/background.js'},
   },
   output: {
     filename: '[name].bundle.js',
@@ -23,14 +23,14 @@ var common = {
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
       title: 'Tabby',
-      chunks : ['popup'],
+      chunks: ['popup'],
       template: './src/views/popup.html',
       filename: './views/popup.html',
       cache: true,
     }),
     new HtmlWebpackPlugin({
       title: 'Tabby',
-      chunks : ['background'],
+      chunks: ['background'],
       template: './src/views/background.html',
       filename: './views/background.html',
       cache: true,
