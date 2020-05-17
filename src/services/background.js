@@ -6,7 +6,7 @@ import { logger } from './utils.js';
 chrome.runtime.onInstalled.addListener(function () {
   eventQueue.enqueue(() => settingsManager.reset());
   eventQueue.enqueue(() => memoryManager.reset());
-  logger('Extention installed :D');
+  logger('Extension installed :D');
 });
 
 chrome.tabs.onCreated.addListener(function (tab) {

@@ -3,7 +3,6 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const webpack = require('webpack');
-const TerserPlugin = require('terser-webpack-plugin');
 
 var common = {
   entry: {
@@ -68,6 +67,9 @@ var createConfig = function (env) {
   if (env == 'dev') {
     common['mode'] = 'development';
     common['devtool'] = 'inline-source-map';
+    common['plugins'].push(new webpack.DefinePlugin({
+      ENV: JSON.stringify('dev'),
+    }));
     common.module.rules.push({
       test: /\.js$/,
       include: path.resolve(__dirname, 'src'),
@@ -78,6 +80,9 @@ var createConfig = function (env) {
     });
   } else {
     common['mode'] = 'production';
+    common['plugins'].push(new webpack.DefinePlugin({
+      ENV: JSON.stringify('prod'),
+    }));
     common.module.rules.push({
       test: /\.js$/,
       include: path.resolve(__dirname, 'src'),
