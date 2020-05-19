@@ -1,13 +1,20 @@
+import * as psl from 'psl';
+
 const logger = function (...args) {
   if (ENV === 'debug' || ENV === 'dev') {
-    let pre = new Date().toUTCString();
+    let default_format = ['font-weight:initial; color:black;'];
+    let pre = '%c' + new Date().toUTCString() + '%c';
+    let options = ['font-weight:lighter; color:LightSlateGrey;'];
+    options.push(default_format);
     if (typeof args[0] === 'object') {
-      pre += ' | ' + args[0].constructor.name + ' | ';
+      pre += ' | %c' + args[0].constructor.name + '%c | ';
       pre += args[1];
+      options.push('color:#1da87c; font-weight:bolder');
+      options.push(default_format);
     } else {
       pre += ' | ' + args[0];
     }
-    console.log(pre);
+    console.log(pre, ...options);
   }
 };
 
@@ -44,3 +51,4 @@ function storageGet(args) {
 }
 
 logger('Starting in ' + ENV + ' env.');
+export { logger, copy, timeout, getDomain, storageGet, storageSet };

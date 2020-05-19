@@ -7,6 +7,7 @@ import Home from '../Home';
 import { SnackbarProvider } from 'notistack';
 import Avatar from '@material-ui/core/Avatar/Avatar';
 import ListItemAvatar from '@material-ui/core/ListItemAvatar/ListItemAvatar';
+import { logger } from '../../services/utils.js';
 
 class HomeDispatcher extends PureComponent {
   constructor(props) {
@@ -16,10 +17,12 @@ class HomeDispatcher extends PureComponent {
 
   componentDidMount() {
     this.setState({ appBarValue: 'HOME' });
+    logger(this, 'Popup opened');
   }
 
   handleChange(event, newValue) {
     this.setState({ appBarValue: newValue });
+    logger(this, 'Switch to ' + newValue);
   }
 
   dispatchPage() {

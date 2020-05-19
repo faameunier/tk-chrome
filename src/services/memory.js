@@ -1,3 +1,8 @@
+import _ from 'lodash';
+import { logger, getDomain, storageSet, copy, storageGet } from './utils.js';
+import { LRUfactory, LRU } from './LRU.js';
+import { settingsManager } from './settings.js';
+
 class MemoryManager {
   empty_stats = {
     total_active_time: 0,
@@ -378,4 +383,4 @@ class MemoryManager {
   }
 }
 
-var memoryManager = new MemoryManager();
+export var memoryManager = new MemoryManager();
