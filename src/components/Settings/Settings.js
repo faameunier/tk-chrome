@@ -101,7 +101,7 @@ class Settings extends PureComponent {
       profile: changeType,
     });
     if (changeType === RELAXED || changeType === FOCUSED) {
-      this.notifyUser();
+      this.notifyUser(true);
     }
   }
 
