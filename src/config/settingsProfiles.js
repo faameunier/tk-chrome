@@ -9,6 +9,7 @@ const INIT_RELAXED_PROFILE = {
     min_time_garbage_collector: 5 * 1000,
   },
   policy: {
+    active_policy: true,
     target_tabs: 12,
     score_threshold: 50,
     decay: 0.8,
@@ -32,6 +33,7 @@ const INIT_FOCUSED_PROFILE = {
     min_time_garbage_collector: 5 * 1000,
   },
   policy: {
+    active_policy: true,
     target_tabs: 5,
     score_threshold: 50,
     decay: 0.8,

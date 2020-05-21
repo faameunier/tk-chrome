@@ -72,7 +72,7 @@ class PolicyManager {
     // Run policy for a given window
     // Returns true if the policy was run, false otherwise
     let tabs = windows[windowId];
-    if (tabs.length > settingsManager.settings.policy.target_tabs) {
+    if (settingsManager.settings.policy.active_policy && tabs.length > settingsManager.settings.policy.target_tabs) {
       // if too many tabs
       if (this.exponentialTrigger(tabs, windowId)) {
         // if we waited enough

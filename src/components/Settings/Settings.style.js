@@ -49,5 +49,9 @@ const styles = (theme) => ({
   firstBooleans: {
     maxWidth: '40%',
   },
+  switchContainer: {
+    colorPrimary: 'red',
+    color: 'white',
+  },
 });
 export default withStyles(styles)(Settings);

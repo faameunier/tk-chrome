@@ -2,17 +2,21 @@ import React, { PureComponent } from 'react';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import Checkbox from '@material-ui/core/Checkbox';
+import Switch from '@material-ui/core/Switch';
 import Typography from '@material-ui/core/Typography/Typography';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import TextField from '@material-ui/core/TextField';
 import FormControl from '@material-ui/core/FormControl';
 import TuneIcon from '@material-ui/icons/Tune';
 import { withSnackbar } from 'notistack';
-import { RELAXED, FOCUSED, CUSTOMIZED, INIT_FOCUSED_PROFILE, INIT_RELAXED_PROFILE } from '../../config/settingsProfiles.js';
-import { isInteger } from '../utils';
-
-const OPTIMAL_NUMBER_TABS = 'target_tabs';
-const POLICY = 'policy';
+import {
+  RELAXED,
+  FOCUSED,
+  CUSTOMIZED,
+  INIT_FOCUSED_PROFILE,
+  INIT_RELAXED_PROFILE,
+} from '../../config/settingsProfiles.js';
+import { isInteger, checkSettings, OPTIMAL_NUMBER_TABS, POLICY, ACTIVE_POLICY } from '../utils';
 
 class Settings extends PureComponent {
   constructor(props) {
@@ -87,7 +91,7 @@ class Settings extends PureComponent {
   handleSaveParameters() {
     // TODO Add function to check for all potential values
     let success = false;
-    if (this.state.settings[POLICY][OPTIMAL_NUMBER_TABS] && this.state.settings[POLICY][OPTIMAL_NUMBER_TABS] > 0) {
+    if (checkSettings(this.state.settings)) {
       chrome.runtime.sendMessage({
         messageType: 'SETTINGS_PARAMETERS',
         settings: this.state.settings,
@@ -116,6 +120,16 @@ class Settings extends PureComponent {
       settings[path][parameter] = nextValue;
       this.setState({ settings: settings, renderSaveBoolean: true });
     }
+  };
+  handleSwitch = (path, parameter) => () => {
+    let settings = this.state.settings;
+    if (!checkSettings(this.state.settings)) {
+      settings = INIT_RELAXED_PROFILE;
+    }
+    settings[path][parameter] = !this.state.settings[path][parameter];
+    this.setState({ settings: settings, renderSaveBoolean: true }, () => {
+      this.handleSaveParameters();
+    });
   };
 
   render() {
@@ -146,6 +160,16 @@ class Settings extends PureComponent {
     ));
     return (
       <div className="card-body">
+        <FormControlLabel
+          control={
+            <Switch
+              checked={this.state.settings[POLICY][ACTIVE_POLICY]}
+              onChange={this.handleSwitch(POLICY, ACTIVE_POLICY)}
+              color="secondary"
+            />
+          }
+          label="Enable Tabby"
+        />
         <div className={classes.introductionBlock}>
           <TuneIcon />
           <Typography variant="h3" className={classes.title}>
@@ -162,7 +186,7 @@ class Settings extends PureComponent {
                   checked={this.state.focusedMode}
                   onChange={() => this.handleBoolChange(FOCUSED)}
                   value="secondary"
-                  color="primary"
+                  color="secondary"
                 />
               }
               label="Focused"
@@ -174,7 +198,7 @@ class Settings extends PureComponent {
                   checked={this.state.relaxedMode}
                   onChange={() => this.handleBoolChange(RELAXED)}
                   value="secondary"
-                  color="primary"
+                  color="secondary"
                 />
               }
               label="Relaxed"
@@ -182,7 +206,7 @@ class Settings extends PureComponent {
             />
             <FormControlLabel
               onChange={() => this.handleBoolChange(CUSTOMIZED)}
-              control={<Checkbox checked={this.state.customizedBool} value="" color="primary" />}
+              control={<Checkbox checked={this.state.customizedBool} value="" color="secondary" />}
               label="Customize your settings' parameters"
             />
             <div className={classes.settingsBlock}>
@@ -198,7 +222,7 @@ class Settings extends PureComponent {
                 <Button
                   disabled={!this.state.customizedBool}
                   className={classes.secondaryButton}
-                  variant={this.state.customizedBool ? 'outline-primary' : 'primary'}
+                  variant={this.state.customizedBool ? 'outline-primary' : 'secondary'}
                   onClick={() => this.handleSaveParameters()}
                 >
                   Save
