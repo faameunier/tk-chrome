@@ -2,6 +2,7 @@ import _ from 'lodash';
 import { logger, getDomain, storageSet, copy, storageGet } from './utils.js';
 import { LRUfactory, LRU } from './LRU.js';
 import { settingsManager } from './settings.js';
+import { setUnreadBadge } from './utils';
 
 class MemoryManager {
   empty_stats = {
@@ -243,6 +244,7 @@ class MemoryManager {
     logger(this, 'Deleting tab ' + tabId);
     try {
       delete this.tabs[tabId];
+      setUnreadBadge();
     } catch {
       logger(this, 'OOS trying to delete unknown tab');
     }

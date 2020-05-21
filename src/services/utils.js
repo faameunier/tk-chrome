@@ -50,5 +50,24 @@ function storageGet(args) {
   });
 }
 
+function isInteger(value) {
+  return /^\d+$/.test(value);
+}
+
+function setAllReadBadge() {
+  chrome.browserAction.setBadgeText({ text: '' }); // <-- set text to '' to remove the badge
+}
+
+function setUnreadBadge() {
+  chrome.browserAction.setBadgeBackgroundColor({ color: [229, 92, 0, 128] });
+  chrome.browserAction.getBadgeText({}, function (badgeText) {
+    let counter = 1;
+    if (isInteger(badgeText)) {
+      counter = parseInt(badgeText) + 1;
+    }
+    chrome.browserAction.setBadgeText({ text: `${counter}` });
+  });
+}
+
 logger('Starting in ' + ENV + ' env.');
-export { logger, copy, timeout, getDomain, storageGet, storageSet };
+export { logger, copy, timeout, getDomain, storageGet, storageSet, setAllReadBadge, setUnreadBadge, isInteger };

@@ -16,7 +16,8 @@ import {
   INIT_FOCUSED_PROFILE,
   INIT_RELAXED_PROFILE,
 } from '../../config/settingsProfiles.js';
-import { isInteger, checkSettings, OPTIMAL_NUMBER_TABS, POLICY, ACTIVE_POLICY } from '../utils';
+import { checkSettings, OPTIMAL_NUMBER_TABS, POLICY, ACTIVE_POLICY } from '../utils';
+import { isInteger } from '../../services/utils';
 
 class Settings extends PureComponent {
   constructor(props) {
