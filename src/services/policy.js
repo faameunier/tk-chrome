@@ -4,6 +4,7 @@ import { memoryManager } from './memory.js';
 import { settingsManager } from './settings.js';
 import { Scorer } from './scorer.js';
 import { logger, copy } from './utils.js';
+import { setUnreadBadge } from './utils';
 
 class PolicyManager {
   constructor() {}
@@ -135,6 +136,7 @@ class PolicyManager {
             reject('Tab not found');
           } else {
             resolve();
+            setUnreadBadge();
           }
         });
       });
