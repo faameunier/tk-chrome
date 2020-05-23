@@ -75,7 +75,7 @@ class EventQueue {
       item
         .promise()
         .then((value) => {
-          logger(this, 'Processing next event');
+          // logger(this, 'Processing next event');
           this.workingOnPromise = false;
           item.resolve(value);
           this.dequeue();

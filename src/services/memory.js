@@ -361,7 +361,7 @@ class MemoryManager {
     this.tabs[tab.id].statistics = copy(restoredTab.statistics);
     if (fromSession) {
       let cache = LRUfactory.fromJSON(restoredTab.cache);
-      this.tabs[tab.tabId].cache = cache; // restore cache if history is not lost
+      this.tabs[tab.id].cache = cache; // restore cache if history is not lost
     }
     await this.protectTab(tab.id);
     this.tabs[tab.id].cache.write(restoredTab.url, this.tabs[tab.id].statistics); // hack :D

@@ -162,6 +162,7 @@ class PolicyManager {
                   sessionTab.url === tab.full_url &&
                   Date.now() - lastModified * 1000 <= SESSIONS_MAX_FUZZY_DELTA_MS
                 ) {
+                  logger('sessionId saved');
                   resolve(sessionTab.sessionId);
                   break;
                 }

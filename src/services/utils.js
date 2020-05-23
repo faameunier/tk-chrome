@@ -71,13 +71,13 @@ function setUnreadBadge() {
 }
 
 function getLastFocusedWindow() {
-  new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     chrome.windows.getLastFocused({ populate: false, windowTypes: ['normal'] }, (d) => resolve(d.id));
   });
 }
 
 function isUserActive() {
-  new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     chrome.idle.queryState((MAX_ACTIVE_DEBOUNCE / 1000).toFixed(), (status) => {
       if (status === 'active') {
         resolve(true);
