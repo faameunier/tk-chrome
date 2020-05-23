@@ -26,6 +26,8 @@ class MemoryManager {
     title: null,
     windowId: null,
     cache: [],
+    // sessionId: optional sessionId
+    // deletion_time: optional tabby deletion timestamp
   };
 
   constructor() {
@@ -306,9 +308,12 @@ class MemoryManager {
     let restoredTab = this.closed_history.filter((tab) => {
       return tab.tabId === tabId;
     })[0];
+    let focusedWindow = await new Promise((resolve, reject) => {
+      chrome.windows.getLastFocused({ populate: false, windowTypes: ['normal'] }, (d) => resolve(d.id));
+    });
     // let cache = LRUfactory.fromJSON(restoredTab.cache);
     let tab = null;
-    if (restoredTab.sessionId) {
+    if (restoredTab.sessionId && focusedWindow === parseInt(restoredTab.windowId)) {
       tab = await new Promise((resolve, reject) => {
         chrome.sessions.restore(restoredTab.sessionId, (session) => {
           if (chrome.runtime.lastError) {
