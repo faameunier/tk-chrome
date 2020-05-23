@@ -1,6 +1,6 @@
 import _ from 'lodash';
-import { logger, getDomain, storageSet, copy, storageGet, getLastFocusedWindow } from './utils.js';
-import { MIN_ACTIVE_DEBOUNCE } from '../config/env.js';
+import { logger, getDomain, storageSet, copy, storageGet, getLastFocusedWindow, isUserActive } from './utils.js';
+import { MIN_ACTIVE_DEBOUNCE, MAX_ACTIVE_DEBOUNCE } from '../config/env.js';
 import { LRUfactory, LRU } from './LRU.js';
 import { settingsManager } from './settings.js';
 
@@ -49,6 +49,8 @@ class MemoryManager {
     this.runtime_events = {
       last_full_stats_update: Date.now(),
       last_garbage_collector: Date.now(),
+      last_idling_timestamp: Date.now(),
+      last_idle_state: true,
       last_policy_runs: {},
     };
   }
@@ -322,6 +324,41 @@ class MemoryManager {
     if (activitySwitch) {
       iTab.statistics.temp_last_active_timestamp = now; // this is the timestamp when the tab started to be active last
     }
+  }
+
+  async idleStatistics(iTab) {
+    // Handles the logic when the user is idling.
+    //
+    // Why is this not in update statistics ?
+    //  To avoid requesting a million times the idle state.
+    //
+    // How does it work?
+    //   The idea is to shift in time all time references by the idling period (which is
+    //   a runtime event).
+    let now = Date.now();
+    let offset = now - this.runtime_events.last_idling_timestamp;
+    console.log(offset);
+    iTab.statistics.updated_at += offset;
+    iTab.statistics.temp_last_active_timestamp += offset;
+    iTab.statistics.last_active_timestamp += offset;
+  }
+
+  async idleStateChange(state) {
+    let now = Date.now();
+    logger(this, 'New idle state ' + state);
+    if (state === 'idle' && this.runtime_events.last_idle_state === true) {
+      console.log('nota');
+      this.runtime_events.last_idling_timestamp = now - MAX_ACTIVE_DEBOUNCE;
+    } else if (state === 'locked' && this.runtime_events.last_idle_state === true) {
+      this.runtime_events.last_idling_timestamp = now; // if the computer is locked before 5min we don't now exactly
+    } else if (state === 'active' && this.runtime_events.last_idle_state === false) {
+      console.log('bene');
+      var tab_ids = Object.keys(this.tabs);
+      for (var i = 0; i < tab_ids.length; i++) {
+        await this.idleStatistics(this.tabs[tab_ids[i]]);
+      }
+    } // else nothing we are switching between idle states
+    this.runtime_events.last_idle_state = state === 'active';
   }
 
   async updateAllStatistics() {

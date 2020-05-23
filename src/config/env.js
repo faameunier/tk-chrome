@@ -5,14 +5,13 @@ const SESSIONS_TIMEOUT_MS = 800; // when a tab is killed we need a timeout to re
 const SESSIONS_MAX_FUZZY_DELTA_MS = 1000 * 5; // time is fuzzy matched to retireve the correct sessionID, should be higher than SESSIONS_TIMEOUT_MS
 const MIN_ACTIVE_DEBOUNCE = 1000 * 2; // minimum active reading on a tab to be counted as valid 'useful' time
 const MAX_ACTIVE_DEBOUNCE = 1000 * 60 * 5; // maximum time without any user input before it is considered idled, must be higher than 15sec
-const FORCE_UPDATE_STATISTICS = 1000 * 60; // must be higher than 1 minute
 
 export {
-	SCORER,
-	MAXIMUM_SCORE,
-	MAXIMUM_HISTORY_SIZE,
-	SESSIONS_TIMEOUT_MS,
-	SESSIONS_MAX_FUZZY_DELTA_MS,
-	MIN_ACTIVE_DEBOUNCE,
-	MAX_ACTIVE_DEBOUNCE,
+  SCORER,
+  MAXIMUM_SCORE,
+  MAXIMUM_HISTORY_SIZE,
+  SESSIONS_TIMEOUT_MS,
+  SESSIONS_MAX_FUZZY_DELTA_MS,
+  MIN_ACTIVE_DEBOUNCE,
+  MAX_ACTIVE_DEBOUNCE,
 };
