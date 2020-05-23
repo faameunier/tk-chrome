@@ -9,6 +9,8 @@ import ListItemText from '@material-ui/core/ListItemText';
 import Avatar from '@material-ui/core/Avatar';
 import Typography from '@material-ui/core/Typography';
 
+import { setAllReadBadge } from '../../services/utils';
+
 const RESTORE = 'RESTORE';
 const NEXT = 'NEXT';
 const REMOVED = 'REMOVED';
@@ -19,6 +21,7 @@ const TIME_PERIOD_TO_CONSIDER = 3600000 * NUMBER_HOURS; // in microsecond
 class Home extends PureComponent {
   constructor(props) {
     super(props);
+    setAllReadBadge();
     this.state = { renderSaveBoolean: false };
     this.onChangedCallback = function (changes) {
       const changesClosedHistory = changes[CLOSED_HISTORY];
@@ -41,6 +44,7 @@ class Home extends PureComponent {
   }
 
   componentWillUnmount() {
+    setAllReadBadge();
     chrome.storage.onChanged.removeListener(this.onChangedCallback);
   }
 
@@ -86,6 +90,7 @@ class Home extends PureComponent {
 
     let selectedList;
     const MAX_LENGTH_TITLE = 50;
+    const MAX_LENGTH_URL = 40;
 
     switch (listToBeRendered) {
       case NEXT:
@@ -100,6 +105,11 @@ class Home extends PureComponent {
           website.minutes_deletion = formatted_deletion_time.split(':')[1];
           if (website.title && website.title.length > MAX_LENGTH_TITLE) {
             website.title = website.title.substring(0, MAX_LENGTH_TITLE).concat('...');
+          }
+          if (website.title && website.title.length > MAX_LENGTH_TITLE) {
+            website.truncated_url = website.url.substring(0, MAX_LENGTH_URL).concat('...');
+          } else {
+            website.truncated_url = website.url;
           }
           return website;
         });
@@ -123,10 +133,14 @@ class Home extends PureComponent {
                       {`${website.hours_deletion}:${website.minutes_deletion}`}
                     </Typography>
                     <ListItemAvatar>
-                      <Avatar alt={website.title} src={website.favIconUrl} />
+                      <Avatar alt={website.title} src={website.favIconUrl} className={classes.avatarContainer} />
                     </ListItemAvatar>
                   </div>
-                  <ListItemText primary={website.url} secondary={website.title} className={classes.itemText} />
+                  <ListItemText
+                    primary={website.truncated_url}
+                    secondary={website.title}
+                    className={classes.itemText}
+                  />
                   <ListItemSecondaryAction>
                     <Button
                       size="large"

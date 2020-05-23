@@ -1,5 +1,11 @@
 import { logger, storageSet, storageGet } from './utils.js';
-import { RELAXED, FOCUSED, CUSTOMIZED, INIT_FOCUSED_PROFILE, INIT_RELAXED_PROFILE } from '../config/settingsProfiles.js'
+import {
+  RELAXED,
+  FOCUSED,
+  CUSTOMIZED,
+  INIT_FOCUSED_PROFILE,
+  INIT_RELAXED_PROFILE,
+} from '../config/settingsProfiles.js';
 
 class SettingsManager {
   constructor() {
