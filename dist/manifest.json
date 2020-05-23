@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "version_name": "beta",
   "description": "Make Chrome focus-friendly",
-  "permissions": ["tabs", "storage", "sessions"],
+  "permissions": ["tabs", "storage", "sessions", "idle"],
   "background": {
     "persistent": false,
     "page": "./views/background.html"

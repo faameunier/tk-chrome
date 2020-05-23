@@ -43,9 +43,6 @@ class DefaultScorer extends AbstractScorer {
     if (!tStats.protection_timestamp) {
       tStats.protection_timestamp = 0;
     }
-    if (!tStats.last_active_timestamp) {
-      tStats.last_active_timestamp = Date.now();
-    }
     if (
       tStats.total_active_time + tStats.total_inactive_time + tStats.total_cached_time >=
         settingsManager.settings.scorer.min_active &&

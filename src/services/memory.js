@@ -1,17 +1,17 @@
 import _ from 'lodash';
-import { logger, getDomain, storageSet, copy, storageGet } from './utils.js';
+import { logger, getDomain, storageSet, copy, storageGet, getLastFocusedWindow } from './utils.js';
 import { LRUfactory, LRU } from './LRU.js';
 import { settingsManager } from './settings.js';
 
 class MemoryManager {
   empty_stats = {
-    total_active_time: 0,
-    total_inactive_time: 0,
-    total_cached_time: 0,
-    last_active_timestamp: null,
-    activated: 0,
-    updated_at: null,
-    protection_timestamp: null,
+    total_active_time: 0, // total time the tab spent active
+    total_inactive_time: 0, // total time the tab spent inactive
+    total_cached_time: 0, // total time the tab spent in short term history
+    last_active_timestamp: null, // last time the tab switched to an active status (or creation)
+    activated: 0, // nb of time the tab was activated (or restored)
+    updated_at: null, // DO NOT USE, last time the statistics were computed
+    protection_timestamp: null, // protection flag timestamp
   };
 
   empty_tab = {
@@ -253,32 +253,49 @@ class MemoryManager {
   async createStatistics(iTab) {
     let tmp = copy(this.empty_stats);
     let now = Date.now();
-    if (iTab.active) {
-      tmp.last_active_timestamp = now;
-      tmp.activated = 1;
-    }
+    tmp.activated = 1; // to avoid problems later on
     tmp.updated_at = now;
+    tmp.last_active_timestamp = now; // last_active_timestamp should not be nul.
+    // To avoid giving stupid importance to a tab that was created but never opened and avoid backfilling
+    // the activation timestamp with now() in the scorer, the time of creation is considered an active time.
     iTab.statistics = tmp;
   }
 
   async updateStatistics(iTab, fromCache = false, activitySwitch = false) {
+    // activitySwitch is when a tab becomes active but is still inactive
+    // use cases:
+    // - updateAllStatistics : every X seconds all stats are updated (not from cache, no activitySwitch)
+    //    | additional time since last update should be added to correct active / inactive variables
+    // - policy.killTab : the tab just got killed
+    //    | updating statistics in case of a future restore
+    // - restoreTab : a tab is restored from the popup with its old statistics (fromCache)
+    //    | the time spent in cache should be updated (hypothesis: updated at is the time of killing)
+    //    | additionnally it is considered a reactivation (even if the tab is not active) to give importance to the event
+    // - setActivated : when a new tab becomes active, all tabs within the window are updated, keeping their status (not from cache, no activitySwitch)
+    //    | same as updateAllStatistics
+    // - setActivated : the tab that gets activated gets updated (not fromCache, activitySwith true)
+    //    | the tab stats should be updated as normal BUT the last active timestamp gets updated as well as activation count
+    // - updateTab : setActivated cases above
+    // - updateTab : url change, old url stats are updated (not from cache, no activitySwitch)
+    //    | times are updated according to old status, in case we are switching to cache this enforces the below hypothesis
+    // - updateTab : url change, old url stats are restored from cache (from cache, no activitySwitch)
+    //    | the time spent in cache should be updated (hypothesis: updated at is the time when it switched to cache)
+    //    | additionnally it is considered a reactivation (even if the tab is not active) to give importance to the event
     let now = Date.now();
     if (fromCache) {
       activitySwitch = true; // restored from cache is considered a reactivation
       iTab.statistics.total_cached_time += now - iTab.statistics.updated_at;
-      iTab.statistics.updated_at = now; // protip
-      iTab.statistics.activated += 1;
     } else {
       if (iTab.active) {
         iTab.statistics.total_active_time += now - iTab.statistics.updated_at;
-        iTab.statistics.last_active_timestamp = now;
       } else {
-        if (activitySwitch || iTab.statistics.activated === 0) {
-          iTab.statistics.activated += 1;
-        }
         iTab.statistics.total_inactive_time += now - iTab.statistics.updated_at;
       }
-      iTab.statistics.updated_at = now;
+    }
+    iTab.statistics.updated_at = now;
+    if (activitySwitch) {
+      iTab.statistics.last_active_timestamp = now; // this is the timestamp when the tab started to be active last
+      iTab.statistics.activated += 1;
     }
   }
 
@@ -308,11 +325,10 @@ class MemoryManager {
     let restoredTab = this.closed_history.filter((tab) => {
       return tab.tabId === tabId;
     })[0];
-    let focusedWindow = await new Promise((resolve, reject) => {
-      chrome.windows.getLastFocused({ populate: false, windowTypes: ['normal'] }, (d) => resolve(d.id));
-    });
-    // let cache = LRUfactory.fromJSON(restoredTab.cache);
+    let focusedWindow = await getLastFocusedWindow();
+
     let tab = null;
+    let fromSession = false;
     if (restoredTab.sessionId && focusedWindow === parseInt(restoredTab.windowId)) {
       tab = await new Promise((resolve, reject) => {
         chrome.sessions.restore(restoredTab.sessionId, (session) => {
@@ -327,6 +343,7 @@ class MemoryManager {
 
     if (tab) {
       logger(this, 'Restoring tab from session');
+      fromSession = true;
     } else {
       logger(this, 'Creating shell tab');
       tab = await new Promise((resolve, reject) => {
@@ -342,7 +359,10 @@ class MemoryManager {
 
     await this.createTab(tab);
     this.tabs[tab.id].statistics = copy(restoredTab.statistics);
-    // this.tabs[tab.tabId].cache = cache;  // do not restore cache as history is lost
+    if (fromSession) {
+      let cache = LRUfactory.fromJSON(restoredTab.cache);
+      this.tabs[tab.tabId].cache = cache; // restore cache if history is not lost
+    }
     await this.protectTab(tab.id);
     this.tabs[tab.id].cache.write(restoredTab.url, this.tabs[tab.id].statistics); // hack :D
     await this.updateStatistics(this.tabs[tab.id], true);

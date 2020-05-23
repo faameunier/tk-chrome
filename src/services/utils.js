@@ -1,4 +1,5 @@
 import * as psl from 'psl';
+import { MAX_ACTIVE_DEBOUNCE } from '../config/env.js';
 
 const logger = function (...args) {
   if (ENV === 'debug' || ENV === 'dev') {
@@ -69,5 +70,38 @@ function setUnreadBadge() {
   });
 }
 
+function getLastFocusedWindow() {
+  new Promise((resolve, reject) => {
+    chrome.windows.getLastFocused({ populate: false, windowTypes: ['normal'] }, (d) => resolve(d.id));
+  });
+}
+
+function isUserActive() {
+  new Promise((resolve, reject) => {
+    chrome.idle.queryState((MAX_ACTIVE_DEBOUNCE / 1000).toFixed(), (status) => {
+      if (status === 'active') {
+        resolve(true);
+      } else if (status) {
+        resolve(false);
+      } else {
+        logger("Couldn't check user activity.");
+        resolve(true);
+      }
+    });
+  });
+}
+
 logger('Starting in ' + ENV + ' env.');
-export { logger, copy, timeout, getDomain, storageGet, storageSet, setAllReadBadge, setUnreadBadge, isInteger };
+export {
+  logger,
+  copy,
+  timeout,
+  getDomain,
+  storageGet,
+  storageSet,
+  setAllReadBadge,
+  setUnreadBadge,
+  isInteger,
+  getLastFocusedWindow,
+  isUserActive,
+};

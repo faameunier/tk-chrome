@@ -18,7 +18,7 @@ class EventQueue {
   enqueue(promise) {
     if (this.queue.length === 0) {
       // Settings and memory are lazy loaded
-      // These laoads are in case the program was
+      // These loads are in case the program was
       // deloaded from memory by the browser.
       new Promise((resolve, reject) => {
         this.queue.push({
