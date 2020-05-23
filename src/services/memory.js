@@ -337,7 +337,6 @@ class MemoryManager {
     //   a runtime event).
     let now = Date.now();
     let offset = now - this.runtime_events.last_idling_timestamp;
-    console.log(offset);
     iTab.statistics.updated_at += offset;
     iTab.statistics.temp_last_active_timestamp += offset;
     iTab.statistics.last_active_timestamp += offset;
@@ -347,12 +346,10 @@ class MemoryManager {
     let now = Date.now();
     logger(this, 'New idle state ' + state);
     if (state === 'idle' && this.runtime_events.last_idle_state === true) {
-      console.log('nota');
       this.runtime_events.last_idling_timestamp = now - MAX_ACTIVE_DEBOUNCE;
     } else if (state === 'locked' && this.runtime_events.last_idle_state === true) {
       this.runtime_events.last_idling_timestamp = now; // if the computer is locked before 5min we don't now exactly
     } else if (state === 'active' && this.runtime_events.last_idle_state === false) {
-      console.log('bene');
       var tab_ids = Object.keys(this.tabs);
       for (var i = 0; i < tab_ids.length; i++) {
         await this.idleStatistics(this.tabs[tab_ids[i]]);
