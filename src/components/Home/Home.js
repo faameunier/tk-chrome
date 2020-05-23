@@ -9,6 +9,8 @@ import ListItemText from '@material-ui/core/ListItemText';
 import Avatar from '@material-ui/core/Avatar';
 import Typography from '@material-ui/core/Typography';
 
+import { setAllReadBadge } from '../../services/utils';
+
 const RESTORE = 'RESTORE';
 const NEXT = 'NEXT';
 const REMOVED = 'REMOVED';
@@ -19,6 +21,7 @@ const TIME_PERIOD_TO_CONSIDER = 3600000 * NUMBER_HOURS; // in microsecond
 class Home extends PureComponent {
   constructor(props) {
     super(props);
+    setAllReadBadge();
     this.state = { renderSaveBoolean: false };
     this.onChangedCallback = function (changes) {
       const changesClosedHistory = changes[CLOSED_HISTORY];
@@ -41,6 +44,7 @@ class Home extends PureComponent {
   }
 
   componentWillUnmount() {
+    setAllReadBadge();
     chrome.storage.onChanged.removeListener(this.onChangedCallback);
   }
 

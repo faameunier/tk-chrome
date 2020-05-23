@@ -4,6 +4,7 @@ import { memoryManager } from './memory.js';
 import { settingsManager } from './settings.js';
 import { Scorer } from './scorer.js';
 import { logger, copy } from './utils.js';
+import { setUnreadBadge } from './utils';
 
 class PolicyManager {
   constructor() {}
@@ -72,7 +73,7 @@ class PolicyManager {
     // Run policy for a given window
     // Returns true if the policy was run, false otherwise
     let tabs = windows[windowId];
-    if (tabs.length > settingsManager.settings.policy.target_tabs) {
+    if (settingsManager.settings.policy.active_policy && tabs.length > settingsManager.settings.policy.target_tabs) {
       // if too many tabs
       if (this.exponentialTrigger(tabs, windowId)) {
         // if we waited enough
@@ -135,6 +136,7 @@ class PolicyManager {
             reject('Tab not found');
           } else {
             resolve();
+            setUnreadBadge();
           }
         });
       });
