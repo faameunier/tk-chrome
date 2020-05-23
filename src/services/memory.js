@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import { logger, getDomain, storageSet, copy, storageGet, getLastFocusedWindow } from './utils.js';
+import { MIN_ACTIVE_DEBOUNCE } from '../config/env.js';
 import { LRUfactory, LRU } from './LRU.js';
 import { settingsManager } from './settings.js';
 
@@ -9,6 +10,7 @@ class MemoryManager {
     total_inactive_time: 0, // total time the tab spent inactive
     total_cached_time: 0, // total time the tab spent in short term history
     last_active_timestamp: null, // last time the tab switched to an active status (or creation)
+    temp_last_active_timestamp: null, // DO NOT USE, debounce for last_active_timestamp
     activated: 0, // nb of time the tab was activated (or restored)
     updated_at: null, // DO NOT USE, last time the statistics were computed
     protection_timestamp: null, // protection flag timestamp
@@ -255,6 +257,7 @@ class MemoryManager {
     let now = Date.now();
     tmp.activated = 1; // to avoid problems later on
     tmp.updated_at = now;
+    tmp.temp_last_active_timestamp = now;
     tmp.last_active_timestamp = now; // last_active_timestamp should not be nul.
     // To avoid giving stupid importance to a tab that was created but never opened and avoid backfilling
     // the activation timestamp with now() in the scorer, the time of creation is considered an active time.
@@ -263,6 +266,19 @@ class MemoryManager {
 
   async updateStatistics(iTab, fromCache = false, activitySwitch = false) {
     // activitySwitch is when a tab becomes active but is still inactive
+    //
+    // Deboucing logic: to avoid biaising the last_active_timestamp which can have high
+    //   importance in the scorer, short activities are not registered.
+    //   This works by using a temporary last_active_timestamp variable.
+    //   When this variable is 'old' enough, it is saved permanently and active statistics gets updated only now.
+    //   - If the tab becomes inactive before the value is saved, the inactive time will be
+    //     updated at next cycle as updated_at was untouched.
+    //   - If it is saved, as updated_at wasn't changed till then the correct active time will be saved.
+    //   - If it is killed ? `cannot` happen if the tab is active even temporarily
+    //   - If it is getting cached ? this edge case is not handled and the information is lost (a short
+    //     amount of inactive time is disappearing). This happends if you go on a tab and quickly switch url.
+    //     This is considered a stupid edge case, fixing would bring almost no value.
+    //
     // use cases:
     // - updateAllStatistics : every X seconds all stats are updated (not from cache, no activitySwitch)
     //    | additional time since last update should be added to correct active / inactive variables
@@ -281,21 +297,30 @@ class MemoryManager {
     // - updateTab : url change, old url stats are restored from cache (from cache, no activitySwitch)
     //    | the time spent in cache should be updated (hypothesis: updated at is the time when it switched to cache)
     //    | additionnally it is considered a reactivation (even if the tab is not active) to give importance to the event
+
     let now = Date.now();
     if (fromCache) {
       activitySwitch = true; // restored from cache is considered a reactivation
       iTab.statistics.total_cached_time += now - iTab.statistics.updated_at;
+      iTab.statistics.updated_at = now;
     } else {
       if (iTab.active) {
-        iTab.statistics.total_active_time += now - iTab.statistics.updated_at;
+        if (now - iTab.statistics.temp_last_active_timestamp >= MIN_ACTIVE_DEBOUNCE) {
+          // debounce
+          if (iTab.statistics.temp_last_active_timestamp !== iTab.statistics.last_active_timestamp) {
+            iTab.statistics.last_active_timestamp = iTab.statistics.temp_last_active_timestamp;
+            iTab.statistics.activated += 1;
+          }
+          iTab.statistics.total_active_time += now - iTab.statistics.updated_at;
+          iTab.statistics.updated_at = now;
+        }
       } else {
         iTab.statistics.total_inactive_time += now - iTab.statistics.updated_at;
+        iTab.statistics.updated_at = now;
       }
     }
-    iTab.statistics.updated_at = now;
     if (activitySwitch) {
-      iTab.statistics.last_active_timestamp = now; // this is the timestamp when the tab started to be active last
-      iTab.statistics.activated += 1;
+      iTab.statistics.temp_last_active_timestamp = now; // this is the timestamp when the tab started to be active last
     }
   }
 
@@ -428,3 +453,6 @@ class MemoryManager {
 }
 
 export var memoryManager = new MemoryManager();
+if (ENV === 'debug') {
+  window.memoryManager = memoryManager;
+}
