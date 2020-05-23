@@ -78,7 +78,7 @@ function getLastFocusedWindow() {
 
 function isUserActive() {
   return new Promise((resolve, reject) => {
-    chrome.idle.queryState((MAX_ACTIVE_DEBOUNCE / 1000).toFixed(), (status) => {
+    chrome.idle.queryState(Math.round(MAX_ACTIVE_DEBOUNCE / 1000), (status) => {
       if (status === 'active') {
         resolve(true);
       } else if (status) {
@@ -88,6 +88,17 @@ function isUserActive() {
         resolve(true);
       }
     });
+  });
+}
+
+function storageReset() {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get(null, (d) => {
+      chrome.storage.local.remove(Object.keys(d), () => {
+        logger('Memory flushed.')
+        resolve();
+      });
+    })
   });
 }
 
@@ -104,4 +115,5 @@ export {
   isInteger,
   getLastFocusedWindow,
   isUserActive,
+  storageReset,
 };

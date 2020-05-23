@@ -1,9 +1,10 @@
 import { eventQueue } from './queue.js';
 import { memoryManager } from './memory.js';
 import { settingsManager } from './settings.js';
-import { logger } from './utils.js';
+import { logger, storageReset } from './utils.js';
 
 chrome.runtime.onInstalled.addListener(function () {
+  eventQueue.enqueue(() => storageReset());
   eventQueue.enqueue(() => settingsManager.reset());
   eventQueue.enqueue(() => memoryManager.reset());
   logger('Extension installed :D');

@@ -42,6 +42,15 @@ if (ENV === 'debug') {
 
 The ENV variable is managed by webpack directly and affects the default configurations as well.
 
+#### Environments
+We have a LOT of configuration variables. Simple rules of thumb:
+```
+env.SESSIONS_MAX_FUZZY_DELTA_MS > env.SESSIONS_TIMEOUT_MS * 2
+settings.min_time_garbage_collector >> 1min
+env.MAX_ACTIVE_DEBOUNCE >> 15sec >> env.MIN_ACTIVE_DEBOUNCE
+env.MAX_ACTIVE_DEBOUNCE >> env.FORCE_UPDATE_STATISTICS > 1min
+env.FORCE_UPDATE_STATISTICS >> settings.min_time_full_stats_update
+```
 #### Setting up chrome
 Go to [chrome://extensions](chrome://extensions), toggle 'Developer mode' in top right corner.
 
