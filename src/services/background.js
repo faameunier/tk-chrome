@@ -3,11 +3,16 @@ import { memoryManager } from './memory.js';
 import { settingsManager } from './settings.js';
 import { logger, storageReset } from './utils.js';
 
+chrome.runtime.onStartup.addListener(function () {
+  logger(chrome.runtime.getManifest().version);
+});
+
 chrome.runtime.onInstalled.addListener(function () {
   eventQueue.enqueue(() => storageReset());
   eventQueue.enqueue(() => settingsManager.reset());
   eventQueue.enqueue(() => memoryManager.reset());
   logger('Extension installed :D');
+  logger(chrome.runtime.getManifest().version);
 });
 
 chrome.tabs.onCreated.addListener(function (tab) {
