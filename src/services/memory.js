@@ -462,7 +462,7 @@ class MemoryManager {
       await this.createTab(realTab);
       logger(this, 'Backfill succesful');
     } catch (e) {
-      logger(this, "Tab couldn't be retrieved, creating empty tab...");
+      logger(this, 'Tab couldn\'t be retrieved, creating empty tab...');
       await this.createTab(tab);
     }
   }
