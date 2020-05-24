@@ -3,11 +3,15 @@ import { memoryManager } from './memory.js';
 import { settingsManager } from './settings.js';
 import { logger } from './utils.js';
 
-chrome.runtime.onInstalled.addListener(function () {
-  eventQueue.enqueue(() => settingsManager.reset());
-  eventQueue.enqueue(() => memoryManager.reset());
-  chrome.tabs.create({ url: 'https://www.tabby.us/' });
-  logger('Extension installed :D');
+chrome.runtime.onInstalled.addListener(function (details) {
+  if (details.reason == 'install') {
+    chrome.tabs.create({ url: 'https://www.tabby.us/' });
+    eventQueue.enqueue(() => settingsManager.reset());
+    eventQueue.enqueue(() => memoryManager.reset());
+    logger('Extension installed :D');
+  } else if (details.reason == 'update') {
+    logger('Extension updated :D');
+  }
 });
 
 chrome.tabs.onCreated.addListener(function (tab) {
