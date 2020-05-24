@@ -21,7 +21,6 @@ const styles = (theme) => ({
     fontSize: 16,
     display: 'flex',
     flexDirection: 'row',
-    //color: '#1b9e74',
     borderBottom: `2px solid #1b9e74`,
     maxWidth: 225,
   },
@@ -33,6 +32,13 @@ const styles = (theme) => ({
   },
   middleText: {
     fontSize: 12,
+  },
+  topText: {
+    fontSize: 16,
+  },
+  subText: {
+    fontSize: 12,
+    marginTop: 10,
   },
   button: {
     textTransform: 'capitalize',
@@ -58,10 +64,6 @@ const styles = (theme) => ({
   },
   listWebsites: {
     marginTop: 20,
-  },
-  listItems: {
-    maxHeight: 300,
-    overflowY: 'scroll',
   },
   linkToForm: {
     position: 'relative',

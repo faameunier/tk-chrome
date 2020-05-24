@@ -1,12 +1,12 @@
 import React, { PureComponent } from 'react';
 import Button from '@material-ui/core/Button';
-import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemAvatar from '@material-ui/core/ListItemAvatar';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
 import Avatar from '@material-ui/core/Avatar';
 import Typography from '@material-ui/core/Typography';
+import { FixedSizeList as List } from 'react-window';
 
 import { setAllReadBadge } from '../../services/utils';
 
@@ -114,49 +114,60 @@ class Home extends PureComponent {
     }
     const isNext = listToBeRendered === NEXT;
     const filteredList = this.filterList(selectedList).reverse();
+
+    const listItem = ({ index, key, style }) => {
+      const website = filteredList[index];
+      return (
+        <div key={key} style={style}>
+          <ListItem ContainerComponent="div">
+            <div className={classes.gridAvatarWithTime}>
+              <Typography className={classes.timeDisplay}>
+                {`${website.hours_deletion}:${website.minutes_deletion}`}
+              </Typography>
+              <ListItemAvatar>
+                <Avatar alt={website.title} src={website.favIconUrl} className={classes.avatarContainer} />
+              </ListItemAvatar>
+            </div>
+            <ListItemText
+              primary={website.truncated_url}
+              secondary={website.title}
+              classes={{
+                primary: classes.primaryTextContainer,
+                secondary: classes.secondaryTextContainer,
+              }}
+              className={classes.itemText}
+            />
+            <ListItemSecondaryAction>
+              <div className={classes.buttonContainer}>
+                <Button
+                  size="small"
+                  onClick={isNext ? this.removeNextItem.bind(this, index) : this.removeItem.bind(this, index)}
+                  variant="outlined"
+                  color="secondary"
+                  className={classes.button}
+                >
+                  {isNext ? 'Skip' : 'Restore'}
+                </Button>
+              </div>
+            </ListItemSecondaryAction>
+          </ListItem>
+        </div>
+      );
+    };
     return (
       <div className={classes.listWebsites}>
         <Typography variant="h6" className={classes.greenTitle}>
           {isNext ? 'Next tabs to be closed' : `Last closed tabs`}
         </Typography>
-        <div className={classes.listItems}>
-          <List dense={true}>
-            {filteredList.length === 0 ? (
-              <p>{`Maybe you should update your settings.`}</p>
-            ) : (
-              filteredList.map((website, i) => (
-                <ListItem key={i}>
-                  <div className={classes.gridAvatarWithTime}>
-                    <Typography className={classes.timeDisplay}>
-                      {`${website.hours_deletion}:${website.minutes_deletion}`}
-                    </Typography>
-                    <ListItemAvatar>
-                      <Avatar alt={website.title} src={website.favIconUrl} className={classes.avatarContainer} />
-                    </ListItemAvatar>
-                  </div>
-                  <ListItemText
-                    primary={website.truncated_url}
-                    secondary={website.title}
-                    classes={{ primary: classes.primaryTextContainer, secondary: classes.secondaryTextContainer }}
-                    className={classes.itemText}
-                  />
-                  <ListItemSecondaryAction>
-                    <div className={classes.buttonContainer}>
-                      <Button
-                        size="small"
-                        onClick={isNext ? this.removeNextItem.bind(this, i) : this.removeItem.bind(this, i)}
-                        variant="outlined"
-                        color="secondary"
-                        className={classes.button}
-                      >
-                        {isNext ? 'Skip' : 'Restore'}
-                      </Button>
-                    </div>
-                  </ListItemSecondaryAction>
-                </ListItem>
-              ))
-            )}
-          </List>
+
+        <div>
+          {filteredList.length === 0 ? (
+            <div className={classes.subText}>{`You should maybe update your settings.`}</div>
+          ) : (
+            <List height={Math.min(80 * filteredList.length, 300)} itemCount={filteredList.length} itemSize={80}>
+              {listItem}
+            </List>
+          )}
         </div>
       </div>
     );
@@ -172,7 +183,7 @@ class Home extends PureComponent {
             {numberClosedTabsLastHour ? numberClosedTabsLastHour : 0}
           </Typography>
           <Typography className={classes.textOnRight}>
-            <Typography className={classes.boldText}>
+            <Typography className={classes.topText}>
               {' '}
               tab
               {numberClosedTabsLastHour <= 1 ? '' : 's'} closed
