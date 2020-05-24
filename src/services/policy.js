@@ -74,7 +74,8 @@ class PolicyManager {
     // Run policy for a given window
     // Returns true if the policy was run, false otherwise
     let tabs = windows[windowId];
-    tabs = _.filter(tabs, (tab) => { // removing ignored tabs
+    tabs = _.filter(tabs, (tab) => {
+      // removing ignored tabs
       return (
         !(settingsManager.settings.policy.active && tab.active) &&
         !(settingsManager.settings.policy.pinned && tab.pinned) &&
@@ -87,7 +88,6 @@ class PolicyManager {
         // if we waited enough
         // score all tabs
         let scores = await Promise.all(_.map(tabs, (tab) => Scorer.score(tab)));
-        logger(windowId.toString().concat(' window scored'));
 
         let objScores = _.zipObject(
           _.map(tabs, (tab) => tab.tabId),
@@ -99,6 +99,7 @@ class PolicyManager {
           scores
         ); // [[tabId1, score1], [tabId2, score2]...]
 
+        logger(windowId.toString().concat('window scored :', JSON.stringify(scores)));
         let countProtected = 0;
         let minimumScore = MAXIMUM_SCORE;
         let minimumId = null;
@@ -106,15 +107,15 @@ class PolicyManager {
           let temp = scores[i];
           if (temp[1] <= minimumScore) {
             minimumScore = temp[1];
-            minimumId = temp[0]
+            minimumId = temp[0];
           }
-          if (temp[1] === MAXIMUM_SCORE) {
-            countProtected ++;
+          if (temp[1] >= MAXIMUM_SCORE) {
+            countProtected++;
           }
         }
 
         if (minimumScore === MAXIMUM_SCORE) {
-          return [false, {}];
+          return [false, objScores];
         }
 
         // safety hack, do not remove a tab only because you have an excess of protected ones

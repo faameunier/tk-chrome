@@ -1,5 +1,5 @@
-const SCORER = 'default'; // only default implemented
-const MAXIMUM_SCORE = 1000000000000000; // max score for scorer
+const SCORER = 'v1'; // only default implemented
+const MAXIMUM_SCORE = 10; // max score for scorer
 const MAXIMUM_HISTORY_SIZE = 1000; // max killed tab history in memory
 const SESSIONS_TIMEOUT_MS = 800; // when a tab is killed we need a timeout to retrieve the sessionId
 const SESSIONS_MAX_FUZZY_DELTA_MS = 1000 * 5; // time is fuzzy matched to retireve the correct sessionID, should be higher than SESSIONS_TIMEOUT_MS

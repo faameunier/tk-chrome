@@ -1,6 +1,7 @@
 import { copy } from './utils.js';
 import { settingsManager } from './settings.js';
 import { SCORER, MAXIMUM_SCORE } from '../config/env.js';
+import { sigmoidScaled, exponentialDecay, exponentialDecayReversed, bound, ReLU } from './math.js';
 
 class AbstractScorer {
   static async score(tab) {
@@ -63,10 +64,10 @@ class DefaultScorer extends AbstractScorer {
   }
 
   static scoreCache(tab) {
-    let cache = tab.cache
+    let cache = tab.cache;
     var cachedScores = [];
     let acc = (state) => {
-      cachedScores.push(this.scoreStatistics(this.augmentedStatistics(state.value, tab)));
+      cachedScores.push(this.scoreStatistics(this.augmentedStatistics(state.value, null)));
     };
     if (cache) {
       cache.forEach(acc);
@@ -88,12 +89,81 @@ class DefaultScorer extends AbstractScorer {
   }
 }
 
+class v1Scorer extends DefaultScorer {
+  static scoreStatistics(stats) {
+    let now = Date.now();
+    let total_time = stats.total_active_time + stats.total_inactive_time + 1;
+    let utilization_rate = stats.total_active_time / total_time;
+    let soft_protection_delay = 3 * 60 * 1000;
+    let hard_protection_enveloppe =
+      1 +
+      (MAXIMUM_SCORE - 1) *
+        sigmoidScaled(
+          ReLU(now - stats.protection_timestamp - settingsManager.settings.scorer.protection_time),
+          settingsManager.settings.scorer.protection_time / 10,
+          0.99995
+        );
+    let soft_protection_enveloppe =
+      1 +
+      (MAXIMUM_SCORE - 1) * sigmoidScaled(ReLU(now - stats.soft_protection_timestamp), soft_protection_delay, 0.99995);
+    let active_protection_enveloppe =
+      1 +
+      (MAXIMUM_SCORE - 1) *
+        sigmoidScaled(
+          ReLU(total_time - settingsManager.settings.scorer.min_active),
+          settingsManager.settings.scorer.min_active / 10,
+          0.99995
+        );
+    let protection_enveloppe = Math.max(
+      hard_protection_enveloppe,
+      soft_protection_enveloppe,
+      active_protection_enveloppe
+    );
+    if (protection_enveloppe + 1 >= MAXIMUM_SCORE) {
+      return MAXIMUM_SCORE;
+    }
+
+    let active_bonus = Math.log(bound(((stats.total_active_time - 10 * 1000) / 30) * 60 * 1000) * 2 + 2); // (in range [0.7; 1.4])
+    let rate_clean = utilization_rate + 1; // in range [1;2]
+    let decay = exponentialDecay(now - stats.last_active_timestamp, 2 * 60 * 1000) + 1; // in range [1;2]
+    return Math.round((protection_enveloppe * active_bonus * rate_clean * decay + Number.EPSILON) * 100) / 100;
+  }
+
+  static augmentedStatistics(stats, tab) {
+    let augStats = copy(stats);
+    augStats.soft_protection_timestamp = 0;
+    if (!augStats.protection_timestamp) {
+      augStats.protection_timestamp = 0;
+    }
+    if (tab) {
+      if (settingsManager.settings.scorer.active) {
+        augStats.soft_protection_timestamp = Math.max(
+          augStats.soft_protection_timestamp,
+          augStats.last_active_timestamp
+        );
+      }
+      if (settingsManager.settings.scorer.pinned) {
+        augStats.soft_protection_timestamp = Math.max(augStats.soft_protection_timestamp, tab.pinned_switch_timestamp);
+      }
+      if (settingsManager.settings.scorer.audible) {
+        augStats.soft_protection_timestamp = Math.max(augStats.soft_protection_timestamp, tab.audible_switch_timestamp);
+      }
+    }
+    return augStats;
+  }
+}
+
 class Scorer {
   static score(tab) {
-    if (SCORER === 'random') {
-      return RandomScorer.score(tab);
-    } else {
-      return DefaultScorer.score(tab);
+    switch (SCORER) {
+      case 'random':
+        return RandomScorer.score(tab);
+        break;
+      case 'v1':
+        return v1Scorer.score(tab);
+        break;
+      default:
+        return DefaultScorer.score(tab);
     }
   }
 }

@@ -27,9 +27,10 @@ if (ENV === 'debug') {
       active: true, // these tabs will be given absolute maximum score + extended protection
       pinned: true, // when the status is lost.
       audible: true,
-      min_active: 5 * 1000,
-      protection_time: 15 * 1000,
-      cached_decay: 0.7,
+
+      min_active: 5 * 1000, // minimum time a tab has to exist before being scored
+      protection_time: 15 * 1000, // A restored tab is protected for this long
+      cached_decay: 0.2, // In current scorer, the cache score is added to the current score with a decreasing factor
     },
   };
 
@@ -45,14 +46,20 @@ if (ENV === 'debug') {
       decay: 0.8,
       min_time: 3 * 1000,
 
-      active: false,
-      pinned: false,
+      // IGNORED tabs
+      active: true, // these status are absolutely protected tabs: these are ignored and do not count as tabs.
+      pinned: true,
       audible: false,
     },
     scorer: {
+      // PROTECTED tabs
+      active: true, // these tabs will be given absolute maximum score + extended protection
+      pinned: true, // when the status is lost.
+      audible: true,
+
       min_active: 5 * 1000,
       protection_time: 15 * 1000,
-      cached_decay: 0.7,
+      cached_decay: 0.2,
     },
   };
 } else {
@@ -68,14 +75,20 @@ if (ENV === 'debug') {
       decay: 0.8,
       min_time: 3 * 1000,
 
-      active: false,
-      pinned: false,
+      // IGNORED tabs
+      active: true, // these status are absolutely protected tabs: these are ignored and do not count as tabs.
+      pinned: true,
       audible: false,
     },
     scorer: {
+      // PROTECTED tabs
+      active: true, // these tabs will be given absolute maximum score + extended protection
+      pinned: true, // when the status is lost.
+      audible: true,
+
       min_active: 5 * 60 * 1000,
       protection_time: 15 * 60 * 1000,
-      cached_decay: 0.7,
+      cached_decay: 0.2,
     },
   };
 
@@ -91,14 +104,20 @@ if (ENV === 'debug') {
       decay: 0.8,
       min_time: 3 * 1000,
 
-      active: false,
-      pinned: false,
+      // IGNORED tabs
+      active: true, // these status are absolutely protected tabs: these are ignored and do not count as tabs.
+      pinned: true,
       audible: false,
     },
     scorer: {
+      // PROTECTED tabs
+      active: true, // these tabs will be given absolute maximum score + extended protection
+      pinned: true, // when the status is lost.
+      audible: true,
+
       min_active: 5 * 60 * 1000,
       protection_time: 15 * 60 * 1000,
-      cached_decay: 0.7,
+      cached_decay: 0.2,
     },
   };
 }
