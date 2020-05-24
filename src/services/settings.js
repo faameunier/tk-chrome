@@ -86,3 +86,6 @@ class SettingsManager {
 }
 
 export var settingsManager = new SettingsManager();
+if (ENV === 'debug') {
+  window.settingsManager = settingsManager;
+}

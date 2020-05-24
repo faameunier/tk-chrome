@@ -19,21 +19,40 @@ The code need to build (transpile) from ES2015+ to ES5 for better compatibility.
 
 To avoid building manually with:
 ```
-npm run build
+npm run build-env
 ```
 
-You can run:
+You can run (debug environment):
 ```
 npm run watch
 ```
 
-The build will happen automatically each time you do a modification **in the src folder on a .js file**. Feel free to extend the watch in *package.json*.
+The build will happen automatically each time you do a modification **in the src folder on any file**. Feel free to extend the watch in *package.json*.
 
+#### Environments
+Due to webpack building process it can be hard to access functions.
+In order to avoid this, in **debug** environment, some variables are added to the window. See `memory.js` for an example:
+```javascript
+[...]
+export var memoryManager = new MemoryManager();
+if (ENV === 'debug') {
+  window.memoryManager = memoryManager;
+}
+```
+
+The ENV variable is managed by webpack directly and affects the default configurations as well.
+
+#### Environments
+We have a LOT of configuration variables. Simple rules of thumb:
+```
+env.SESSIONS_MAX_FUZZY_DELTA_MS > env.SESSIONS_TIMEOUT_MS * 2
+settings.min_time_garbage_collector >> 1min
+env.MAX_ACTIVE_DEBOUNCE >> 15sec >> env.MIN_ACTIVE_DEBOUNCE
+15sec > settings.min_time_full_stats_update
+```
 #### Setting up chrome
 Go to [chrome://extensions](chrome://extensions), toggle 'Developer mode' in top right corner.
 
 Select 'Load unpacked extension' and select the **dist** folder.
-
-This will be improved in a later update of the building process.
 
 **TIP** You can install  [Extensions Reloader](https://chrome.google.com/webstore/detail/extensions-reloader/) to easily reload the extension in-flight (not perfect)
