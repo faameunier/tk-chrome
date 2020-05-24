@@ -389,15 +389,19 @@ class MemoryManager {
     let tab = null;
     let fromSession = false;
     if (restoredTab.sessionId && focusedWindow === parseInt(restoredTab.windowId)) {
-      tab = await new Promise((resolve, reject) => {
-        chrome.sessions.restore(restoredTab.sessionId, (session) => {
-          if (chrome.runtime.lastError) {
-            reject(false);
-          } else {
-            resolve(session.tab);
-          }
+      try {
+        tab = await new Promise((resolve, reject) => {
+          chrome.sessions.restore(restoredTab.sessionId, (session) => {
+            if (chrome.runtime.lastError) {
+              reject(false);
+            } else {
+              resolve(session.tab);
+            }
+          });
         });
-      });
+      } catch {
+        logger(this, 'Invalid sessionId, was the tab already restored ?');
+      }
     }
 
     if (tab) {
