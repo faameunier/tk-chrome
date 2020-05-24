@@ -22,8 +22,10 @@ class MemoryManager {
     full_url: null,
     statistics: {},
     pinned: false,
+    pinned_switch_timestamp: null,
     active: false,
     audible: false,
+    audible_switch_timestamp: null,
     favIconUrl: null,
     title: null,
     windowId: null,
@@ -142,6 +144,8 @@ class MemoryManager {
         new_tab.tabId = tab.id;
         new_tab.pinned = tab.pinned;
         new_tab.windowId = tab.windowId;
+        let now = Date.now();
+
         if (typeof tab.url !== 'undefined') {
           // No impact on stats until proven otherwise
           new_tab.url = getDomain(tab.url) || tab.url;
@@ -155,11 +159,13 @@ class MemoryManager {
         }
         if (typeof tab.pinned !== 'undefined') {
           new_tab.pinned = tab.pinned;
+          new_tab.pinned_switch_timestamp = now;
         } else {
           new_tab.pinned = false;
         }
         if (typeof tab.audible !== 'undefined') {
           new_tab.audible = tab.audible;
+          new_tab.audible_switch_timestamp = now;
         } else {
           new_tab.audible = false;
         }
@@ -231,11 +237,15 @@ class MemoryManager {
         stored_tab.cache.write(old_url, old_statistics);
       }
     }
-    if (typeof changes.pinned !== 'undefined') {
+
+    let now = Date.now();
+    if (typeof changes.pinned !== 'undefined' && stored_tab.pinned !== changes.pinned) {
       stored_tab.pinned = changes.pinned;
+      stored_tab.pinned_switch_timestamp = now;
     }
-    if (typeof changes.audible !== 'undefined') {
+    if (typeof changes.audible !== 'undefined' && stored_tab.audible !== changes.audible) {
       stored_tab.audible = changes.audible;
+      stored_tab.audible_switch_timestamp = now;
     }
     if (typeof changes.favIconUrl !== 'undefined') {
       stored_tab.favIconUrl = changes.favIconUrl;
