@@ -3,11 +3,12 @@
   "version": "0.0.1",
   "scripts": {
     "build-dev": "webpack --env dev",
+    "build-debug": "webpack --env debug",
     "build-prod": "webpack --env prod",
     "watch": "npm-watch"
   },
   "watch": {
-    "build-dev": {
+    "build-debug": {
       "patterns": [
         "src"
       ]

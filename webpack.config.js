@@ -78,6 +78,20 @@ var createConfig = function (env) {
         envName: 'dev',
       },
     });
+  } else if (env == 'debug') {
+    common['mode'] = 'development';
+    common['devtool'] = 'inline-source-map';
+    common['plugins'].push(new webpack.DefinePlugin({
+      ENV: JSON.stringify('debug'),
+    }));
+    common.module.rules.push({
+      test: /\.js$/,
+      include: path.resolve(__dirname, 'src'),
+      loader: 'babel-loader',
+      options: {
+        envName: 'dev',
+      },
+    });
   } else {
     common['mode'] = 'production';
     common['plugins'].push(new webpack.DefinePlugin({
