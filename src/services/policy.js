@@ -155,14 +155,13 @@ class PolicyManager {
               // Closed tabs are explored from more recent to oldest
               let sessionTab = sessions[i].tab;
               let lastModified = sessions[i].lastModified;
-              if (sessionTab) {
-                if (
-                  sessionTab.url === tab.full_url &&
-                  Date.now() - lastModified * 1000 <= SESSIONS_MAX_FUZZY_DELTA_MS
-                ) {
-                  resolve(sessionTab.sessionId);
-                  break;
-                }
+              if (
+                sessionTab &&
+                sessionTab.url === tab.full_url &&
+                Date.now() - lastModified * 1000 <= SESSIONS_MAX_FUZZY_DELTA_MS
+              ) {
+                resolve(sessionTab.sessionId);
+                break;
               }
             }
             resolve();
