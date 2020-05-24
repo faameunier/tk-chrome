@@ -4,10 +4,14 @@ import { SCORER, MAXIMUM_SCORE } from '../config/env.js';
 
 class AbstractScorer {
   static async score(tab) {
-    let sScore = this.scoreStatistics(tab.statistics);
+    let sScore = this.scoreStatistics(this.augmentedStatistics(tab));
     let cScore = this.scoreCache(tab.cache);
     let mergedScore = this.mergeScores([sScore].concat(cScore));
     return mergedScore;
+  }
+
+  static augmentedStatistics(tab) {
+    return tab.statistics;
   }
 
   static scoreStatistics(stats) {
@@ -61,7 +65,7 @@ class DefaultScorer extends AbstractScorer {
   static scoreCache(cache) {
     var cachedScores = [];
     let acc = (state) => {
-      cachedScores.push(this.scoreStatistics(state.value));
+      cachedScores.push(this.scoreStatistics(this.augmentedStatistics(state.value)));
     };
     if (cache) {
       cache.forEach(acc);
