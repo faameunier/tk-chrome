@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
-import Form from 'react-bootstrap/Form';
-import Button from 'react-bootstrap/Button';
+import FormGroup from '@material-ui/core/FormGroup';
+import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import Switch from '@material-ui/core/Switch';
 import Typography from '@material-ui/core/Typography/Typography';
@@ -8,6 +8,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import TextField from '@material-ui/core/TextField';
 import FormControl from '@material-ui/core/FormControl';
 import TuneIcon from '@material-ui/icons/Tune';
+import HelpOutlineIcon from '@material-ui/icons/HelpOutline';
 import { withSnackbar } from 'notistack';
 import {
   RELAXED,
@@ -18,6 +19,7 @@ import {
 } from '../../config/settingsProfiles.js';
 import { checkSettings, OPTIMAL_NUMBER_TABS, POLICY, ACTIVE_POLICY } from '../utils';
 import { isInteger } from '../../services/utils';
+import Link from '@material-ui/core/Link/Link';
 
 class Settings extends PureComponent {
   constructor(props) {
@@ -137,7 +139,7 @@ class Settings extends PureComponent {
     const { classes } = this.props;
     const inputsParameters = [
       {
-        label: 'Optimal number of tabs ',
+        label: 'Optimal tabs number',
         source: this.state.settings,
         path: POLICY,
         parameter: OPTIMAL_NUMBER_TABS,
@@ -169,69 +171,77 @@ class Settings extends PureComponent {
               color="secondary"
             />
           }
+          className={classes.switchContainer}
           label="Enable Tabby"
         />
         <div className={classes.introductionBlock}>
           <TuneIcon />
           <Typography variant="h3" className={classes.title}>
-            Select the suiting mode or customize it.
+            Select the best mode or customize it
           </Typography>
         </div>
-        <div className={classes.textField}>
-          <div className={classes.activeBar}></div>
-          {/*<h1 className={"bold-title"}>Select Tabby's operating mode:</h1>*/}
-          <Form className={classes.settingsWrapper}>
+
+        <FormGroup className={classes.settingsWrapper}>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={this.state.focusedMode}
+                onChange={() => this.handleBoolChange(FOCUSED)}
+                color="secondary"
+                className={classes.checkboxWrapper}
+              />
+            }
+            label="Focus"
+            className={classes.firstBooleans}
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={this.state.relaxedMode}
+                onChange={() => this.handleBoolChange(RELAXED)}
+                color="secondary"
+                className={classes.checkboxWrapper}
+              />
+            }
+            label="Relax"
+            className={classes.firstBooleans}
+          />
+          <div className={classes.customizeWrapper}>
             <FormControlLabel
               control={
                 <Checkbox
-                  checked={this.state.focusedMode}
-                  onChange={() => this.handleBoolChange(FOCUSED)}
-                  value="secondary"
+                  checked={this.state.customizedBool}
+                  onChange={() => this.handleBoolChange(CUSTOMIZED)}
                   color="secondary"
+                  className={classes.checkboxWrapper}
                 />
               }
-              label="Focused"
+              label="Customize"
               className={classes.firstBooleans}
             />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={this.state.relaxedMode}
-                  onChange={() => this.handleBoolChange(RELAXED)}
-                  value="secondary"
-                  color="secondary"
-                />
-              }
-              label="Relaxed"
-              className={classes.firstBooleans}
-            />
-            <FormControlLabel
-              onChange={() => this.handleBoolChange(CUSTOMIZED)}
-              control={<Checkbox checked={this.state.customizedBool} value="" color="secondary" />}
-              label="Customize your settings' parameters"
-            />
-            <div className={classes.settingsBlock}>
-              <FormControl
-                //className={classes.content}
-                required
-                fullWidth
+            <Link href="https://tabby.us" target="_blank">
+              <HelpOutlineIcon className={classes.helpIcon} />
+            </Link>
+          </div>
+          <div className={classes.settingsBlock}>
+            <FormControl required fullWidth>
+              {listItemsParameters}
+            </FormControl>
+            <TextField hidden key="hidden-textfield" disabled />
+            <div>
+              <Button
+                size="small"
+                color="secondary"
+                disabled={!this.state.customizedBool}
+                className={classes.secondaryButton}
+                variant="outlined" //{this.state.customizedBool ? 'outlined' : 'secondary'}
+                onClick={() => this.handleSaveParameters()}
               >
-                {listItemsParameters}
-              </FormControl>
-              <TextField hidden key="hidden-textfield" disabled />
-              <div>
-                <Button
-                  disabled={!this.state.customizedBool}
-                  className={classes.secondaryButton}
-                  variant={this.state.customizedBool ? 'outline-primary' : 'secondary'}
-                  onClick={() => this.handleSaveParameters()}
-                >
-                  Save
-                </Button>
-              </div>
+                Save
+              </Button>
             </div>
-          </Form>
-        </div>
+          </div>
+        </FormGroup>
       </div>
     );
   }

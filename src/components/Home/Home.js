@@ -1,6 +1,5 @@
 import React, { PureComponent } from 'react';
-import Button from 'react-bootstrap/Button';
-
+import Button from '@material-ui/core/Button';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemAvatar from '@material-ui/core/ListItemAvatar';
@@ -89,8 +88,7 @@ class Home extends PureComponent {
     const { classes } = this.props;
 
     let selectedList;
-    const MAX_LENGTH_TITLE = 50;
-    const MAX_LENGTH_URL = 40;
+    const MAX_LENGTH_TITLE = 100;
 
     switch (listToBeRendered) {
       case NEXT:
@@ -107,7 +105,7 @@ class Home extends PureComponent {
             website.title = website.title.substring(0, MAX_LENGTH_TITLE).concat('...');
           }
           if (website.title && website.title.length > MAX_LENGTH_TITLE) {
-            website.truncated_url = website.url.substring(0, MAX_LENGTH_URL).concat('...');
+            website.truncated_url = website.url.split('/')[0];
           } else {
             website.truncated_url = website.url;
           }
@@ -124,7 +122,7 @@ class Home extends PureComponent {
         <div className={classes.listItems}>
           <List dense={true}>
             {filteredList.length === 0 ? (
-              <p>{`No tabs closed in the last ${NUMBER_HOURS} hours.`}</p>
+              <p>{`Maybe you should update your settings.`}</p>
             ) : (
               filteredList.map((website, i) => (
                 <ListItem key={i}>
@@ -139,17 +137,21 @@ class Home extends PureComponent {
                   <ListItemText
                     primary={website.truncated_url}
                     secondary={website.title}
+                    classes={{ primary: classes.primaryTextContainer, secondary: classes.secondaryTextContainer }}
                     className={classes.itemText}
                   />
                   <ListItemSecondaryAction>
-                    <Button
-                      size="large"
-                      onClick={isNext ? this.removeNextItem.bind(this, i) : this.removeItem.bind(this, i)}
-                      variant="outline-primary"
-                      className={classes.button}
-                    >
-                      {isNext ? 'Skip' : 'Restore'}
-                    </Button>
+                    <div className={classes.buttonContainer}>
+                      <Button
+                        size="small"
+                        onClick={isNext ? this.removeNextItem.bind(this, i) : this.removeItem.bind(this, i)}
+                        variant="outlined"
+                        color="secondary"
+                        className={classes.button}
+                      >
+                        {isNext ? 'Skip' : 'Restore'}
+                      </Button>
+                    </div>
                   </ListItemSecondaryAction>
                 </ListItem>
               ))
@@ -166,15 +168,17 @@ class Home extends PureComponent {
     return (
       <div className="card-body">
         <Typography variant="h3" className={classes.title}>
-          <Typography className={classes.boldText}>
-            {numberClosedTabsLastHour ? numberClosedTabsLastHour : 'No'} tab
-            {numberClosedTabsLastHour === 1 ? '' : 's'}
+          <Typography className={classes.boldNumber}>
+            {numberClosedTabsLastHour ? numberClosedTabsLastHour : 0}
           </Typography>
-          <Typography className={classes.middleText}>
-            {' '}
-            {numberClosedTabsLastHour === 1 ? 'was' : 'were'} closed in the last{' '}
+          <Typography className={classes.textOnRight}>
+            <Typography className={classes.boldText}>
+              {' '}
+              tab
+              {numberClosedTabsLastHour <= 1 ? '' : 's'} closed
+            </Typography>
+            <Typography className={classes.middleText}> in the last {`${NUMBER_HOURS} hours`} </Typography>
           </Typography>
-          <Typography className={classes.boldText}> {`${NUMBER_HOURS} hours!`} </Typography>
         </Typography>
         {this.renderList.bind(this)(REMOVED)}
         {/*{this.renderList.bind(this)(NEXT)}*/}

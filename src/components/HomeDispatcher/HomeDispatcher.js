@@ -1,4 +1,5 @@
 import React, { PureComponent } from 'react';
+import Link from '@material-ui/core/Link';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import Paper from '@material-ui/core/Paper';
@@ -6,7 +7,6 @@ import Settings from '../Settings';
 import Home from '../Home';
 import { SnackbarProvider } from 'notistack';
 import Avatar from '@material-ui/core/Avatar/Avatar';
-import ListItemAvatar from '@material-ui/core/ListItemAvatar/ListItemAvatar';
 import { logger } from '../../services/utils.js';
 
 class HomeDispatcher extends PureComponent {
@@ -48,14 +48,24 @@ class HomeDispatcher extends PureComponent {
         <div className={classes.homeContainer}>
           <Paper square>
             <div className={classes.gridLogoTabs}>
-              <Avatar alt="logoTabby" src={'../../assets/static/icons/tabby.png'} className={classes.logoAvatar} />
+              <Link href="https://tabby.us" target="_blank">
+                <Avatar alt="logoTabby" src={'../../assets/static/icons/tabby.png'} className={classes.logoAvatar} />
+              </Link>
               <Tabs
                 value={this.state.appBarValue ? this.state.appBarValue : 'HOME'}
                 onChange={(e, v) => this.handleChange(e, v)}
                 className={classes.allTabs}
               >
-                <Tab label="Home" value={'HOME'} className={classes.tab} />
-                <Tab label="Settings" value={'SETTINGS'} className={classes.tab} />
+                <Tab
+                  label="Home"
+                  value={'HOME'}
+                  style={{ fontSize: this.state.appBarValue == 'HOME' ? 17 : 14, color: '#1b9e74' }}
+                />
+                <Tab
+                  label="Settings"
+                  value={'SETTINGS'}
+                  style={{ fontSize: this.state.appBarValue == 'SETTINGS' ? 17 : 14, color: '#1b9e74' }}
+                />
                 {/*<Tab label="Debug" value={"DEBUG"} disabled className={classes.tab}/>*/}
               </Tabs>
             </div>

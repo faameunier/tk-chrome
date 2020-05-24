@@ -4,36 +4,49 @@ import Home from './Home';
 
 const styles = (theme) => ({
   title: {
-    fontSize: 16,
     display: 'flex',
     flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    maxHeight: 40,
+  },
+  textOnRight: {
+    marginLeft: theme.spacing(2),
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'start',
+    //justifyContent: 'space-between',
   },
   greenTitle: {
     fontSize: 16,
     display: 'flex',
     flexDirection: 'row',
-    color: '#1b9e74',
+    //color: '#1b9e74',
     borderBottom: `2px solid #1b9e74`,
     maxWidth: 225,
   },
-  boldText: {
-    fontWeight: 'bold',
+
+  boldNumber: {
+    color: '#e55c00',
+    fontSize: 40,
+    maxWidth: '30%',
   },
   middleText: {
-    marginLeft: theme.spacing(0.5),
-    marginRight: theme.spacing(0.5),
-  },
-  button: {
-    color: '#1b9e74',
-    borderColor: '#1b9e74',
     fontSize: 12,
   },
+  button: {
+    textTransform: 'capitalize',
+    fontWeight: 'normal',
+    fontSize: 12,
+    maxWidth: 20,
+  },
+  buttonContainer: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-evenly' },
   itemText: {
     maxWidth: 185,
-    wordWrap: 'break-word',
+    overflowWrap: 'break-word',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
-    maxHeight: 80,
+    maxHeight: 60,
   },
   timeDisplay: {
     fontWeight: 'bold',
@@ -60,6 +73,12 @@ const styles = (theme) => ({
   avatarContainer: {
     maxWidth: theme.spacing(7),
     maxHeight: theme.spacing(7),
+  },
+  primaryTextContainer: {
+    fontSize: 16, //Insert your required size
+  },
+  secondaryTextContainer: {
+    fontSize: 13, //Insert your required size
   },
 });
 export default withStyles(styles)(Home);

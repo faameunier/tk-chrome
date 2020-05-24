@@ -6,6 +6,7 @@ import { logger } from './utils.js';
 chrome.runtime.onInstalled.addListener(function () {
   eventQueue.enqueue(() => settingsManager.reset());
   eventQueue.enqueue(() => memoryManager.reset());
+  chrome.tabs.create({ url: 'https://www.tabby.us/' });
   logger('Extension installed :D');
 });
 
