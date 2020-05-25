@@ -1,9 +1,18 @@
 import { eventQueue } from './queue.js';
 import { memoryManager } from './memory.js';
 import { settingsManager } from './settings.js';
-import { logger } from './utils.js';
+import { logger, storageReset } from './utils.js';
+import { MAX_ACTIVE_DEBOUNCE } from '../config/env.js';
+
+// -----------------------------------------------
+// Installation and startup events
+
+chrome.runtime.onStartup.addListener(function () {
+  logger(chrome.runtime.getManifest().version);
+});
 
 chrome.runtime.onInstalled.addListener(function (details) {
+  eventQueue.enqueue(() => storageReset());
   eventQueue.enqueue(() => settingsManager.reset());
   eventQueue.enqueue(() => memoryManager.reset());
   if (details.reason == 'install') {
@@ -12,7 +21,19 @@ chrome.runtime.onInstalled.addListener(function (details) {
   } else if (details.reason == 'update') {
     logger('Extension updated :D');
   }
+  logger(chrome.runtime.getManifest().version);
 });
+
+// -----------------------------------------------
+// Runtime alarms
+chrome.idle.setDetectionInterval(Math.round(MAX_ACTIVE_DEBOUNCE / 1000));
+
+chrome.idle.onStateChanged.addListener(function (state) {
+  eventQueue.enqueue(() => memoryManager.idleStateChange(state));
+});
+
+// -----------------------------------------------
+// Tabs tracking
 
 chrome.tabs.onCreated.addListener(function (tab) {
   eventQueue.enqueue(() => memoryManager.createTab(tab));
@@ -33,6 +54,14 @@ chrome.tabs.onAttached.addListener(function (tabId, attachInfo) {
 chrome.tabs.onRemoved.addListener(function (tabId, removeInfo) {
   eventQueue.enqueue(() => memoryManager.deleteTab(tabId, removeInfo.windowId, removeInfo.isWindowClosing));
 });
+
+/*
+// TODO find usecase to understand when it is triggered.
+chrome.tabs.onReplaced.addListener(function(integer addedTabId, integer removedTabId) {});
+*/
+
+// -----------------------------------------------
+// Font-end communication
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   function sendResponsePromisified(data) {
@@ -62,7 +91,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   }
   eventQueue.enqueue(() => sendResponsePromisified({ answer: 1 }));
 });
-/*
-// TODO find usecase to understand when it is triggered.
-chrome.tabs.onReplaced.addListener(function(integer addedTabId, integer removedTabId) {});
-*/
+
+chrome.windows.onFocusChanged.addListener(function (windowId) {
+  eventQueue.enqueue(() => memoryManager.changeFocusedWindowId(windowId));
+});

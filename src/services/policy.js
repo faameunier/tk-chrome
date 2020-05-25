@@ -1,9 +1,14 @@
 import _ from 'lodash';
-import { MAXIMUM_SCORE, MAXIMUM_HISTORY_SIZE } from '../config/env.js';
+import {
+  MAXIMUM_SCORE,
+  MAXIMUM_HISTORY_SIZE,
+  SESSIONS_TIMEOUT_MS,
+  SESSIONS_MAX_FUZZY_DELTA_MS,
+} from '../config/env.js';
 import { memoryManager } from './memory.js';
 import { settingsManager } from './settings.js';
 import { Scorer } from './scorer.js';
-import { logger, copy } from './utils.js';
+import { logger, copy, timeout } from './utils.js';
 import { setUnreadBadge } from './utils';
 
 class PolicyManager {
@@ -129,26 +134,52 @@ class PolicyManager {
 
   static async killTab(tabId, tab) {
     try {
-      let p = new Promise((resolve, reject) => {
+      let p = await new Promise((resolve, reject) => {
         chrome.tabs.remove(parseInt(tabId), function (tab) {
           let error = chrome.runtime.lastError;
           if (error) {
             reject('Tab not found');
           } else {
-            resolve();
-            setUnreadBadge();
+            resolve('success');
           }
         });
       });
-      await p;
+      await memoryManager.updateStatistics(tab); // updating statistics of the tab before removing it from memory
+      await timeout(SESSIONS_TIMEOUT_MS); // There is no guarantee that Chrome sessions will be updated after that time.
+      p = await new Promise((resolve, reject) => {
+        chrome.sessions.getRecentlyClosed({ maxResults: 5 }, (sessions) => {
+          let error = chrome.runtime.lastError;
+          if (error) {
+            logger('getRecentlyClosed failed');
+            resolve();
+          } else {
+            for (let i = 0; i < sessions.length; i++) {
+              // Closed tabs are explored from more recent to oldest
+              let sessionTab = sessions[i].tab;
+              let lastModified = sessions[i].lastModified;
+              if (
+                sessionTab &&
+                sessionTab.url === tab.full_url &&
+                Date.now() - lastModified * 1000 <= SESSIONS_MAX_FUZZY_DELTA_MS
+              ) {
+                resolve(sessionTab.sessionId);
+                break;
+              }
+            }
+            resolve();
+          }
+        });
+      });
       // Deleting the tab will trigger all cleaning actions in memoryManager through the onRemoved trigger.
-      let copiedTab = copy(tab); // making a simple json copy, could be even simpler.
+      let copiedTab = copy(tab); // making a simple json copy
       copiedTab.deletion_time = Date.now();
+      copiedTab.sessionId = p; // p can be null
       memoryManager.closed_history.push(copiedTab);
       memoryManager.closed_history = memoryManager.closed_history.slice(0, MAXIMUM_HISTORY_SIZE);
+      setUnreadBadge();
       logger('Tab '.concat(tabId, ' killed by policy'));
     } catch {
-      logger('Tab '.concat(tabId, ' not found'));
+      logger('Tab '.concat(tabId, " couldn't be killed"));
     }
   }
 

@@ -1,4 +1,5 @@
 import * as psl from 'psl';
+import { MAX_ACTIVE_DEBOUNCE } from '../config/env.js';
 
 const logger = function (...args) {
   if (ENV === 'debug' || ENV === 'dev') {
@@ -69,5 +70,43 @@ function setUnreadBadge() {
   });
 }
 
+function isUserActive() {
+  return new Promise((resolve, reject) => {
+    chrome.idle.queryState(Math.round(MAX_ACTIVE_DEBOUNCE / 1000), (status) => {
+      if (status === 'active') {
+        resolve(true);
+      } else if (status) {
+        resolve(false);
+      } else {
+        logger("Couldn't check user activity.");
+        resolve(true);
+      }
+    });
+  });
+}
+
+function storageReset() {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get(null, (d) => {
+      chrome.storage.local.remove(Object.keys(d), () => {
+        logger('Memory flushed.');
+        resolve();
+      });
+    });
+  });
+}
+
 logger('Starting in ' + ENV + ' env.');
-export { logger, copy, timeout, getDomain, storageGet, storageSet, setAllReadBadge, setUnreadBadge, isInteger };
+export {
+  logger,
+  copy,
+  timeout,
+  getDomain,
+  storageGet,
+  storageSet,
+  setAllReadBadge,
+  setUnreadBadge,
+  isInteger,
+  isUserActive,
+  storageReset,
+};

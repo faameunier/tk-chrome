@@ -1,17 +1,21 @@
 import _ from 'lodash';
-import { logger, getDomain, storageSet, copy, storageGet } from './utils.js';
+import { logger, getDomain, storageSet, copy, storageGet, isUserActive } from './utils.js';
+import { MIN_ACTIVE_DEBOUNCE, MAX_ACTIVE_DEBOUNCE } from '../config/env.js';
 import { LRUfactory, LRU } from './LRU.js';
 import { settingsManager } from './settings.js';
 
 class MemoryManager {
+  focusedWindowId = null;
+
   empty_stats = {
-    total_active_time: 0,
-    total_inactive_time: 0,
-    total_cached_time: 0,
-    last_active_timestamp: null,
-    activated: 0,
-    updated_at: null,
-    protection_timestamp: null,
+    total_active_time: 0, // total time the tab spent active
+    total_inactive_time: 0, // total time the tab spent inactive
+    total_cached_time: 0, // total time the tab spent in short term history
+    last_active_timestamp: null, // last time the tab switched to an active status (or creation)
+    temp_last_active_timestamp: null, // DO NOT USE, debounce for last_active_timestamp
+    activated: 0, // nb of time the tab was activated (or restored)
+    updated_at: null, // DO NOT USE, last time the statistics were computed
+    protection_timestamp: null, // protection flag timestamp
   };
 
   empty_tab = {
@@ -26,6 +30,8 @@ class MemoryManager {
     title: null,
     windowId: null,
     cache: [],
+    // sessionId: optional sessionId
+    // deletion_time: optional tabby deletion timestamp
   };
 
   constructor() {
@@ -45,6 +51,8 @@ class MemoryManager {
     this.runtime_events = {
       last_full_stats_update: Date.now(),
       last_garbage_collector: Date.now(),
+      last_idling_timestamp: Date.now(),
+      last_idle_state: true,
       last_policy_runs: {},
     };
   }
@@ -192,6 +200,11 @@ class MemoryManager {
       this.tabs[tabId].windowId = windowId;
     }
   }
+  async changeFocusedWindowId(windowId) {
+    if (windowId >= 0) {
+      this.focusedWindowId = windowId;
+    }
+  }
 
   async updateTab(tabId, changes, tab) {
     logger(this, 'Updating tab ' + tabId);
@@ -251,33 +264,105 @@ class MemoryManager {
   async createStatistics(iTab) {
     let tmp = copy(this.empty_stats);
     let now = Date.now();
-    if (iTab.active) {
-      tmp.last_active_timestamp = now;
-      tmp.activated = 1;
-    }
+    tmp.activated = 1; // to avoid problems later on
     tmp.updated_at = now;
+    tmp.temp_last_active_timestamp = now;
+    tmp.last_active_timestamp = now; // last_active_timestamp should not be nul.
+    // To avoid giving stupid importance to a tab that was created but never opened and avoid backfilling
+    // the activation timestamp with now() in the scorer, the time of creation is considered an active time.
     iTab.statistics = tmp;
   }
 
   async updateStatistics(iTab, fromCache = false, activitySwitch = false) {
+    // activitySwitch is when a tab becomes active but is still inactive
+    //
+    // Deboucing logic: to avoid biaising the last_active_timestamp which can have high
+    //   importance in the scorer, short activities are not registered.
+    //   This works by using a temporary last_active_timestamp variable.
+    //   When this variable is 'old' enough, it is saved permanently and active statistics gets updated only now.
+    //   - If the tab becomes inactive before the value is saved, the inactive time will be
+    //     updated at next cycle as updated_at was untouched.
+    //   - If it is saved, as updated_at wasn't changed till then the correct active time will be saved.
+    //   - If it is killed ? `cannot` happen if the tab is active even temporarily
+    //   - If it is getting cached ? this edge case is not handled and the information is lost (a short
+    //     amount of inactive time is disappearing). This happends if you go on a tab and quickly switch url.
+    //     This is considered a stupid edge case, fixing would bring almost no value.
+    //
+    // use cases:
+    // - updateAllStatistics : every X seconds all stats are updated (not from cache, no activitySwitch)
+    //    | additional time since last update should be added to correct active / inactive variables
+    // - policy.killTab : the tab just got killed
+    //    | updating statistics in case of a future restore
+    // - restoreTab : a tab is restored from the popup with its old statistics (fromCache)
+    //    | the time spent in cache should be updated (hypothesis: updated at is the time of killing)
+    //    | additionnally it is considered a reactivation (even if the tab is not active) to give importance to the event
+    // - setActivated : when a new tab becomes active, all tabs within the window are updated, keeping their status (not from cache, no activitySwitch)
+    //    | same as updateAllStatistics
+    // - setActivated : the tab that gets activated gets updated (not fromCache, activitySwith true)
+    //    | the tab stats should be updated as normal BUT the last active timestamp gets updated as well as activation count
+    // - updateTab : setActivated cases above
+    // - updateTab : url change, old url stats are updated (not from cache, no activitySwitch)
+    //    | times are updated according to old status, in case we are switching to cache this enforces the below hypothesis
+    // - updateTab : url change, old url stats are restored from cache (from cache, no activitySwitch)
+    //    | the time spent in cache should be updated (hypothesis: updated at is the time when it switched to cache)
+    //    | additionnally it is considered a reactivation (even if the tab is not active) to give importance to the event
+
     let now = Date.now();
     if (fromCache) {
       activitySwitch = true; // restored from cache is considered a reactivation
       iTab.statistics.total_cached_time += now - iTab.statistics.updated_at;
-      iTab.statistics.updated_at = now; // protip
-      iTab.statistics.activated += 1;
+      iTab.statistics.updated_at = now;
     } else {
       if (iTab.active) {
-        iTab.statistics.total_active_time += now - iTab.statistics.updated_at;
-        iTab.statistics.last_active_timestamp = now;
-      } else {
-        if (activitySwitch || iTab.statistics.activated === 0) {
-          iTab.statistics.activated += 1;
+        if (now - iTab.statistics.temp_last_active_timestamp >= MIN_ACTIVE_DEBOUNCE) {
+          // debounce
+          if (iTab.statistics.temp_last_active_timestamp !== iTab.statistics.last_active_timestamp) {
+            iTab.statistics.last_active_timestamp = iTab.statistics.temp_last_active_timestamp;
+            iTab.statistics.activated += 1;
+          }
+          iTab.statistics.total_active_time += now - iTab.statistics.updated_at;
+          iTab.statistics.updated_at = now;
         }
+      } else {
         iTab.statistics.total_inactive_time += now - iTab.statistics.updated_at;
+        iTab.statistics.updated_at = now;
       }
-      iTab.statistics.updated_at = now;
     }
+    if (activitySwitch) {
+      iTab.statistics.temp_last_active_timestamp = now; // this is the timestamp when the tab started to be active last
+    }
+  }
+
+  async idleStatistics(iTab) {
+    // Handles the logic when the user is idling.
+    //
+    // Why is this not in update statistics ?
+    //  To avoid requesting a million times the idle state.
+    //
+    // How does it work?
+    //   The idea is to shift in time all time references by the idling period (which is
+    //   a runtime event).
+    let now = Date.now();
+    let offset = now - this.runtime_events.last_idling_timestamp;
+    iTab.statistics.updated_at += offset;
+    iTab.statistics.temp_last_active_timestamp += offset;
+    iTab.statistics.last_active_timestamp += offset;
+  }
+
+  async idleStateChange(state) {
+    let now = Date.now();
+    logger(this, 'New idle state ' + state);
+    if (state === 'idle' && this.runtime_events.last_idle_state === true) {
+      this.runtime_events.last_idling_timestamp = now - MAX_ACTIVE_DEBOUNCE;
+    } else if (state === 'locked' && this.runtime_events.last_idle_state === true) {
+      this.runtime_events.last_idling_timestamp = now; // if the computer is locked before 5min we don't now exactly
+    } else if (state === 'active' && this.runtime_events.last_idle_state === false) {
+      var tab_ids = Object.keys(this.tabs);
+      for (var i = 0; i < tab_ids.length; i++) {
+        await this.idleStatistics(this.tabs[tab_ids[i]]);
+      }
+    } // else nothing we are switching between idle states
+    this.runtime_events.last_idle_state = state === 'active';
   }
 
   async updateAllStatistics() {
@@ -306,19 +391,43 @@ class MemoryManager {
     let restoredTab = this.closed_history.filter((tab) => {
       return tab.tabId === tabId;
     })[0];
-    // let cache = LRUfactory.fromJSON(restoredTab.cache);
-    let tab = await new Promise((resolve, reject) => {
-      chrome.tabs.create({ url: restoredTab.full_url, active: false }, (tab) => {
-        if (chrome.runtime.lastError) {
-          reject(false);
-        } else {
-          resolve(tab);
-        }
+
+    let tab = null;
+    let fromSession = false;
+    if (restoredTab.sessionId && this.focusedWindowId === parseInt(restoredTab.windowId)) {
+      tab = await new Promise((resolve, reject) => {
+        chrome.sessions.restore(restoredTab.sessionId, (session) => {
+          if (chrome.runtime.lastError) {
+            reject(false);
+          } else {
+            resolve(session.tab);
+          }
+        });
       });
-    });
+    }
+
+    if (tab) {
+      logger(this, 'Restoring tab from session');
+      fromSession = true;
+    } else {
+      logger(this, 'Creating shell tab');
+      tab = await new Promise((resolve, reject) => {
+        chrome.tabs.create({ url: restoredTab.full_url, active: false }, (tab) => {
+          if (chrome.runtime.lastError) {
+            reject(false);
+          } else {
+            resolve(tab);
+          }
+        });
+      });
+    }
+
     await this.createTab(tab);
     this.tabs[tab.id].statistics = copy(restoredTab.statistics);
-    // this.tabs[tab.tabId].cache = cache;  // do not restore cache as history is lost
+    if (fromSession) {
+      let cache = LRUfactory.fromJSON(restoredTab.cache);
+      this.tabs[tab.id].cache = cache; // restore cache if history is not lost
+    }
     await this.protectTab(tab.id);
     this.tabs[tab.id].cache.write(restoredTab.url, this.tabs[tab.id].statistics); // hack :D
     await this.updateStatistics(this.tabs[tab.id], true);
@@ -384,3 +493,6 @@ class MemoryManager {
 }
 
 export var memoryManager = new MemoryManager();
+if (ENV === 'debug') {
+  window.memoryManager = memoryManager;
+}

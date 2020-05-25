@@ -104,21 +104,17 @@ class Home extends PureComponent {
           if (website.title && website.title.length > MAX_LENGTH_TITLE) {
             website.title = website.title.substring(0, MAX_LENGTH_TITLE).concat('...');
           }
-          if (website.title && website.title.length > MAX_LENGTH_TITLE) {
-            website.truncated_url = website.url.split('/')[0];
-          } else {
-            website.truncated_url = website.url;
-          }
+          website.truncated_url = website.url.split('/')[0];
           return website;
         });
     }
     const isNext = listToBeRendered === NEXT;
     const filteredList = this.filterList(selectedList).reverse();
 
-    const listItem = ({ index, key, style }) => {
+    const listItem = ({ index, style }) => {
       const website = filteredList[index];
       return (
-        <div key={key} style={style}>
+        <div key={index} style={style}>
           <ListItem ContainerComponent="div">
             <div className={classes.gridAvatarWithTime}>
               <Typography className={classes.timeDisplay}>
@@ -178,19 +174,19 @@ class Home extends PureComponent {
     const numberClosedTabsLastHour = this.state.closed_history ? this.filterList(this.state.closed_history).length : 0;
     return (
       <div className="card-body">
-        <Typography variant="h3" className={classes.title}>
+        <div variant="h3" className={classes.title}>
           <Typography className={classes.boldNumber}>
             {numberClosedTabsLastHour ? numberClosedTabsLastHour : 0}
           </Typography>
-          <Typography className={classes.textOnRight}>
+          <div className={classes.textOnRight}>
             <Typography className={classes.topText}>
               {' '}
               tab
               {numberClosedTabsLastHour <= 1 ? '' : 's'} closed
             </Typography>
             <Typography className={classes.middleText}> in the last {`${NUMBER_HOURS} hours`} </Typography>
-          </Typography>
-        </Typography>
+          </div>
+        </div>
         {this.renderList.bind(this)(REMOVED)}
         {/*{this.renderList.bind(this)(NEXT)}*/}
         <div className={classes.linkToForm}>
