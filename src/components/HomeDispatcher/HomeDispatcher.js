@@ -59,12 +59,20 @@ class HomeDispatcher extends PureComponent {
                 <Tab
                   label="Home"
                   value={'HOME'}
-                  style={{ fontSize: this.state.appBarValue == 'HOME' ? 17 : 14, color: '#1b9e74' }}
+                  style={{
+                    fontSize: this.state.appBarValue == 'HOME' ? 19 : 16,
+                    color: '#1b9e74',
+                    textTransform: 'capitalize',
+                  }}
                 />
                 <Tab
                   label="Settings"
                   value={'SETTINGS'}
-                  style={{ fontSize: this.state.appBarValue == 'SETTINGS' ? 17 : 14, color: '#1b9e74' }}
+                  style={{
+                    fontSize: this.state.appBarValue == 'SETTINGS' ? 19 : 16,
+                    color: '#1b9e74',
+                    textTransform: 'capitalize',
+                  }}
                 />
                 {/*<Tab label="Debug" value={"DEBUG"} disabled className={classes.tab}/>*/}
               </Tabs>

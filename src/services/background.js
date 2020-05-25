@@ -12,9 +12,12 @@ chrome.runtime.onStartup.addListener(function () {
 });
 
 chrome.runtime.onInstalled.addListener(function (details) {
-  eventQueue.enqueue(() => storageReset());
-  eventQueue.enqueue(() => settingsManager.reset());
-  eventQueue.enqueue(() => memoryManager.reset());
+  if (details.reason == 'install' || details.reason == 'update') {
+    eventQueue.enqueue(() => storageReset());
+    eventQueue.enqueue(() => settingsManager.reset());
+    eventQueue.enqueue(() => memoryManager.reset());
+  }
+
   if (details.reason == 'install') {
     chrome.tabs.create({ url: 'https://www.tabby.us/' });
     logger('Extension installed :D');

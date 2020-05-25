@@ -96,6 +96,12 @@ function storageReset() {
   });
 }
 
+function getLastFocusedWindow() {
+  return new Promise((resolve, reject) => {
+    chrome.windows.getLastFocused({ populate: false, windowTypes: ['normal'] }, (d) => resolve(d.id));
+  });
+}
+
 logger('Starting in ' + ENV + ' env.');
 export {
   logger,
@@ -109,4 +115,5 @@ export {
   isInteger,
   isUserActive,
   storageReset,
+  getLastFocusedWindow,
 };

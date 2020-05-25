@@ -1,11 +1,11 @@
 import _ from 'lodash';
-import { logger, getDomain, storageSet, copy, storageGet, isUserActive } from './utils.js';
+import { logger, getDomain, storageSet, copy, storageGet, getLastFocusedWindow, isUserActive } from './utils.js';
 import { MIN_ACTIVE_DEBOUNCE, MAX_ACTIVE_DEBOUNCE } from '../config/env.js';
 import { LRUfactory, LRU } from './LRU.js';
 import { settingsManager } from './settings.js';
 
 class MemoryManager {
-  focusedWindowId = null;
+  focused_window_id = null;
 
   empty_stats = {
     total_active_time: 0, // total time the tab spent active
@@ -45,6 +45,7 @@ class MemoryManager {
   }
 
   async init() {
+    this.focused_window_id = await getLastFocusedWindow();
     this.tabs = {};
     this.closed_history = [];
     this.current_scores = {};
@@ -71,18 +72,20 @@ class MemoryManager {
       closed_history: this.closed_history,
       current_scores: this.current_scores,
       runtime_events: this.runtime_events,
+      focused_window_id: this.focused_window_id,
     });
   }
 
   async load() {
     if (!this.loaded) {
-      let data = await storageGet(['tabs', 'closed_history', 'current_scores', 'runtime_events']);
+      let data = await storageGet(['tabs', 'closed_history', 'current_scores', 'runtime_events', 'focused_window_id']);
       try {
         logger(this, 'Loading state from storage');
         this.closed_history = data.closed_history;
         this.runtime_events = data.runtime_events;
         this.current_scores = data.current_scores;
         this.tabs = JSON.parse(data.tabs);
+        this.focused_window_id = data.focused_window_id;
         for (let key of Object.keys(this.tabs)) {
           let tab = this.tabs[key];
           tab.cache = LRUfactory.fromJSON(tab.cache);
@@ -202,7 +205,7 @@ class MemoryManager {
   }
   async changeFocusedWindowId(windowId) {
     if (windowId >= 0) {
-      this.focusedWindowId = windowId;
+      this.focused_window_id = windowId;
     }
   }
 
@@ -394,7 +397,7 @@ class MemoryManager {
 
     let tab = null;
     let fromSession = false;
-    if (restoredTab.sessionId && this.focusedWindowId === parseInt(restoredTab.windowId)) {
+    if (restoredTab.sessionId && this.focused_window_id === parseInt(restoredTab.windowId)) {
       tab = await new Promise((resolve, reject) => {
         chrome.sessions.restore(restoredTab.sessionId, (session) => {
           if (chrome.runtime.lastError) {
