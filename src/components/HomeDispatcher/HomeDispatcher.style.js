@@ -9,7 +9,7 @@ const styles = (theme) => ({
     minWidth: 400,
   },
   tab: {
-    color: '#1b9e74',
+    color: '#00b9aa',
   },
   notification: {
     left: 150,
@@ -18,17 +18,29 @@ const styles = (theme) => ({
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'left',
+    justifyContent: 'space-between',
+    marginTop: theme.spacing(1.25),
   },
   allTabs: {
     maxWidth: '75%',
   },
+  ensemblelogo: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'left',
+  },
   logoAvatar: {
-    marginTop: theme.spacing(1),
     marginLeft: theme.spacing(2),
-    marginRight: theme.spacing(1),
-    width: theme.spacing(7.5),
-    height: theme.spacing(7.5),
+    width: theme.spacing(4),
+    height: theme.spacing(4),
+  },
+  logoFull: {
+    marginLeft: theme.spacing(2.25),
+    width: theme.spacing(12),
+  },
+  iconContainer: {
+    marginRight: theme.spacing(2.25),
   },
 });
 export default withStyles(styles)(HomeDispatcher);

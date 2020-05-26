@@ -11,17 +11,17 @@
   "browser_action": {
     "default_popup": "./views/popup.html",
     "default_icon": {
-      "16": "./assets/static/icons/tabby_icon_16.png",
-      "32": "./assets/static/icons/tabby_icon_32.png",
-      "48": "./assets/static/icons/tabby_icon_48.png",
-      "128": "./assets/static/icons/tabby_icon_128.png"
+      "16": "./assets/static/icons/tabby_16.png",
+      "32": "./assets/static/icons/tabby_32.png",
+      "48": "./assets/static/icons/tabby_48.png",
+      "128": "./assets/static/icons/tabby_128.png"
     }
   },
   "icons": {
-    "16": "./assets/static/icons/tabby_icon_16.png",
-    "32": "./assets/static/icons/tabby_icon_32.png",
-    "48": "./assets/static/icons/tabby_icon_48.png",
-    "128": "./assets/static/icons/tabby_icon_128.png"
+    "16": "./assets/static/icons/tabby_16.png",
+    "32": "./assets/static/icons/tabby_32.png",
+    "48": "./assets/static/icons/tabby_48.png",
+    "128": "./assets/static/icons/tabby_128.png"
   },
   "manifest_version": 2
 }

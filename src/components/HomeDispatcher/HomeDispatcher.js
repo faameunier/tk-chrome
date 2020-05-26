@@ -3,10 +3,13 @@ import Link from '@material-ui/core/Link';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import Paper from '@material-ui/core/Paper';
-import Settings from '../Settings';
-import Home from '../Home';
-import { SnackbarProvider } from 'notistack';
+import SettingsIcon from '@material-ui/icons/Settings';
+import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
 import Avatar from '@material-ui/core/Avatar/Avatar';
+import { SnackbarProvider } from 'notistack';
+import Settings from '../Settings';
+import IconButton from '@material-ui/core/IconButton';
+import Home from '../Home';
 import { logger } from '../../services/utils.js';
 
 class HomeDispatcher extends PureComponent {
@@ -20,10 +23,10 @@ class HomeDispatcher extends PureComponent {
     logger(this, 'Popup opened');
   }
 
-  handleChange(event, newValue) {
+  handleChange = (newValue) => () => {
     this.setState({ appBarValue: newValue });
     logger(this, 'Switch to ' + newValue);
-  }
+  };
 
   dispatchPage() {
     switch (this.state.appBarValue) {
@@ -31,6 +34,36 @@ class HomeDispatcher extends PureComponent {
         return <Home />;
       case 'SETTINGS':
         return <Settings />;
+      default:
+        return <div>This is an error page</div>;
+    }
+  }
+
+  displayIcon() {
+    const { classes } = this.props;
+    switch (this.state.appBarValue) {
+      case 'HOME':
+        return (
+          <IconButton
+            color="secondary"
+            component="div"
+            onClick={this.handleChange('SETTINGS')}
+            className={classes.iconContainer}
+          >
+            <SettingsIcon />
+          </IconButton>
+        );
+      case 'SETTINGS':
+        return (
+          <IconButton
+            color="secondary"
+            component="div"
+            onClick={this.handleChange('HOME')}
+            className={classes.iconContainer}
+          >
+            <ArrowBackIosIcon />
+          </IconButton>
+        );
       default:
         return <div>This is an error page</div>;
     }
@@ -48,34 +81,15 @@ class HomeDispatcher extends PureComponent {
         <div className={classes.homeContainer}>
           <Paper square>
             <div className={classes.gridLogoTabs}>
-              <Link href="https://tabby.us" target="_blank">
-                <Avatar alt="logoTabby" src={'../../assets/static/icons/tabby.png'} className={classes.logoAvatar} />
+              <Link href="https://tabby.us" target="_blank" className={classes.ensemblelogo}>
+                {/*<Avatar*/}
+                {/*alt="logoTabby"*/}
+                {/*src={'../../assets/static/icons/tabby_128.png'}*/}
+                {/*className={classes.logoAvatar}*/}
+                {/*/>*/}
+                <img src={'../../assets/static/icons/tabby_2.png'} className={classes.logoFull} />
               </Link>
-              <Tabs
-                value={this.state.appBarValue ? this.state.appBarValue : 'HOME'}
-                onChange={(e, v) => this.handleChange(e, v)}
-                className={classes.allTabs}
-              >
-                <Tab
-                  label="Home"
-                  value={'HOME'}
-                  style={{
-                    fontSize: this.state.appBarValue == 'HOME' ? 19 : 16,
-                    color: '#1b9e74',
-                    textTransform: 'capitalize',
-                  }}
-                />
-                <Tab
-                  label="Settings"
-                  value={'SETTINGS'}
-                  style={{
-                    fontSize: this.state.appBarValue == 'SETTINGS' ? 19 : 16,
-                    color: '#1b9e74',
-                    textTransform: 'capitalize',
-                  }}
-                />
-                {/*<Tab label="Debug" value={"DEBUG"} disabled className={classes.tab}/>*/}
-              </Tabs>
+              {this.displayIcon()}
             </div>
             <div>{this.dispatchPage()}</div>
           </Paper>
