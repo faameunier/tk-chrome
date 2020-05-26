@@ -407,7 +407,7 @@ class MemoryManager {
 
     let tab = null;
     let fromSession = false;
-    if (restoredTab.sessionId && this.focusedWindow === parseInt(restoredTab.windowId)) {
+    if (restoredTab.sessionId && this.focused_window_id === parseInt(restoredTab.windowId)) {
       try {
         tab = await new Promise((resolve, reject) => {
           chrome.sessions.restore(restoredTab.sessionId, (session) => {
