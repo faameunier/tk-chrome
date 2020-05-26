@@ -6,6 +6,9 @@ import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
 import Avatar from '@material-ui/core/Avatar';
 import Typography from '@material-ui/core/Typography';
+import Link from '@material-ui/core/Link';
+import ReportProblemIcon from '@material-ui/icons/ReportProblem';
+import IconButton from '@material-ui/core/IconButton';
 import { FixedSizeList as List } from 'react-window';
 
 import { setAllReadBadge } from '../../services/utils';
@@ -188,14 +191,14 @@ class Home extends PureComponent {
           </div>
         </div>
         {this.renderList.bind(this)(REMOVED)}
-        {/*{this.renderList.bind(this)(NEXT)}*/}
-        <div className={classes.linkToForm}>
-          <a
+        <div className={classes.footerContainer}>
+          <Link
             href="https://docs.google.com/forms/d/e/1FAIpQLSdUEJHd0bL6ryFvZk220CoZp7cwvFxESorps7cngk0wQfyu-Q/viewform"
             target="_blank"
+            className={classes.linkToForm}
           >
             Report a bug or send us a feedback?
-          </a>
+          </Link>
         </div>
       </div>
     );

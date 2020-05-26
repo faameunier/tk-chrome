@@ -31,19 +31,19 @@ const styles = (theme) => ({
     maxWidth: '30%',
   },
   middleText: {
-    fontSize: 12,
+    fontSize: 13,
   },
   topText: {
     fontSize: 16,
   },
   subText: {
-    fontSize: 12,
+    fontSize: 13,
     marginTop: 10,
   },
   button: {
     textTransform: 'capitalize',
     fontWeight: 'normal',
-    fontSize: 12,
+    fontSize: 13,
     maxWidth: 20,
   },
   buttonContainer: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-evenly' },
@@ -65,12 +65,16 @@ const styles = (theme) => ({
   listWebsites: {
     marginTop: 20,
   },
-  linkToForm: {
-    position: 'relative',
-    left: '55%',
-    fontSize: 10,
+  footerContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
     marginTop: 15,
-    maxWidth: '75%',
+    minWidth: '100%',
+  },
+  linkToForm: {
+    fontSize: 10,
   },
   avatarContainer: {
     maxWidth: theme.spacing(7),
