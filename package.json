@@ -48,8 +48,8 @@
     "notistack": "^0.9.9",
     "npm-watch": "^0.6.0",
     "react": "^16.8.6",
-    "react-bootstrap": "^1.0.0-beta.9",
-    "react-dom": "^16.8.6"
+    "react-dom": "^16.8.6",
+    "react-window": "^1.8.5"
   },
   "prettier": {
     "trailingComma": "es5",

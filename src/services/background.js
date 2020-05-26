@@ -11,11 +11,19 @@ chrome.runtime.onStartup.addListener(function () {
   logger(chrome.runtime.getManifest().version);
 });
 
-chrome.runtime.onInstalled.addListener(function () {
-  eventQueue.enqueue(() => storageReset());
-  eventQueue.enqueue(() => settingsManager.reset());
-  eventQueue.enqueue(() => memoryManager.reset());
-  logger('Extension installed :D');
+chrome.runtime.onInstalled.addListener(function (details) {
+  if (details.reason == 'install' || details.reason == 'update') {
+    eventQueue.enqueue(() => storageReset());
+    eventQueue.enqueue(() => settingsManager.reset());
+    eventQueue.enqueue(() => memoryManager.reset());
+  }
+
+  if (details.reason == 'install') {
+    chrome.tabs.create({ url: 'https://www.tabby.us/' });
+    logger('Extension installed :D');
+  } else if (details.reason == 'update') {
+    logger('Extension updated :D');
+  }
   logger(chrome.runtime.getManifest().version);
 });
 
@@ -85,4 +93,8 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       break;
   }
   eventQueue.enqueue(() => sendResponsePromisified({ answer: 1 }));
+});
+
+chrome.windows.onFocusChanged.addListener(function (windowId) {
+  eventQueue.enqueue(() => memoryManager.changeFocusedWindowId(windowId));
 });

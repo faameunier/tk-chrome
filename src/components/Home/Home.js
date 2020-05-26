@@ -1,13 +1,12 @@
 import React, { PureComponent } from 'react';
-import Button from 'react-bootstrap/Button';
-
-import List from '@material-ui/core/List';
+import Button from '@material-ui/core/Button';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemAvatar from '@material-ui/core/ListItemAvatar';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
 import Avatar from '@material-ui/core/Avatar';
 import Typography from '@material-ui/core/Typography';
+import { FixedSizeList as List } from 'react-window';
 
 import { setAllReadBadge } from '../../services/utils';
 
@@ -89,8 +88,7 @@ class Home extends PureComponent {
     const { classes } = this.props;
 
     let selectedList;
-    const MAX_LENGTH_TITLE = 50;
-    const MAX_LENGTH_URL = 40;
+    const MAX_LENGTH_TITLE = 100;
 
     switch (listToBeRendered) {
       case NEXT:
@@ -106,55 +104,66 @@ class Home extends PureComponent {
           if (website.title && website.title.length > MAX_LENGTH_TITLE) {
             website.title = website.title.substring(0, MAX_LENGTH_TITLE).concat('...');
           }
-          if (website.title && website.title.length > MAX_LENGTH_TITLE) {
-            website.truncated_url = website.url.substring(0, MAX_LENGTH_URL).concat('...');
-          } else {
-            website.truncated_url = website.url;
-          }
+          website.truncated_url = website.url.split('/')[0];
           return website;
         });
     }
     const isNext = listToBeRendered === NEXT;
     const filteredList = this.filterList(selectedList).reverse();
+
+    const listItem = ({ index, style }) => {
+      const website = filteredList[index];
+      return (
+        <div key={index} style={style}>
+          <ListItem ContainerComponent="div">
+            <div className={classes.gridAvatarWithTime}>
+              <Typography className={classes.timeDisplay}>
+                {`${website.hours_deletion}:${website.minutes_deletion}`}
+              </Typography>
+              <ListItemAvatar>
+                <Avatar alt={website.title} src={website.favIconUrl} className={classes.avatarContainer} />
+              </ListItemAvatar>
+            </div>
+            <ListItemText
+              primary={website.truncated_url}
+              secondary={website.title}
+              classes={{
+                primary: classes.primaryTextContainer,
+                secondary: classes.secondaryTextContainer,
+              }}
+              className={classes.itemText}
+            />
+            <ListItemSecondaryAction>
+              <div className={classes.buttonContainer}>
+                <Button
+                  size="small"
+                  onClick={isNext ? this.removeNextItem.bind(this, index) : this.removeItem.bind(this, index)}
+                  variant="outlined"
+                  color="secondary"
+                  className={classes.button}
+                >
+                  {isNext ? 'Skip' : 'Restore'}
+                </Button>
+              </div>
+            </ListItemSecondaryAction>
+          </ListItem>
+        </div>
+      );
+    };
     return (
       <div className={classes.listWebsites}>
         <Typography variant="h6" className={classes.greenTitle}>
           {isNext ? 'Next tabs to be closed' : `Last closed tabs`}
         </Typography>
-        <div className={classes.listItems}>
-          <List dense={true}>
-            {filteredList.length === 0 ? (
-              <p>{`No tabs closed in the last ${NUMBER_HOURS} hours.`}</p>
-            ) : (
-              filteredList.map((website, i) => (
-                <ListItem key={i}>
-                  <div className={classes.gridAvatarWithTime}>
-                    <Typography className={classes.timeDisplay}>
-                      {`${website.hours_deletion}:${website.minutes_deletion}`}
-                    </Typography>
-                    <ListItemAvatar>
-                      <Avatar alt={website.title} src={website.favIconUrl} className={classes.avatarContainer} />
-                    </ListItemAvatar>
-                  </div>
-                  <ListItemText
-                    primary={website.truncated_url}
-                    secondary={website.title}
-                    className={classes.itemText}
-                  />
-                  <ListItemSecondaryAction>
-                    <Button
-                      size="large"
-                      onClick={isNext ? this.removeNextItem.bind(this, i) : this.removeItem.bind(this, i)}
-                      variant="outline-primary"
-                      className={classes.button}
-                    >
-                      {isNext ? 'Skip' : 'Restore'}
-                    </Button>
-                  </ListItemSecondaryAction>
-                </ListItem>
-              ))
-            )}
-          </List>
+
+        <div>
+          {filteredList.length === 0 ? (
+            <div className={classes.subText}>{`You should maybe update your settings.`}</div>
+          ) : (
+            <List height={Math.min(80 * filteredList.length, 300)} itemCount={filteredList.length} itemSize={80}>
+              {listItem}
+            </List>
+          )}
         </div>
       </div>
     );
@@ -165,17 +174,19 @@ class Home extends PureComponent {
     const numberClosedTabsLastHour = this.state.closed_history ? this.filterList(this.state.closed_history).length : 0;
     return (
       <div className="card-body">
-        <Typography variant="h3" className={classes.title}>
-          <Typography className={classes.boldText}>
-            {numberClosedTabsLastHour ? numberClosedTabsLastHour : 'No'} tab
-            {numberClosedTabsLastHour === 1 ? '' : 's'}
+        <div variant="h3" className={classes.title}>
+          <Typography className={classes.boldNumber}>
+            {numberClosedTabsLastHour ? numberClosedTabsLastHour : 0}
           </Typography>
-          <Typography className={classes.middleText}>
-            {' '}
-            {numberClosedTabsLastHour === 1 ? 'was' : 'were'} closed in the last{' '}
-          </Typography>
-          <Typography className={classes.boldText}> {`${NUMBER_HOURS} hours!`} </Typography>
-        </Typography>
+          <div className={classes.textOnRight}>
+            <Typography className={classes.topText}>
+              {' '}
+              tab
+              {numberClosedTabsLastHour <= 1 ? '' : 's'} closed
+            </Typography>
+            <Typography className={classes.middleText}> in the last {`${NUMBER_HOURS} hours`} </Typography>
+          </div>
+        </div>
         {this.renderList.bind(this)(REMOVED)}
         {/*{this.renderList.bind(this)(NEXT)}*/}
         <div className={classes.linkToForm}>

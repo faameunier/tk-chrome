@@ -7,6 +7,9 @@ import HomeDispatcher from '../components/HomeDispatcher';
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 
 const theme = createMuiTheme({
+  typography: {
+    fontFamily: 'Helvetica',
+  },
   palette: {
     secondary: {
       main: '#1b9e74',
