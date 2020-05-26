@@ -70,11 +70,15 @@ const styles = (theme) => ({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
-    marginTop: 15,
+    marginTop: theme.spacing(1.25),
     minWidth: '100%',
   },
   linkToForm: {
     fontSize: 10,
+  },
+  iconContainer: {
+    marginRight: theme.spacing(0.25),
+    fontSize: theme.spacing(2),
   },
   avatarContainer: {
     maxWidth: theme.spacing(7),

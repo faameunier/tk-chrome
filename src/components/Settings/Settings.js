@@ -169,16 +169,15 @@ class Settings extends PureComponent {
               checked={this.state.settings[POLICY][ACTIVE_POLICY]}
               onChange={this.handleSwitch(POLICY, ACTIVE_POLICY)}
               color="secondary"
+              className={classes.switchWrapper}
             />
           }
           className={classes.switchContainer}
-          label="Enable Tabby"
+          label={<Typography className={classes.styleLabel}>Enable on this window</Typography>}
         />
         <div className={classes.introductionBlock}>
           <TuneIcon />
-          <Typography variant="h3" className={classes.title}>
-            Select the best mode or customize it
-          </Typography>
+          <Typography className={classes.parametersTitle}>Select the best mode or customize it</Typography>
         </div>
 
         <FormGroup className={classes.settingsWrapper}>
@@ -191,7 +190,7 @@ class Settings extends PureComponent {
                 className={classes.checkboxWrapper}
               />
             }
-            label="Focus"
+            label={<Typography className={classes.styleLabel}>Focus</Typography>}
             className={classes.firstBooleans}
           />
           <FormControlLabel
@@ -203,7 +202,7 @@ class Settings extends PureComponent {
                 className={classes.checkboxWrapper}
               />
             }
-            label="Relax"
+            label={<Typography className={classes.styleLabel}>Relax</Typography>}
             className={classes.firstBooleans}
           />
           <div className={classes.customizeWrapper}>
@@ -216,7 +215,7 @@ class Settings extends PureComponent {
                   className={classes.checkboxWrapper}
                 />
               }
-              label="Customize"
+              label={<Typography className={classes.styleLabel}>Customize</Typography>}
               className={classes.firstBooleans}
             />
             <Link href="https://tabby.us" target="_blank">
