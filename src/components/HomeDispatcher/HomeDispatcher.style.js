@@ -40,7 +40,8 @@ const styles = (theme) => ({
     width: theme.spacing(12),
   },
   iconContainer: {
-    marginRight: theme.spacing(2.25),
+    marginTop: theme.spacing(0.5),
+    marginRight: theme.spacing(1.5),
   },
 });
 export default withStyles(styles)(HomeDispatcher);
