@@ -21,7 +21,7 @@ const styles = (theme) => ({
     fontSize: 16,
     display: 'flex',
     flexDirection: 'row',
-    borderBottom: `2px solid #1b9e74`,
+    borderBottom: `2px solid #00b9aa`,
     maxWidth: 225,
   },
 
