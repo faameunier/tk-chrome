@@ -44,5 +44,8 @@ const styles = (theme) => ({
     marginTop: theme.spacing(2),
     marginRight: theme.spacing(1.5),
   },
+  success: {
+    background: 'linear-gradient(45deg,#80e0a7, #00b9aa)',
+  },
 });
 export default withStyles(styles)(HomeDispatcher);

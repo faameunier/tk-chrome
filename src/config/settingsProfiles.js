@@ -12,7 +12,7 @@ if (ENV === 'debug') {
       min_time_garbage_collector: 5 * 1000,
     },
     policy: {
-      active_policy: true,
+      inactive_policy: [],
       target_tabs: 12,
       decay: 0.8,
       min_time: 3 * 1000,
@@ -35,7 +35,7 @@ if (ENV === 'debug') {
       min_time_garbage_collector: 5 * 1000,
     },
     policy: {
-      active_policy: true,
+      inactive_policy: [],
       target_tabs: 5,
       decay: 0.8,
       min_time: 3 * 1000,
@@ -58,7 +58,7 @@ if (ENV === 'debug') {
       min_time_garbage_collector: 10 * 60 * 1000,
     },
     policy: {
-      active_policy: true,
+      inactive_policy: [],
       target_tabs: 12,
       decay: 0.8,
       min_time: 3 * 1000,
@@ -81,7 +81,7 @@ if (ENV === 'debug') {
       min_time_garbage_collector: 10 * 60 * 1000,
     },
     policy: {
-      active_policy: true,
+      inactive_policy: [],
       target_tabs: 5,
       decay: 0.8,
       min_time: 3 * 1000,

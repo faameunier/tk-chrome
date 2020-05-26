@@ -17,7 +17,7 @@ import {
   INIT_FOCUSED_PROFILE,
   INIT_RELAXED_PROFILE,
 } from '../../config/settingsProfiles.js';
-import { checkSettings, OPTIMAL_NUMBER_TABS, POLICY, ACTIVE_POLICY } from '../utils';
+import { checkSettings, OPTIMAL_NUMBER_TABS, POLICY, INACTIVE_POLICY, removeItem } from '../utils';
 import { isInteger } from '../../services/utils';
 import Link from '@material-ui/core/Link/Link';
 
@@ -30,6 +30,7 @@ class Settings extends PureComponent {
       customizedBool: false,
       settings: INIT_RELAXED_PROFILE,
       renderSaveBoolean: false,
+      focusedWindowId: true,
     };
     this.onChangedCallback = function (changes) {
       const changesSettings = changes['settings'];
@@ -51,17 +52,19 @@ class Settings extends PureComponent {
   }
 
   componentDidMount() {
-    chrome.storage.local.get(['active_profile', 'settings'], (result) => {
+    chrome.storage.local.get(['active_profile', 'settings', 'focused_window_id'], (result) => {
       const profile = result.active_profile || RELAXED;
       const focusedMode = profile === FOCUSED;
       const relaxedMode = profile === RELAXED;
       const customizedBool = profile === CUSTOMIZED;
       const settings = result.settings || INIT_RELAXED_PROFILE;
+      const focusedWindowId = result.focused_window_id;
       this.setState({
         focusedMode,
         relaxedMode,
         customizedBool,
         settings,
+        focusedWindowId,
       });
     });
     chrome.storage.onChanged.addListener(this.onChangedCallback);
@@ -129,7 +132,11 @@ class Settings extends PureComponent {
     if (!checkSettings(this.state.settings)) {
       settings = INIT_RELAXED_PROFILE;
     }
-    settings[path][parameter] = !this.state.settings[path][parameter];
+    if (settings[path][parameter].includes(this.state.focusedWindowId)) {
+      settings[path][parameter] = removeItem(settings[path][parameter], this.state.focusedWindowId);
+    } else {
+      settings[path][parameter].push(this.state.focusedWindowId);
+    }
     this.setState({ settings: settings, renderSaveBoolean: true }, () => {
       this.handleSaveParameters();
     });
@@ -166,8 +173,12 @@ class Settings extends PureComponent {
         <FormControlLabel
           control={
             <Switch
-              checked={this.state.settings[POLICY][ACTIVE_POLICY]}
-              onChange={this.handleSwitch(POLICY, ACTIVE_POLICY)}
+              checked={
+                this.state.focusedWindowId && this.state.settings[POLICY][INACTIVE_POLICY]
+                  ? !this.state.settings[POLICY][INACTIVE_POLICY].includes(this.state.focusedWindowId)
+                  : true
+              }
+              onChange={this.handleSwitch(POLICY, INACTIVE_POLICY)}
               color="secondary"
               className={classes.switchWrapper}
             />

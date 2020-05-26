@@ -21,7 +21,9 @@ class PolicyManager {
 
     let allScores = _.pick(memoryManager.current_scores, Object.keys(memoryManager.tabs)); // keeping a-only tabs that still exist
 
-    let windowIds = Object.keys(windows);
+    let windowIds = _.filter(Object.keys(windows), function (windowId) {
+      return !settingsManager.settings.policy.inactive_policy.includes(parseInt(windowId));
+    });
     let promises = _.map(windowIds, (windowId) => this.runWindow(windows, windowId));
     let results = await Promise.all(promises); // Running every windows update in parallel.
 
@@ -78,7 +80,7 @@ class PolicyManager {
     // Run policy for a given window
     // Returns true if the policy was run, false otherwise
     let tabs = windows[windowId];
-    if (settingsManager.settings.policy.active_policy && tabs.length > settingsManager.settings.policy.target_tabs) {
+    if (tabs.length > settingsManager.settings.policy.target_tabs) {
       // if too many tabs
       if (this.exponentialTrigger(tabs, windowId)) {
         // if we waited enough
