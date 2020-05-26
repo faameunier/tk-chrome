@@ -70,12 +70,6 @@ function setUnreadBadge() {
   });
 }
 
-function getLastFocusedWindow() {
-  return new Promise((resolve, reject) => {
-    chrome.windows.getLastFocused({ populate: false, windowTypes: ['normal'] }, (d) => resolve(d.id));
-  });
-}
-
 function isUserActive() {
   return new Promise((resolve, reject) => {
     chrome.idle.queryState(Math.round(MAX_ACTIVE_DEBOUNCE / 1000), (status) => {
@@ -95,10 +89,16 @@ function storageReset() {
   return new Promise((resolve, reject) => {
     chrome.storage.local.get(null, (d) => {
       chrome.storage.local.remove(Object.keys(d), () => {
-        logger('Memory flushed.')
+        logger('Memory flushed.');
         resolve();
       });
-    })
+    });
+  });
+}
+
+function getLastFocusedWindow() {
+  return new Promise((resolve, reject) => {
+    chrome.windows.getLastFocused({ populate: false, windowTypes: ['normal'] }, (d) => resolve(d.id));
   });
 }
 
@@ -113,7 +113,7 @@ export {
   setAllReadBadge,
   setUnreadBadge,
   isInteger,
-  getLastFocusedWindow,
   isUserActive,
   storageReset,
+  getLastFocusedWindow,
 };

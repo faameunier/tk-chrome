@@ -3,29 +3,22 @@ import { withStyles } from '@material-ui/core/styles';
 import Settings from './Settings';
 
 const styles = (theme) => ({
-  textField: {
-    marginTop: 0,
-    marginLeft: 20,
-    marginRight: 20,
-  },
-  activeBar: {
-    marginTop: 10,
-  },
-
   settingsWrapper: {
     display: 'flex',
     flexDirection: 'column',
-    justifyContent: 'start',
-    maxHeight: '50%',
-    //width: '100%',
-    //height: '100vh',
+    justifyContent: 'flex-start',
+    marginTop: 5,
+    marginLeft: 47,
+    marginRight: 20,
   },
   secondaryButton: {
-    marginTop: 10,
-    //marginDown: 5,
-    color: '#1b9e74',
-    borderColor: '#1b9e74',
+    marginTop: 18,
+    textTransform: 'capitalize',
+    fontWeight: 'normal',
+    fontSize: 12,
+    maxWidth: 20,
   },
+
   notification: {
     maxWidth: 150,
   },
@@ -34,24 +27,46 @@ const styles = (theme) => ({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'start',
-    //marginTop: 20,
+    marginLeft: 7,
   },
   title: {
     fontWeight: 'bold',
     fontSize: 17,
-    marginLeft: 10,
+    marginLeft: 16,
   },
   settingsBlock: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginLeft: 32,
+    marginTop: 4,
   },
   firstBooleans: {
-    maxWidth: '40%',
+    maxWidth: '36%',
+    maxHeight: 20,
+    marginTop: 5,
+    pointerEvents: 'none',
+  },
+  checkboxWrapper: {
+    pointerEvents: 'auto',
   },
   switchContainer: {
-    colorPrimary: 'red',
-    color: 'white',
+    maxHeight: 20,
+    marginBottom: 20,
+  },
+  textField: {
+    maxWidth: '85%',
+  },
+  customizeWrapper: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'start',
+    alignItems: 'start',
+  },
+  helpIcon: {
+    color: '#e55c00',
+    fontSize: 14,
+    marginBottom: 8,
   },
 });
 export default withStyles(styles)(Settings);

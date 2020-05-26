@@ -5,6 +5,8 @@ import { LRUfactory, LRU } from './LRU.js';
 import { settingsManager } from './settings.js';
 
 class MemoryManager {
+  focused_window_id = null;
+
   empty_stats = {
     total_active_time: 0, // total time the tab spent active
     total_inactive_time: 0, // total time the tab spent inactive
@@ -45,6 +47,7 @@ class MemoryManager {
   }
 
   async init() {
+    this.focused_window_id = await getLastFocusedWindow();
     this.tabs = {};
     this.closed_history = [];
     this.current_scores = {};
@@ -71,18 +74,20 @@ class MemoryManager {
       closed_history: this.closed_history,
       current_scores: this.current_scores,
       runtime_events: this.runtime_events,
+      focused_window_id: this.focused_window_id,
     });
   }
 
   async load() {
     if (!this.loaded) {
-      let data = await storageGet(['tabs', 'closed_history', 'current_scores', 'runtime_events']);
+      let data = await storageGet(['tabs', 'closed_history', 'current_scores', 'runtime_events', 'focused_window_id']);
       try {
         logger(this, 'Loading state from storage');
         this.closed_history = data.closed_history;
         this.runtime_events = data.runtime_events;
         this.current_scores = data.current_scores;
         this.tabs = JSON.parse(data.tabs);
+        this.focused_window_id = data.focused_window_id;
         for (let key of Object.keys(this.tabs)) {
           let tab = this.tabs[key];
           tab.cache = LRUfactory.fromJSON(tab.cache);
@@ -202,6 +207,11 @@ class MemoryManager {
       // missing tab is assigned to window and THAT'S IT
     } else {
       this.tabs[tabId].windowId = windowId;
+    }
+  }
+  async changeFocusedWindowId(windowId) {
+    if (windowId >= 0) {
+      this.focused_window_id = windowId;
     }
   }
 
@@ -394,11 +404,10 @@ class MemoryManager {
     let restoredTab = this.closed_history.filter((tab) => {
       return tab.tabId === tabId;
     })[0];
-    let focusedWindow = await getLastFocusedWindow();
 
     let tab = null;
     let fromSession = false;
-    if (restoredTab.sessionId && focusedWindow === parseInt(restoredTab.windowId)) {
+    if (restoredTab.sessionId && this.focusedWindow === parseInt(restoredTab.windowId)) {
       try {
         tab = await new Promise((resolve, reject) => {
           chrome.sessions.restore(restoredTab.sessionId, (session) => {
