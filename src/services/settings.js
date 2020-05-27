@@ -20,7 +20,7 @@ class SettingsManager {
   }
 
   async init() {
-    this.active_profile = RELAXED;
+    (this.inactive_policy = []), (this.active_profile = RELAXED);
     this.settings = INIT_RELAXED_PROFILE;
   }
 
@@ -44,22 +44,23 @@ class SettingsManager {
     await storageSet({
       settings: this.settings,
       active_profile: this.active_profile,
+      inactive_policy: this.inactive_policy,
     });
   }
 
   async load() {
     if (!this.loaded) {
-      let data = await storageGet(['settings', 'active_profile']);
+      let data = await storageGet(['settings', 'active_profile', 'inactive_policy']);
       try {
         logger(this, 'Loading settings from storage');
         if (
           typeof data.settings !== 'undefined' &&
-          //typeof data.profiles !== 'undefined' &&
-          typeof data.active_profile !== 'undefined'
+          typeof data.active_profile !== 'undefined' &&
+          typeof data.inactive_policy !== 'undefined'
         ) {
           this.settings = data.settings;
-          //this.profiles = data.profiles;
           this.active_profile = data.active_profile;
+          this.inactive_policy = data.inactive_policy;
         } else {
           throw 'Loading failed or version change';
         }
@@ -73,6 +74,10 @@ class SettingsManager {
 
   async updateSettings(settings) {
     this.settings = settings;
+    await this.save();
+  }
+  async updateInactivePolicy(inactive_policy) {
+    this.inactive_policy = inactive_policy;
     await this.save();
   }
 

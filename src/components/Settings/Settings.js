@@ -35,6 +35,7 @@ class Settings extends PureComponent {
     this.onChangedCallback = function (changes) {
       const changesSettings = changes['settings'];
       const changesProfile = changes['active_profile'];
+      const changedInactivePolicy = changes['inactive_policy'];
       if (changesSettings) {
         this.setState({
           settings: changesSettings['newValue'],
@@ -48,23 +49,28 @@ class Settings extends PureComponent {
           customizedBool: changesProfile['newValue'] === CUSTOMIZED,
         });
       }
+      if (changedInactivePolicy) {
+        this.setState({ inactivePolicy: changedInactivePolicy['newValue'] });
+      }
     }.bind(this);
   }
 
   componentDidMount() {
-    chrome.storage.local.get(['active_profile', 'settings', 'focused_window_id'], (result) => {
+    chrome.storage.local.get(['active_profile', 'settings', 'focused_window_id', 'inactive_policy'], (result) => {
       const profile = result.active_profile || RELAXED;
       const focusedMode = profile === FOCUSED;
       const relaxedMode = profile === RELAXED;
       const customizedBool = profile === CUSTOMIZED;
       const settings = result.settings || INIT_RELAXED_PROFILE;
       const focusedWindowId = result.focused_window_id;
+      const inactivePolicy = result.inactive_policy;
       this.setState({
         focusedMode,
         relaxedMode,
         customizedBool,
         settings,
         focusedWindowId,
+        inactivePolicy,
       });
     });
     chrome.storage.onChanged.addListener(this.onChangedCallback);
@@ -87,6 +93,9 @@ class Settings extends PureComponent {
     });
     if (changeType === RELAXED || changeType === FOCUSED) {
       this.notifyUser(true);
+    }
+    if (this.state.inactivePolicy.includes(this.state.focusedWindowId)) {
+      this.handleSwitch();
     }
   }
 
@@ -127,18 +136,19 @@ class Settings extends PureComponent {
       this.setState({ settings: settings, renderSaveBoolean: true });
     }
   };
-  handleSwitch = (path, parameter) => () => {
-    let settings = this.state.settings;
-    if (!checkSettings(this.state.settings)) {
-      settings = INIT_RELAXED_PROFILE;
-    }
-    if (settings[path][parameter].includes(this.state.focusedWindowId)) {
-      settings[path][parameter] = removeItem(settings[path][parameter], this.state.focusedWindowId);
+  handleSwitch = () => {
+    let inactivePolicy = this.state.inactivePolicy;
+
+    if (inactivePolicy.includes(this.state.focusedWindowId)) {
+      inactivePolicy = removeItem(inactivePolicy, this.state.focusedWindowId);
     } else {
-      settings[path][parameter].push(this.state.focusedWindowId);
+      inactivePolicy.push(this.state.focusedWindowId);
     }
-    this.setState({ settings: settings, renderSaveBoolean: true }, () => {
-      this.handleSaveParameters();
+    this.setState({ inactivePolicy: inactivePolicy, renderSaveBoolean: true }, () => {
+      chrome.runtime.sendMessage({
+        messageType: 'INACTIVE_POLICY',
+        inactivePolicy: inactivePolicy,
+      });
     });
   };
 
@@ -174,11 +184,11 @@ class Settings extends PureComponent {
           control={
             <Switch
               checked={
-                this.state.focusedWindowId && this.state.settings[POLICY][INACTIVE_POLICY]
-                  ? !this.state.settings[POLICY][INACTIVE_POLICY].includes(this.state.focusedWindowId)
+                this.state.focusedWindowId && this.state.inactivePolicy
+                  ? !this.state.inactivePolicy.includes(this.state.focusedWindowId)
                   : true
               }
-              onChange={this.handleSwitch(POLICY, INACTIVE_POLICY)}
+              onChange={this.handleSwitch}
               color="secondary"
               className={classes.switchWrapper}
             />
