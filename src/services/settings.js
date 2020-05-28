@@ -1,4 +1,4 @@
-import { logger, storageSet, storageGet } from './utils.js';
+import { logger, storageSet, storageGet, removeItem } from './utils.js';
 import {
   RELAXED,
   FOCUSED,
@@ -76,9 +76,20 @@ class SettingsManager {
     this.settings = settings;
     await this.save();
   }
-  async updateInactivePolicy(inactive_policy) {
-    this.inactive_policy = inactive_policy;
+
+  async addToInactivePolicy(windowId) {
+    if (!this.inactive_policy.includes(windowId)) {
+      this.inactive_policy.push(windowId);
+      await this.save();
+      return true;
+    }
+    return false;
+  }
+
+  async removeToInactivePolicy(windowId) {
+    this.inactive_policy = removeItem(this.inactive_policy, windowId);
     await this.save();
+    return true;
   }
 
   async updateSettingsProfile(active_profile) {

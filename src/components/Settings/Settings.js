@@ -17,8 +17,8 @@ import {
   INIT_FOCUSED_PROFILE,
   INIT_RELAXED_PROFILE,
 } from '../../config/settingsProfiles.js';
-import { checkSettings, OPTIMAL_NUMBER_TABS, POLICY, INACTIVE_POLICY, removeItem } from '../utils';
-import { isInteger } from '../../services/utils';
+import { checkSettings, OPTIMAL_NUMBER_TABS, POLICY, INACTIVE_POLICY } from '../utils';
+import { isInteger, removeItem } from '../../services/utils';
 import Link from '@material-ui/core/Link/Link';
 
 class Settings extends PureComponent {
@@ -141,15 +141,18 @@ class Settings extends PureComponent {
 
     if (inactivePolicy.includes(this.state.focusedWindowId)) {
       inactivePolicy = removeItem(inactivePolicy, this.state.focusedWindowId);
+      chrome.runtime.sendMessage({
+        messageType: 'REMOVE_INACTIVE_POLICY',
+        windowId: this.state.focusedWindowId,
+      });
     } else {
       inactivePolicy.push(this.state.focusedWindowId);
-    }
-    this.setState({ inactivePolicy: inactivePolicy, renderSaveBoolean: true }, () => {
       chrome.runtime.sendMessage({
-        messageType: 'INACTIVE_POLICY',
-        inactivePolicy: inactivePolicy,
+        messageType: 'ADD_INACTIVE_POLICY',
+        windowId: this.state.focusedWindowId,
       });
-    });
+    }
+    this.setState({ inactivePolicy: inactivePolicy, renderSaveBoolean: true });
   };
 
   render() {
