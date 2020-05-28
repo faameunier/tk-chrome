@@ -91,6 +91,9 @@ class DefaultScorer extends AbstractScorer {
 
 class v1Scorer extends DefaultScorer {
   static scoreStatistics(stats) {
+    if (stats.flag == 1) {
+      return MAXIMUM_SCORE;
+    }
     let now = Date.now();
     let total_time = stats.total_active_time + stats.total_inactive_time + 1;
     let utilization_rate = stats.total_active_time / total_time;
@@ -132,6 +135,7 @@ class v1Scorer extends DefaultScorer {
   static augmentedStatistics(stats, tab) {
     let augStats = copy(stats);
     augStats.soft_protection_timestamp = 0;
+    augStats.flag = 0;
     if (!augStats.protection_timestamp) {
       augStats.protection_timestamp = 0;
     }
@@ -141,12 +145,21 @@ class v1Scorer extends DefaultScorer {
           augStats.soft_protection_timestamp,
           augStats.last_active_timestamp
         );
+        if (tab.active) {
+          augStats.flag = 1;
+        }
       }
       if (settingsManager.settings.scorer.pinned) {
         augStats.soft_protection_timestamp = Math.max(augStats.soft_protection_timestamp, tab.pinned_switch_timestamp);
+        if (tab.pinned) {
+          augStats.flag = 1;
+        }
       }
       if (settingsManager.settings.scorer.audible) {
         augStats.soft_protection_timestamp = Math.max(augStats.soft_protection_timestamp, tab.audible_switch_timestamp);
+        if (tab.audible) {
+          augStats.flag = 1;
+        }
       }
     }
     return augStats;
