@@ -18,7 +18,7 @@ if (ENV === 'debug') {
       min_time: 3 * 1000, // Tabby will kill about 1 tab per min_time (depending on activation rules)
 
       // IGNORED tabs
-      active: true, // these status are absolutely protected tabs: these are ignored and do not count as tabs.
+      active: false, // these status are absolutely protected tabs: these are ignored and do not count as tabs.
       pinned: true,
       audible: false,
     },
@@ -47,7 +47,7 @@ if (ENV === 'debug') {
       min_time: 3 * 1000,
 
       // IGNORED tabs
-      active: true, // these status are absolutely protected tabs: these are ignored and do not count as tabs.
+      active: false, // these status are absolutely protected tabs: these are ignored and do not count as tabs.
       pinned: true,
       audible: false,
     },
@@ -76,7 +76,7 @@ if (ENV === 'debug') {
       min_time: 3 * 1000,
 
       // IGNORED tabs
-      active: true, // these status are absolutely protected tabs: these are ignored and do not count as tabs.
+      active: false, // these status are absolutely protected tabs: these are ignored and do not count as tabs.
       pinned: true,
       audible: false,
     },
@@ -105,7 +105,7 @@ if (ENV === 'debug') {
       min_time: 3 * 1000,
 
       // IGNORED tabs
-      active: true, // these status are absolutely protected tabs: these are ignored and do not count as tabs.
+      active: false, // these status are absolutely protected tabs: these are ignored and do not count as tabs.
       pinned: true,
       audible: false,
     },

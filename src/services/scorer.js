@@ -1,6 +1,7 @@
 import { copy } from './utils.js';
 import { settingsManager } from './settings.js';
 import { SCORER, MAXIMUM_SCORE } from '../config/env.js';
+import { PROTECTED_URL } from '../config/webConf.js';
 import { sigmoidScaled, exponentialDecay, exponentialDecayReversed, bound, ReLU } from './math.js';
 
 class AbstractScorer {
@@ -91,13 +92,13 @@ class DefaultScorer extends AbstractScorer {
 
 class v1Scorer extends DefaultScorer {
   static scoreStatistics(stats) {
-    if (stats.flag == 1) {
+    if (stats.hard_flag == 1) {
       return MAXIMUM_SCORE;
     }
     let now = Date.now();
     let total_time = stats.total_active_time + stats.total_inactive_time + 1;
     let utilization_rate = stats.total_active_time / total_time;
-    let soft_protection_delay = 3 * 60 * 1000;
+    let soft_protection_delay = stats.wc == 1 ? 20 * 60 * 1000 : 3 * 60 * 1000;
     let hard_protection_enveloppe =
       1 +
       (MAXIMUM_SCORE - 1) *
@@ -135,30 +136,35 @@ class v1Scorer extends DefaultScorer {
   static augmentedStatistics(stats, tab) {
     let augStats = copy(stats);
     augStats.soft_protection_timestamp = 0;
-    augStats.flag = 0;
+    augStats.hard_flag = 0;
+    augStats.wc = 0;
     if (!augStats.protection_timestamp) {
       augStats.protection_timestamp = 0;
     }
     if (tab) {
+      const rx = new RegExp(PROTECTED_URL.join('|'));
+      if (rx.exec(tab.full_url)) {
+        augStats.wc = 1;
+      }
       if (settingsManager.settings.scorer.active) {
         augStats.soft_protection_timestamp = Math.max(
           augStats.soft_protection_timestamp,
           augStats.last_active_timestamp
         );
         if (tab.active) {
-          augStats.flag = 1;
+          augStats.hard_flag = 1;
         }
       }
       if (settingsManager.settings.scorer.pinned) {
         augStats.soft_protection_timestamp = Math.max(augStats.soft_protection_timestamp, tab.pinned_switch_timestamp);
         if (tab.pinned) {
-          augStats.flag = 1;
+          augStats.hard_flag = 1;
         }
       }
       if (settingsManager.settings.scorer.audible) {
         augStats.soft_protection_timestamp = Math.max(augStats.soft_protection_timestamp, tab.audible_switch_timestamp);
         if (tab.audible) {
-          augStats.flag = 1;
+          augStats.hard_flag = 1;
         }
       }
     }

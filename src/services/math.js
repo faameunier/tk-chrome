@@ -9,10 +9,10 @@ function sigmoidScaled(x, alpha = 30 * 1000, tau = 0.99) {
   // This implies f(alpha / 2) = 0.5
   // The higer tau, the steeper is the transition from 1 to 0.
   if (x < 0) {
-    return 1.0
+    return 1.0;
   }
   if (x > alpha) {
-    return 0.0
+    return 0.0;
   }
   return 1.0 / (Math.exp(Math.log(tau / (1 - tau)) * ((2 * x) / alpha - 1)) + 1);
 }
