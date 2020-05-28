@@ -88,7 +88,12 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     case 'SETTINGS_PROFILE':
       eventQueue.enqueue(() => settingsManager.updateSettingsProfile(request.profile));
       break;
-
+    case 'WHITELIST':
+      eventQueue.enqueue(() => settingsManager.addToWhitelist(request.url));
+      break;
+    case 'UNWHITELIST':
+      eventQueue.enqueue(() => settingsManager.removeFromWhitelist(request.url));
+      break;
     default:
       break;
   }

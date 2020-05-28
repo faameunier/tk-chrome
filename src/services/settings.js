@@ -1,4 +1,4 @@
-import { logger, storageSet, storageGet } from './utils.js';
+import { logger, storageSet, storageGet, getDomain } from './utils.js';
 import {
   RELAXED,
   FOCUSED,
@@ -22,6 +22,7 @@ class SettingsManager {
   async init() {
     this.active_profile = RELAXED;
     this.settings = INIT_RELAXED_PROFILE;
+    this.whitelist = [];
   }
 
   async initProfiles() {
@@ -44,22 +45,23 @@ class SettingsManager {
     await storageSet({
       settings: this.settings,
       active_profile: this.active_profile,
+      whitelist: this.whitelist,
     });
   }
 
   async load() {
     if (!this.loaded) {
-      let data = await storageGet(['settings', 'active_profile']);
+      let data = await storageGet(['settings', 'active_profile', 'whitelist']);
       try {
         logger(this, 'Loading settings from storage');
         if (
           typeof data.settings !== 'undefined' &&
-          //typeof data.profiles !== 'undefined' &&
-          typeof data.active_profile !== 'undefined'
+          typeof data.active_profile !== 'undefined' &&
+          typeof data.whitelist !== 'undefined'
         ) {
           this.settings = data.settings;
-          //this.profiles = data.profiles;
           this.active_profile = data.active_profile;
+          this.whitelist = data.whitelist;
         } else {
           throw 'Loading failed or version change';
         }
@@ -74,6 +76,29 @@ class SettingsManager {
   async updateSettings(settings) {
     this.settings = settings;
     await this.save();
+  }
+
+  async addToWhitelist(url) {
+    const domain = getDomain(url);
+    if (!this.whitelist.includes(domain)) {
+      this.whitelist.push(domain);
+      await this.save();
+      return true;
+    }
+    await this.save();
+    return false;
+  }
+
+  async removeFromWhitelist(url) {
+    const domain = getDomain(url);
+    const index = array.indexOf(domain);
+    if (index > -1) {
+      this.whitelist.splice(index, 1);
+      await this.save();
+      return true;
+    }
+    await this.save();
+    return false;
   }
 
   async updateSettingsProfile(active_profile) {

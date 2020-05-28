@@ -142,9 +142,13 @@ class v1Scorer extends DefaultScorer {
       augStats.protection_timestamp = 0;
     }
     if (tab) {
-      const rx = new RegExp(PROTECTED_URL.join('|'));
+      let rx = new RegExp(PROTECTED_URL.join('|'));
       if (rx.exec(tab.full_url)) {
         augStats.wc = 1;
+      }
+      rx = new RegExp(settingsManager.whitelist.join('|'));
+      if (rx.exec(tab.url)) {
+        augStats.hard_flag = 1;
       }
       if (settingsManager.settings.scorer.active) {
         augStats.soft_protection_timestamp = Math.max(
