@@ -12,7 +12,6 @@ if (ENV === 'debug') {
       min_time_garbage_collector: 5 * 1000, // minimum time between 2 full tab garbage collection
     },
     policy: {
-      active_policy: true,
       target_tabs: 12, // tabby will stop closing tabs when we have less than target_tabs open
       decay: 0.8, // when the number of tab increases, tabby will delete more tabs
       min_time: 3 * 1000, // Tabby will kill about 1 tab per min_time (depending on activation rules)
@@ -41,7 +40,6 @@ if (ENV === 'debug') {
       min_time_garbage_collector: 5 * 1000,
     },
     policy: {
-      active_policy: true,
       target_tabs: 5,
       decay: 0.8,
       min_time: 3 * 1000,
@@ -70,7 +68,6 @@ if (ENV === 'debug') {
       min_time_garbage_collector: 10 * 60 * 1000,
     },
     policy: {
-      active_policy: true,
       target_tabs: 12,
       decay: 0.8,
       min_time: 3 * 1000,
@@ -99,7 +96,6 @@ if (ENV === 'debug') {
       min_time_garbage_collector: 10 * 60 * 1000,
     },
     policy: {
-      active_policy: true,
       target_tabs: 5,
       decay: 0.8,
       min_time: 3 * 1000,

@@ -76,6 +76,7 @@ class HomeDispatcher extends PureComponent {
         maxSnack={2}
         classes={{
           root: classes.notification,
+          variantSuccess: classes.success,
         }}
       >
         <div className={classes.homeContainer}>

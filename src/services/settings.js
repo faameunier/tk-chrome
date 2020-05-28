@@ -1,4 +1,4 @@
-import { logger, storageSet, storageGet, getDomain } from './utils.js';
+import { logger, storageSet, storageGet, getDomain, removeItem } from './utils.js';
 import {
   RELAXED,
   FOCUSED,
@@ -20,6 +20,7 @@ class SettingsManager {
   }
 
   async init() {
+    this.inactive_policy = [];
     this.active_profile = RELAXED;
     this.settings = INIT_RELAXED_PROFILE;
     this.whitelist = [];
@@ -46,22 +47,25 @@ class SettingsManager {
       settings: this.settings,
       active_profile: this.active_profile,
       whitelist: this.whitelist,
+      inactive_policy: this.inactive_policy,
     });
   }
 
   async load() {
     if (!this.loaded) {
-      let data = await storageGet(['settings', 'active_profile', 'whitelist']);
+      let data = await storageGet(['settings', 'active_profile', 'whitelist', 'inactive_policy']);
       try {
         logger(this, 'Loading settings from storage');
         if (
           typeof data.settings !== 'undefined' &&
           typeof data.active_profile !== 'undefined' &&
-          typeof data.whitelist !== 'undefined'
+          typeof data.whitelist !== 'undefined' &&
+          typeof data.inactive_policy !== 'undefined'
         ) {
           this.settings = data.settings;
           this.active_profile = data.active_profile;
           this.whitelist = data.whitelist;
+          this.inactive_policy = data.inactive_policy;
         } else {
           throw 'Loading failed or version change';
         }
@@ -90,15 +94,24 @@ class SettingsManager {
   }
 
   async removeFromWhitelist(url) {
-    const domain = getDomain(url);
-    const index = array.indexOf(domain);
-    if (index > -1) {
-      this.whitelist.splice(index, 1);
+    this.whitelist = removeItem(this.whitelist, windowId);
+    await this.save();
+    return false;
+  }
+
+  async addToInactivePolicy(windowId) {
+    if (!this.inactive_policy.includes(windowId)) {
+      this.inactive_policy.push(windowId);
       await this.save();
       return true;
     }
-    await this.save();
     return false;
+  }
+
+  async removeFromInactivePolicy(windowId) {
+    this.inactive_policy = removeItem(this.inactive_policy, windowId);
+    await this.save();
+    return true;
   }
 
   async updateSettingsProfile(active_profile) {

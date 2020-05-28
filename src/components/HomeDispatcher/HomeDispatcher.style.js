@@ -19,7 +19,6 @@ const styles = (theme) => ({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: theme.spacing(1.25),
   },
   allTabs: {
     maxWidth: '75%',
@@ -34,14 +33,19 @@ const styles = (theme) => ({
     marginLeft: theme.spacing(2),
     width: theme.spacing(4),
     height: theme.spacing(4),
+    marginTop: theme.spacing(1.25),
   },
   logoFull: {
     marginLeft: theme.spacing(2.25),
     width: theme.spacing(12),
+    marginTop: theme.spacing(1.25),
   },
   iconContainer: {
-    marginTop: theme.spacing(0.5),
+    marginTop: theme.spacing(2),
     marginRight: theme.spacing(1.5),
+  },
+  success: {
+    background: 'linear-gradient(45deg,#80e0a7, #00b9aa)',
   },
 });
 export default withStyles(styles)(HomeDispatcher);

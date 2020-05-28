@@ -102,6 +102,14 @@ function getLastFocusedWindow() {
   });
 }
 
+function removeItem(arr, value) {
+  const index = arr.indexOf(value);
+  if (index > -1) {
+    arr.splice(index, 1);
+  }
+  return arr;
+}
+
 logger('Starting in ' + ENV + ' env.');
 export {
   logger,
@@ -116,4 +124,5 @@ export {
   isUserActive,
   storageReset,
   getLastFocusedWindow,
+  removeItem,
 };

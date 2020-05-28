@@ -17,8 +17,8 @@ import {
   INIT_FOCUSED_PROFILE,
   INIT_RELAXED_PROFILE,
 } from '../../config/settingsProfiles.js';
-import { checkSettings, OPTIMAL_NUMBER_TABS, POLICY, ACTIVE_POLICY } from '../utils';
-import { isInteger } from '../../services/utils';
+import { checkSettings, OPTIMAL_NUMBER_TABS, POLICY, INACTIVE_POLICY } from '../utils';
+import { isInteger, removeItem } from '../../services/utils';
 import Link from '@material-ui/core/Link/Link';
 
 class Settings extends PureComponent {
@@ -30,10 +30,12 @@ class Settings extends PureComponent {
       customizedBool: false,
       settings: INIT_RELAXED_PROFILE,
       renderSaveBoolean: false,
+      focusedWindowId: true,
     };
     this.onChangedCallback = function (changes) {
       const changesSettings = changes['settings'];
       const changesProfile = changes['active_profile'];
+      const changedInactivePolicy = changes['inactive_policy'];
       if (changesSettings) {
         this.setState({
           settings: changesSettings['newValue'],
@@ -47,21 +49,28 @@ class Settings extends PureComponent {
           customizedBool: changesProfile['newValue'] === CUSTOMIZED,
         });
       }
+      if (changedInactivePolicy) {
+        this.setState({ inactivePolicy: changedInactivePolicy['newValue'] });
+      }
     }.bind(this);
   }
 
   componentDidMount() {
-    chrome.storage.local.get(['active_profile', 'settings'], (result) => {
+    chrome.storage.local.get(['active_profile', 'settings', 'focused_window_id', 'inactive_policy'], (result) => {
       const profile = result.active_profile || RELAXED;
       const focusedMode = profile === FOCUSED;
       const relaxedMode = profile === RELAXED;
       const customizedBool = profile === CUSTOMIZED;
       const settings = result.settings || INIT_RELAXED_PROFILE;
+      const focusedWindowId = result.focused_window_id;
+      const inactivePolicy = result.inactive_policy;
       this.setState({
         focusedMode,
         relaxedMode,
         customizedBool,
         settings,
+        focusedWindowId,
+        inactivePolicy,
       });
     });
     chrome.storage.onChanged.addListener(this.onChangedCallback);
@@ -84,6 +93,9 @@ class Settings extends PureComponent {
     });
     if (changeType === RELAXED || changeType === FOCUSED) {
       this.notifyUser(true);
+    }
+    if (this.state.inactivePolicy.includes(this.state.focusedWindowId)) {
+      this.handleSwitch();
     }
   }
 
@@ -124,15 +136,23 @@ class Settings extends PureComponent {
       this.setState({ settings: settings, renderSaveBoolean: true });
     }
   };
-  handleSwitch = (path, parameter) => () => {
-    let settings = this.state.settings;
-    if (!checkSettings(this.state.settings)) {
-      settings = INIT_RELAXED_PROFILE;
+  handleSwitch = () => {
+    let inactivePolicy = this.state.inactivePolicy;
+
+    if (inactivePolicy.includes(this.state.focusedWindowId)) {
+      inactivePolicy = removeItem(inactivePolicy, this.state.focusedWindowId);
+      chrome.runtime.sendMessage({
+        messageType: 'REMOVE_INACTIVE_POLICY',
+        windowId: this.state.focusedWindowId,
+      });
+    } else {
+      inactivePolicy.push(this.state.focusedWindowId);
+      chrome.runtime.sendMessage({
+        messageType: 'ADD_INACTIVE_POLICY',
+        windowId: this.state.focusedWindowId,
+      });
     }
-    settings[path][parameter] = !this.state.settings[path][parameter];
-    this.setState({ settings: settings, renderSaveBoolean: true }, () => {
-      this.handleSaveParameters();
-    });
+    this.setState({ inactivePolicy: inactivePolicy, renderSaveBoolean: true });
   };
 
   render() {
@@ -166,19 +186,22 @@ class Settings extends PureComponent {
         <FormControlLabel
           control={
             <Switch
-              checked={this.state.settings[POLICY][ACTIVE_POLICY]}
-              onChange={this.handleSwitch(POLICY, ACTIVE_POLICY)}
+              checked={
+                this.state.focusedWindowId && this.state.inactivePolicy
+                  ? !this.state.inactivePolicy.includes(this.state.focusedWindowId)
+                  : true
+              }
+              onChange={this.handleSwitch}
               color="secondary"
+              className={classes.switchWrapper}
             />
           }
           className={classes.switchContainer}
-          label="Enable Tabby"
+          label={<Typography className={classes.styleLabel}>Enable on this window</Typography>}
         />
         <div className={classes.introductionBlock}>
           <TuneIcon />
-          <Typography variant="h3" className={classes.title}>
-            Select the best mode or customize it
-          </Typography>
+          <Typography className={classes.parametersTitle}>Select the best mode or customize it</Typography>
         </div>
 
         <FormGroup className={classes.settingsWrapper}>
@@ -191,7 +214,7 @@ class Settings extends PureComponent {
                 className={classes.checkboxWrapper}
               />
             }
-            label="Focus"
+            label={<Typography className={classes.styleLabel}>Focus</Typography>}
             className={classes.firstBooleans}
           />
           <FormControlLabel
@@ -203,7 +226,7 @@ class Settings extends PureComponent {
                 className={classes.checkboxWrapper}
               />
             }
-            label="Relax"
+            label={<Typography className={classes.styleLabel}>Relax</Typography>}
             className={classes.firstBooleans}
           />
           <div className={classes.customizeWrapper}>
@@ -216,7 +239,7 @@ class Settings extends PureComponent {
                   className={classes.checkboxWrapper}
                 />
               }
-              label="Customize"
+              label={<Typography className={classes.styleLabel}>Customize</Typography>}
               className={classes.firstBooleans}
             />
             <Link href="https://tabby.us" target="_blank">

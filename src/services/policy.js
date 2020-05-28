@@ -82,7 +82,10 @@ class PolicyManager {
         !(settingsManager.settings.policy.audible && tab.audible)
       );
     });
-    if (settingsManager.settings.policy.active_policy && tabs.length > settingsManager.settings.policy.target_tabs) {
+    if (
+      !settingsManager.inactive_policy.includes(parseInt(windowId)) &&
+      tabs.length > settingsManager.settings.policy.target_tabs
+    ) {
       // if too many tabs
       if (this.exponentialTrigger(tabs, windowId)) {
         // if we waited enough

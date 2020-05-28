@@ -16,6 +16,8 @@ const styles = (theme) => ({
     textTransform: 'capitalize',
     fontWeight: 'normal',
     fontSize: 12,
+    fontFamily: 'Helvetica',
+
     maxWidth: 20,
   },
 
@@ -29,9 +31,10 @@ const styles = (theme) => ({
     justifyContent: 'start',
     marginLeft: 7,
   },
-  title: {
-    fontWeight: 'bold',
+  parametersTitle: {
+    //fontWeight: 'bold',
     fontSize: 17,
+    fontFamily: 'Helvetica',
     marginLeft: 16,
   },
   settingsBlock: {
@@ -47,12 +50,20 @@ const styles = (theme) => ({
     marginTop: 5,
     pointerEvents: 'none',
   },
+  styleLabel: {
+    fontSize: 16,
+    fontFamily: 'Helvetica',
+  },
   checkboxWrapper: {
     pointerEvents: 'auto',
   },
   switchContainer: {
     maxHeight: 20,
     marginBottom: 20,
+    pointerEvents: 'none',
+  },
+  switchWrapper: {
+    pointerEvents: 'auto',
   },
   textField: {
     maxWidth: '85%',
