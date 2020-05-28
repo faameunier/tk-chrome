@@ -88,13 +88,18 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     case 'SETTINGS_PROFILE':
       eventQueue.enqueue(() => settingsManager.updateSettingsProfile(request.profile));
       break;
+    case 'WHITELIST':
+      eventQueue.enqueue(() => settingsManager.addToWhitelist(request.url));
+      break;
+    case 'UNWHITELIST':
+      eventQueue.enqueue(() => settingsManager.removeFromWhitelist(request.url));
+      break;
     case 'ADD_INACTIVE_POLICY':
       eventQueue.enqueue(() => settingsManager.addToInactivePolicy(request.windowId));
       break;
     case 'REMOVE_INACTIVE_POLICY':
-      eventQueue.enqueue(() => settingsManager.removeToInactivePolicy(request.windowId));
+      eventQueue.enqueue(() => settingsManager.removeFromInactivePolicy(request.windowId));
       break;
-
     default:
       break;
   }

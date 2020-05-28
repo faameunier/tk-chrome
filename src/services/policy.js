@@ -17,9 +17,10 @@ class PolicyManager {
   static async run() {
     let windows = this.buildWindows();
     this.backfillRuns(windows);
-    this.cleanRuntimeWindows(windows);
 
-    let allScores = _.pick(memoryManager.current_scores, Object.keys(memoryManager.tabs)); // keeping a-only tabs that still exist
+    let allScores = _.pick(memoryManager.current_scores, Object.keys(memoryManager.tabs));
+    // keeping only tabs that still exist
+    // ie. if the policy doesn't run in a window, its known scores are kept in memory.
 
     let windowIds = Object.keys(windows);
     let promises = _.map(windowIds, (windowId) => this.runWindow(windows, windowId));
@@ -55,6 +56,7 @@ class PolicyManager {
   static backfillRuns(windows) {
     // Adds windows to known execution time.
     // New windows are defaulted with current timestamp.
+    // Deleted windows are removed from memory.
     let now = Date.now();
     let known_windows = Object.keys(memoryManager.runtime_events.last_policy_runs);
     let current_windows = Object.keys(windows);
@@ -62,13 +64,7 @@ class PolicyManager {
     for (var i = 0; i < unknown_windows.length; i++) {
       memoryManager.runtime_events.last_policy_runs[unknown_windows[i]] = now;
     }
-  }
-
-  static cleanRuntimeWindows(windows) {
-    // Remove phantom windows that were deleted
-    let known_windows = Object.keys(memoryManager.runtime_events.last_policy_runs);
-    let current_windows = Object.keys(windows);
-    let unknown_windows = _.difference(known_windows, current_windows);
+    unknown_windows = _.difference(known_windows, current_windows);
     for (var i = 0; i < unknown_windows.length; i++) {
       delete memoryManager.runtime_events.last_policy_runs[unknown_windows[i]];
     }
@@ -78,6 +74,14 @@ class PolicyManager {
     // Run policy for a given window
     // Returns true if the policy was run, false otherwise
     let tabs = windows[windowId];
+    tabs = _.filter(tabs, (tab) => {
+      // removing ignored tabs
+      return (
+        !(settingsManager.settings.policy.active && tab.active) &&
+        !(settingsManager.settings.policy.pinned && tab.pinned) &&
+        !(settingsManager.settings.policy.audible && tab.audible)
+      );
+    });
     if (
       !settingsManager.inactive_policy.includes(parseInt(windowId)) &&
       tabs.length > settingsManager.settings.policy.target_tabs
@@ -85,16 +89,7 @@ class PolicyManager {
       // if too many tabs
       if (this.exponentialTrigger(tabs, windowId)) {
         // if we waited enough
-        tabs = _.filter(tabs, (tab) => {
-          return (
-            tab.active == settingsManager.settings.policy.active &&
-            tab.pinned == settingsManager.settings.policy.pinned &&
-            tab.audible == settingsManager.settings.policy.audible
-          );
-        });
-        if (tabs.length === 0) {
-          return [false, {}];
-        }
+        // score all tabs
         let scores = await Promise.all(_.map(tabs, (tab) => Scorer.score(tab)));
 
         let objScores = _.zipObject(
@@ -106,27 +101,31 @@ class PolicyManager {
           _.map(tabs, (tab) => tab.tabId),
           scores
         ); // [[tabId1, score1], [tabId2, score2]...]
-        scores.sort((s1, s2) => (s1[1] > s2[1] ? 1 : -1)); // ascending sort
-        logger(windowId.toString().concat(' window scored: ', JSON.stringify(scores)));
-        let deleteMe = scores.shift();
 
-        if (deleteMe[1] === MAXIMUM_SCORE) {
-          return [false, {}];
-        } else {
-          deleteMe = deleteMe[0];
-        }
-        // safety hack, do not remove an old tab only because you have new ones
-        var count = 0;
-        while (scores.length > 0) {
-          let temp = scores.pop()[1];
-          if (temp === MAXIMUM_SCORE) {
-            count += 1;
+        logger(windowId.toString().concat('window scored :', JSON.stringify(scores)));
+        let countProtected = 0;
+        let minimumScore = MAXIMUM_SCORE;
+        let minimumId = null;
+        for (let i = 0; i < scores.length; i++) {
+          let temp = scores[i];
+          if (temp[1] <= minimumScore) {
+            minimumScore = temp[1];
+            minimumId = temp[0];
+          }
+          if (temp[1] >= MAXIMUM_SCORE) {
+            countProtected++;
           }
         }
-        if (count < tabs.length - settingsManager.settings.policy.target_tabs) {
+
+        if (minimumScore === MAXIMUM_SCORE) {
+          return [false, objScores];
+        }
+
+        // safety hack, do not remove a tab only because you have an excess of protected ones
+        if (countProtected < tabs.length - settingsManager.settings.policy.target_tabs) {
           await this.killTab(
-            deleteMe,
-            _.find(tabs, (tab) => tab.tabId === deleteMe)
+            minimumId,
+            _.find(tabs, (tab) => tab.tabId === minimumId)
           );
           return [true, objScores]; // updating tab scores
         }

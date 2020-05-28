@@ -86,7 +86,7 @@ class LRU {
 
     delete this.cache[key];
     this.size--;
-    logger(this, 'Old value removed from cache');
+    // logger(this, 'Old value removed from cache');
   }
 
   clear() {

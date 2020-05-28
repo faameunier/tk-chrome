@@ -1,4 +1,4 @@
-@import '~bootstrap/dist/css/bootstrap.min.css';
+@import '~bootstrap-css-only/css/bootstrap.min.css';
 
 .todo-list-container {
   min-width: 400px;
@@ -32,3 +32,5 @@
 .bold-title {
   font-size: 16px;
 }
+
+:focus {outline:0 !important;}
