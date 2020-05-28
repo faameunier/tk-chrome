@@ -1,4 +1,4 @@
-import { logger, storageSet, storageGet } from './utils.js';
+import { logger, storageSet, storageGet, removeItem } from './utils.js';
 import {
   RELAXED,
   FOCUSED,
@@ -20,6 +20,7 @@ class SettingsManager {
   }
 
   async init() {
+    this.inactive_policy = [];
     this.active_profile = RELAXED;
     this.settings = INIT_RELAXED_PROFILE;
   }
@@ -44,22 +45,23 @@ class SettingsManager {
     await storageSet({
       settings: this.settings,
       active_profile: this.active_profile,
+      inactive_policy: this.inactive_policy,
     });
   }
 
   async load() {
     if (!this.loaded) {
-      let data = await storageGet(['settings', 'active_profile']);
+      let data = await storageGet(['settings', 'active_profile', 'inactive_policy']);
       try {
         logger(this, 'Loading settings from storage');
         if (
           typeof data.settings !== 'undefined' &&
-          //typeof data.profiles !== 'undefined' &&
-          typeof data.active_profile !== 'undefined'
+          typeof data.active_profile !== 'undefined' &&
+          typeof data.inactive_policy !== 'undefined'
         ) {
           this.settings = data.settings;
-          //this.profiles = data.profiles;
           this.active_profile = data.active_profile;
+          this.inactive_policy = data.inactive_policy;
         } else {
           throw 'Loading failed or version change';
         }
@@ -74,6 +76,21 @@ class SettingsManager {
   async updateSettings(settings) {
     this.settings = settings;
     await this.save();
+  }
+
+  async addToInactivePolicy(windowId) {
+    if (!this.inactive_policy.includes(windowId)) {
+      this.inactive_policy.push(windowId);
+      await this.save();
+      return true;
+    }
+    return false;
+  }
+
+  async removeToInactivePolicy(windowId) {
+    this.inactive_policy = removeItem(this.inactive_policy, windowId);
+    await this.save();
+    return true;
   }
 
   async updateSettingsProfile(active_profile) {

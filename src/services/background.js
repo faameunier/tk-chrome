@@ -88,6 +88,12 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     case 'SETTINGS_PROFILE':
       eventQueue.enqueue(() => settingsManager.updateSettingsProfile(request.profile));
       break;
+    case 'ADD_INACTIVE_POLICY':
+      eventQueue.enqueue(() => settingsManager.addToInactivePolicy(request.windowId));
+      break;
+    case 'REMOVE_INACTIVE_POLICY':
+      eventQueue.enqueue(() => settingsManager.removeToInactivePolicy(request.windowId));
+      break;
 
     default:
       break;

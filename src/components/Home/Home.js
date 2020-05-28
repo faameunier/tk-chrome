@@ -6,6 +6,8 @@ import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
 import Avatar from '@material-ui/core/Avatar';
 import Typography from '@material-ui/core/Typography';
+import Link from '@material-ui/core/Link';
+import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import { FixedSizeList as List } from 'react-window';
 
 import { setAllReadBadge } from '../../services/utils';
@@ -58,13 +60,10 @@ class Home extends PureComponent {
     this.restoreTab(items, key, RESTORE);
   }
 
-  removeNextItem(key) {
-    let items = this.state.nextList;
-    this.restoreTab(items, key, RESTORE);
-  }
-
   restoreTab(items, key, messageType) {
     const restoredTab = items[key];
+    items.splice(key, 1);
+    this.setState({ closed_history: items.reverse(), renderSaveBoolean: true });
     chrome.runtime.sendMessage({
       messageType: messageType,
       tabId: restoredTab.tabId,
@@ -188,14 +187,15 @@ class Home extends PureComponent {
           </div>
         </div>
         {this.renderList.bind(this)(REMOVED)}
-        {/*{this.renderList.bind(this)(NEXT)}*/}
-        <div className={classes.linkToForm}>
-          <a
+        <div className={classes.footerContainer}>
+          <ErrorOutlineIcon color="secondary" className={classes.iconContainer} />
+          <Link
             href="https://docs.google.com/forms/d/e/1FAIpQLSdUEJHd0bL6ryFvZk220CoZp7cwvFxESorps7cngk0wQfyu-Q/viewform"
             target="_blank"
+            className={classes.linkToForm}
           >
             Report a bug or send us a feedback?
-          </a>
+          </Link>
         </div>
       </div>
     );
