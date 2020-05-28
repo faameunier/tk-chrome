@@ -407,7 +407,14 @@ class MemoryManager {
 
     let tab = null;
     let fromSession = false;
-    if (restoredTab.sessionId && this.focused_window_id === parseInt(restoredTab.windowId)) {
+
+    let windows = Object.keys(
+      _.groupBy(this.tabs, (tab) => {
+        return tab.windowId;
+      })
+    );
+
+    if (restoredTab.sessionId && windows.includes(restoredTab.windowId.toString())) {
       try {
         tab = await new Promise((resolve, reject) => {
           chrome.sessions.restore(restoredTab.sessionId, (session) => {
@@ -481,7 +488,7 @@ class MemoryManager {
       await this.createTab(realTab);
       logger(this, 'Backfill succesful');
     } catch (e) {
-      logger(this, 'Tab couldn\'t be retrieved, creating empty tab...');
+      logger(this, "Tab couldn't be retrieved, creating empty tab...");
       await this.createTab(tab);
     }
   }

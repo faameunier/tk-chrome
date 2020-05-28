@@ -146,9 +146,11 @@ class v1Scorer extends DefaultScorer {
       if (rx.exec(tab.full_url)) {
         augStats.wc = 1;
       }
-      rx = new RegExp(settingsManager.whitelist.join('|'));
-      if (rx.exec(tab.url)) {
-        augStats.hard_flag = 1;
+      if (settingsManager.whitelist.length > 0) {
+        rx = new RegExp(settingsManager.whitelist.join('|'));
+        if (rx.exec(tab.url)) {
+          augStats.hard_flag = 1;
+        }
       }
       if (settingsManager.settings.scorer.active) {
         augStats.soft_protection_timestamp = Math.max(
