@@ -13,6 +13,7 @@ import { FixedSizeList as List } from 'react-window';
 import { setAllReadBadge } from '../../services/utils';
 
 const RESTORE = 'RESTORE';
+const SHELL_RESTORE = 'SHELL_RESTORE';
 const NEXT = 'NEXT';
 const REMOVED = 'REMOVED';
 const CLOSED_HISTORY = 'closed_history';
@@ -55,9 +56,14 @@ class Home extends PureComponent {
     }
   }
 
-  removeItem(key) {
+  removeItem(key, e) {
     let items = this.state.closed_history.reverse();
-    this.restoreTab(items, key, RESTORE);
+    if (e.ctrlKey || e.metaKey) {
+      // metaKey is cmd key on mac
+      this.restoreTab(items, key, SHELL_RESTORE);
+    } else {
+      this.restoreTab(items, key, RESTORE);
+    }
   }
 
   restoreTab(items, key, messageType) {

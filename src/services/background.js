@@ -82,6 +82,10 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       eventQueue.enqueue(() => memoryManager.restoreTab(request.tabId));
       eventQueue.enqueue(() => memoryManager.removeTabFromClosedHistory(request.tabId));
       break;
+    case 'SHELL_RESTORE':
+      eventQueue.enqueue(() => memoryManager.restoreTab(request.tabId, true));
+      eventQueue.enqueue(() => memoryManager.removeTabFromClosedHistory(request.tabId));
+      break;
     case 'SETTINGS_PARAMETERS':
       eventQueue.enqueue(() => settingsManager.updateSettings(request.settings));
       break;

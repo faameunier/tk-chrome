@@ -399,7 +399,7 @@ class MemoryManager {
     });
   }
 
-  async restoreTab(tabId) {
+  async restoreTab(tabId, forceShell = false) {
     logger(this, 'Restoring tab ' + tabId);
     let restoredTab = this.closed_history.filter((tab) => {
       return tab.tabId === tabId;
@@ -414,7 +414,7 @@ class MemoryManager {
       })
     );
 
-    if (restoredTab.sessionId && windows.includes(restoredTab.windowId.toString())) {
+    if (!forceShell && restoredTab.sessionId && windows.includes(restoredTab.windowId.toString())) {
       try {
         tab = await new Promise((resolve, reject) => {
           chrome.sessions.restore(restoredTab.sessionId, (session) => {
