@@ -9,6 +9,7 @@ import { MAX_ACTIVE_DEBOUNCE } from '../config/env.js';
 
 chrome.runtime.onStartup.addListener(function () {
   logger(chrome.runtime.getManifest().version);
+  eventQueue.enqueue(() => settingsManager.resetInactivePolicy()); // cleanup inactive_policy on startup in case Chrome crashed during last runtime.
 });
 
 chrome.runtime.onInstalled.addListener(function (details) {
@@ -36,8 +37,17 @@ chrome.idle.onStateChanged.addListener(function (state) {
 });
 
 // -----------------------------------------------
-// Tabs tracking
+// Windows event
+chrome.windows.onFocusChanged.addListener(function (windowId) {
+  eventQueue.enqueue(() => memoryManager.changeFocusedWindowId(windowId));
+});
 
+chrome.windows.onRemoved.addListener(function (windowId) {
+  eventQueue.enqueue(() => settingsManager.removeFromInactivePolicy(windowId));
+});
+
+// -----------------------------------------------
+// Tabs tracking
 chrome.tabs.onCreated.addListener(function (tab) {
   eventQueue.enqueue(() => memoryManager.createTab(tab));
 });
@@ -65,7 +75,6 @@ chrome.tabs.onReplaced.addListener(function(integer addedTabId, integer removedT
 
 // -----------------------------------------------
 // Font-end communication
-
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   function sendResponsePromisified(data) {
     return new Promise((resolve, reject) => {
@@ -108,8 +117,4 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       break;
   }
   eventQueue.enqueue(() => sendResponsePromisified({ answer: 1 }));
-});
-
-chrome.windows.onFocusChanged.addListener(function (windowId) {
-  eventQueue.enqueue(() => memoryManager.changeFocusedWindowId(windowId));
 });
