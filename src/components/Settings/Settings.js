@@ -242,7 +242,7 @@ class Settings extends PureComponent {
               label={<Typography className={classes.styleLabel}>Customize</Typography>}
               className={classes.firstBooleans}
             />
-            <Link href="https://tabby.us" target="_blank">
+            <Link href="https://www.tabby.us/setup" target="_blank">
               <HelpOutlineIcon className={classes.helpIcon} />
             </Link>
           </div>
@@ -257,7 +257,7 @@ class Settings extends PureComponent {
                 color="secondary"
                 disabled={!this.state.customizedBool}
                 className={classes.secondaryButton}
-                variant="outlined" //{this.state.customizedBool ? 'outlined' : 'secondary'}
+                variant="outlined"
                 onClick={() => this.handleSaveParameters()}
               >
                 Save

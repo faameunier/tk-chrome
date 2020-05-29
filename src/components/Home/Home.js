@@ -200,7 +200,7 @@ class Home extends PureComponent {
             target="_blank"
             className={classes.linkToForm}
           >
-            Report a bug or send us a feedback?
+            Bug/Feedback?
           </Link>
         </div>
       </div>
