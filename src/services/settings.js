@@ -114,6 +114,11 @@ class SettingsManager {
     return true;
   }
 
+  async resetInactivePolicy() {
+    this.inactive_policy = [];
+    await this.save();
+  }
+
   async updateSettingsProfile(active_profile) {
     this.active_profile = active_profile;
     if (active_profile !== CUSTOMIZED) {

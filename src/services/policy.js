@@ -201,3 +201,6 @@ class PolicyManager {
 }
 
 export { PolicyManager };
+if (ENV === 'debug') {
+  window.PolicyManager = PolicyManager;
+}
