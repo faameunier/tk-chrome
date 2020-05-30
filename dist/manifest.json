@@ -1,7 +1,7 @@
 {
-  "name": "Tabby",
-  "version": "0.0.1",
-  "version_name": "beta",
+  "name": "tabby",
+  "version": "1.0.1",
+  "version_name": "IPO",
   "description": "Make Chrome focus-friendly",
   "permissions": ["tabs", "storage", "sessions", "idle"],
   "background": {
