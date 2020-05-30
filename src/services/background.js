@@ -20,7 +20,7 @@ chrome.runtime.onInstalled.addListener(function (details) {
   }
 
   if (details.reason == 'install') {
-    chrome.tabs.create({ url: 'https://www.tabby.us/' });
+    chrome.tabs.create({ url: 'https://www.tabby.us/setup' });
     logger('Extension installed :D');
   } else if (details.reason == 'update') {
     logger('Extension updated :D');
