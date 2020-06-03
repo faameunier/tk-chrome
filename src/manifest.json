@@ -2,7 +2,7 @@
   "name": "tabby",
   "version": "1.0.1",
   "version_name": "IPO",
-  "description": "Make Chrome focus-friendly",
+  "description": "Improve your focus on the browser",
   "permissions": ["tabs", "storage", "sessions", "idle"],
   "background": {
     "persistent": false,
