@@ -324,7 +324,7 @@ class Settings extends PureComponent {
                 <Link href="https://tabby.us/faq" target="_blank">
                   <Typography className={classes.styleLabelTips}>FAQ available here</Typography>{' '}
                 </Link>
-                <Typography className={classes.styleLabelTips}>tabby v1.0.2</Typography>{' '}
+                <Typography className={classes.styleLabelTips}>tabby {chrome.runtime.getManifest().version}</Typography>{' '}
               </div>
             </Box>
           </Fade>

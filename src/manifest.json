@@ -1,6 +1,6 @@
 {
   "name": "tabby",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "version_name": "IPO",
   "description": "Improve your focus on the browser",
   "permissions": ["tabs", "storage", "sessions", "idle", "notifications"],

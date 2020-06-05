@@ -20,8 +20,6 @@ chrome.runtime.onInstalled.addListener(function (details) {
     eventQueue.enqueue(() => memoryManager.reset());
     logger('Extension installed :D');
   } else if (details.reason == 'update') {
-    eventQueue.enqueue(() => settingsManager.load());
-    eventQueue.enqueue(() => memoryManager.load());
     logger('Extension updated :D');
   } else if (details.reason == 'to_be_confirmed_reason') {
     const options = {
