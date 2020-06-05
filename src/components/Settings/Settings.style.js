@@ -76,8 +76,83 @@ const styles = (theme) => ({
   },
   helpIcon: {
     color: '#e55c00',
+    fontSize: 18,
+    marginBottom: theme.spacing(2),
+    marginLeft: theme.spacing(0.5),
+  },
+  modal: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: '100%',
+    minHeight: '100%',
+    backgroundColor: 'rgba(150, 150, 150, 0.4)',
+    zIndex: theme.zIndex.drawer + 1,
+  },
+  paper: {
+    backgroundColor: theme.palette.background.paper,
+    //border: '0.5px solid #5A5A5A',
+    padding: theme.spacing(2, 4, 3),
+    marginLeft: theme.spacing(3),
+    marginRight: theme.spacing(3),
+
+    opacity: '1 !important',
+  },
+  boxCtrl: {
+    backgroundColor: theme.palette.background.paper,
+    border: '1px solid #5A5A5A',
+    height: theme.spacing(2.5),
+    //padding: theme.spacing(2, 4, 3),
+    //marginLeft: theme.spacing(3),
+    //marginRight: theme.spacing(3),
+
+    opacity: '1 !important',
+  },
+  leftClickWrapper: {
+    height: theme.spacing(3),
+  },
+  secondEnsemble: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    minWidth: '30%',
+  },
+  lastEnsemble: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    minWidth: '27%',
+  },
+  firstBlockModal: {
+    marginBottom: theme.spacing(2),
+  },
+  tipsButton: {
+    textTransform: 'capitalize',
+    marginTop: theme.spacing(0),
+    borderRadius: theme.spacing(2),
+    paddingLeft: 0,
+    paddingRight: 0,
+    marginLeft: theme.spacing(1),
+    marginRight: 0,
+    marginBottom: theme.spacing(1),
+  },
+  styleLabelTips: {
     fontSize: 14,
-    marginBottom: 8,
+    fontFamily: 'Helvetica',
+    color: 'rgba(150, 150, 150, 1)',
+  },
+  styleLabelNext: {
+    fontSize: 16,
+    fontFamily: 'Helvetica',
+    marginLeft: theme.spacing(2),
+    marginBottom: theme.spacing(0.5),
+  },
+  footerModal: {
+    marginTop: theme.spacing(1.5),
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    // minWidth: '100%',
   },
 });
 export default withStyles(styles)(Settings);

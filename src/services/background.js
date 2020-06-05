@@ -22,6 +22,13 @@ chrome.runtime.onInstalled.addListener(function (details) {
   if (details.reason == 'install') {
     chrome.tabs.create({ url: 'https://www.tabby.us/setup' });
     logger('Extension installed :D');
+    const options = {
+      type: 'basic',
+      title: 'Welcome to tabby!',
+      message: '200+ tabs will be removed this week',
+      iconUrl: '../assets/static/icons/tabby_128.png',
+    };
+    chrome.notifications.create(options);
   } else if (details.reason == 'update') {
     logger('Extension updated :D');
   }

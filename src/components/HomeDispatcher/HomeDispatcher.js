@@ -83,11 +83,6 @@ class HomeDispatcher extends PureComponent {
           <Paper square>
             <div className={classes.gridLogoTabs}>
               <Link href="https://tabby.us" target="_blank" className={classes.ensemblelogo}>
-                {/*<Avatar*/}
-                {/*alt="logoTabby"*/}
-                {/*src={'../../assets/static/icons/tabby_128.png'}*/}
-                {/*className={classes.logoAvatar}*/}
-                {/*/>*/}
                 <img src={'../../assets/static/icons/tabby_2.png'} className={classes.logoFull} />
               </Link>
               {this.displayIcon()}

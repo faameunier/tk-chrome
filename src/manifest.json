@@ -3,7 +3,7 @@
   "version": "1.0.1",
   "version_name": "IPO",
   "description": "Improve your focus on the browser",
-  "permissions": ["tabs", "storage", "sessions", "idle"],
+  "permissions": ["tabs", "storage", "sessions", "idle", "notifications"],
   "background": {
     "persistent": false,
     "page": "./views/background.html"

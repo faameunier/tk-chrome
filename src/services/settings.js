@@ -21,8 +21,8 @@ class SettingsManager {
 
   async init() {
     this.inactive_policy = [];
-    this.active_profile = RELAXED;
-    this.settings = INIT_RELAXED_PROFILE;
+    this.active_profile = FOCUSED;
+    this.settings = INIT_FOCUSED_PROFILE;
     this.whitelist = [];
   }
 
