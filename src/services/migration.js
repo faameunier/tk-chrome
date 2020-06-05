@@ -32,9 +32,9 @@ class MigrationManager {
   }
 
   static async toIPO(version) {
-    storageReset();
-    settingsManager.reset();
-    memoryManager.reset();
+    await storageReset();
+    await settingsManager.reset();
+    await memoryManager.reset();
   }
 
   static async toCurrent(version) {
