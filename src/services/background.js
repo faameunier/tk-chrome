@@ -1,6 +1,7 @@
 import { eventQueue } from './queue.js';
 import { memoryManager } from './memory.js';
 import { settingsManager } from './settings.js';
+import { MigrationManager } from './migration.js';
 import { logger, storageReset } from './utils.js';
 import { MAX_ACTIVE_DEBOUNCE } from '../config/env.js';
 
@@ -18,8 +19,10 @@ chrome.runtime.onInstalled.addListener(function (details) {
     eventQueue.enqueue(() => storageReset());
     eventQueue.enqueue(() => settingsManager.reset());
     eventQueue.enqueue(() => memoryManager.reset());
+    MigrationManager.setVersion();
     logger('Extension installed :D');
   } else if (details.reason == 'update') {
+    MigrationManager.migrate();
     logger('Extension updated :D');
   } else if (details.reason == 'to_be_confirmed_reason') {
     const options = {
