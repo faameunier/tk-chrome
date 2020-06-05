@@ -190,7 +190,7 @@ class Settings extends PureComponent {
       />
     ));
     return (
-      <div>
+      <div className={classes.mainBlock}>
         <div className="card-body">
           <FormControlLabel
             control={

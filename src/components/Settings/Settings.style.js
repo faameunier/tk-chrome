@@ -89,6 +89,9 @@ const styles = (theme) => ({
     backgroundColor: 'rgba(150, 150, 150, 0.4)',
     zIndex: theme.zIndex.drawer + 1,
   },
+  mainBlock: {
+    overflow: 'hidden',
+  },
   paper: {
     backgroundColor: theme.palette.background.paper,
     //border: '0.5px solid #5A5A5A',
