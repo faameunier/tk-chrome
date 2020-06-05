@@ -295,22 +295,21 @@ class Settings extends PureComponent {
               <div className={classes.firstBlockModal}>
                 <div className={classes.secondEnsemble}>
                   <Typography className={classes.styleLabel}>Protect a tab</Typography>
+                  <div className={classes.lastEnsemble}>
+                    <img src={'../../assets/static/icons/right_click.png'} className={classes.leftClickWrapper} />
+
+                    <Typography className={classes.styleLabel}>+</Typography>
+                    <Typography className={classes.styleLabel}>Pin</Typography>
+                  </div>
+                </div>
+                <div className={classes.secondEnsemble}>
+                  <Typography className={classes.styleLabel}>Reopen multiple tabs</Typography>
 
                   <div className={classes.secondEnsemble}>
                     <Typography className={classes.styleLabel}>Ctrl</Typography>
 
                     <Typography className={classes.styleLabel}>+</Typography>
                     <img src={'../../assets/static/icons/left_click.png'} className={classes.leftClickWrapper} />
-                  </div>
-                </div>
-                <div className={classes.secondEnsemble}>
-                  <Typography className={classes.styleLabel}>Light restore multiple tabs</Typography>
-
-                  <div className={classes.lastEnsemble}>
-                    <img src={'../../assets/static/icons/right_click.png'} className={classes.leftClickWrapper} />
-
-                    <Typography className={classes.styleLabel}>+</Typography>
-                    <Typography className={classes.styleLabel}>Pin</Typography>
                   </div>
                 </div>
               </div>

@@ -121,7 +121,7 @@ const styles = (theme) => ({
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    minWidth: '27%',
+    minWidth: '27.5%',
   },
   firstBlockModal: {
     marginBottom: theme.spacing(2),
