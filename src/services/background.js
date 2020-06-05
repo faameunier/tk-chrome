@@ -13,16 +13,15 @@ chrome.runtime.onStartup.addListener(function () {
 });
 
 chrome.runtime.onInstalled.addListener(function (details) {
-  if (details.reason == 'install' || details.reason == 'update') {
+  if (details.reason == 'install') {
+    chrome.tabs.create({ url: 'https://www.tabby.us/setup' });
     eventQueue.enqueue(() => storageReset());
     eventQueue.enqueue(() => settingsManager.reset());
     eventQueue.enqueue(() => memoryManager.reset());
-  }
-
-  if (details.reason == 'install') {
-    chrome.tabs.create({ url: 'https://www.tabby.us/setup' });
     logger('Extension installed :D');
   } else if (details.reason == 'update') {
+    eventQueue.enqueue(() => settingsManager.load());
+    eventQueue.enqueue(() => memoryManager.load());
     logger('Extension updated :D');
   } else if (details.reason == 'to_be_confirmed_reason') {
     const options = {
