@@ -210,7 +210,7 @@ class Settings extends PureComponent {
           />
           <div className={classes.introductionBlock}>
             <TuneIcon />
-            <Typography className={classes.parametersTitle}>Select the best mode or customize it</Typography>
+            <Typography className={classes.parametersTitle}>Select your profile</Typography>
             <Link href="https://www.tabby.us/setup#setup_step4" target="_blank">
               <HelpOutlineIcon className={classes.helpIcon} />
             </Link>
