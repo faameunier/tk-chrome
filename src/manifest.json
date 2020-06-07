@@ -1,7 +1,7 @@
 {
   "name": "tabby",
   "version": "1.0.2",
-  "version_name": "tabby 1.0.2",
+  "version_name": "v1.0.2",
   "description": "Improve your focus on the browser",
   "permissions": ["tabs", "storage", "sessions", "idle", "notifications"],
   "background": {
