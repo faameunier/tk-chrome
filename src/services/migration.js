@@ -6,7 +6,7 @@ class MigrationManager {
   static async setVersion() {
     logger('Saving version.');
     await storageSet({
-      version: chrome.runtime.getManifest().version
+      version: chrome.runtime.getManifest().version,
     });
   }
 
@@ -41,7 +41,7 @@ class MigrationManager {
     // till 1.0.2
     if (parseInt(version[0]) < 1) {
       await this.toIPO(version);
-    } else if (parseInt(version[0]) > 1){
+    } else if (parseInt(version[0]) > 1) {
       await this.toIPO(version); // fuck you
     } else {
       // nothing to do between 1.0.0, 1.0.1 and 1.0.2
