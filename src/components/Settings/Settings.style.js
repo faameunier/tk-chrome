@@ -46,10 +46,18 @@ const styles = (theme) => ({
   },
   firstBooleans: {
     maxWidth: '36%',
+    minWidth: theme.spacing(8),
     maxHeight: 20,
     marginTop: 5,
     pointerEvents: 'none',
   },
+  firstProfilesContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'start',
+    maxWidth: theme.spacing(10),
+  },
+
   styleLabel: {
     fontSize: 16,
     fontFamily: 'Helvetica',
@@ -76,9 +84,9 @@ const styles = (theme) => ({
   },
   helpIcon: {
     color: '#e55c00',
-    fontSize: 18,
-    marginBottom: theme.spacing(2),
-    marginLeft: theme.spacing(0.5),
+    fontSize: 13,
+    marginBottom: theme.spacing(0.5),
+    marginLeft: theme.spacing(1),
   },
   modal: {
     display: 'flex',

@@ -20,18 +20,17 @@ chrome.runtime.onInstalled.addListener(function (details) {
     eventQueue.enqueue(() => settingsManager.reset());
     eventQueue.enqueue(() => memoryManager.reset());
     MigrationManager.setVersion();
+    const options = {
+      type: 'basic',
+      title: 'Welcome to tabby!',
+      message: "Discover tips in the settings' help",
+      iconUrl: '../assets/static/icons/tabby_128.png',
+    };
+    chrome.notifications.create(options);
     logger('Extension installed :D');
   } else if (details.reason == 'update') {
     MigrationManager.migrate();
     logger('Extension updated :D');
-  } else if (details.reason == 'to_be_confirmed_reason') {
-    const options = {
-      type: 'basic',
-      title: 'Welcome to tabby!',
-      message: 'Discover our favorite tips in the settings',
-      iconUrl: '../assets/static/icons/tabby_128.png',
-    };
-    chrome.notifications.create(options);
   }
   logger(chrome.runtime.getManifest().version);
 });

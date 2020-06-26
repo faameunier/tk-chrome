@@ -37,6 +37,9 @@ var common = {
     new CopyWebpackPlugin([{ from: './src/manifest.json', to: './', flatten: true }], {
       copyUnmodified: true,
     }),
+    new CopyWebpackPlugin([{ from: './src/_locales', to: './_locales', flatten: false }], {
+      copyUnmodified: true,
+    }),
     new CopyWebpackPlugin([{ from: './src/assets', to: './assets', flatten: false }], {
       copyUnmodified: false,
     }),

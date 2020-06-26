@@ -15,7 +15,6 @@ const styles = (theme) => ({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'start',
-    //justifyContent: 'space-between',
   },
   greenTitle: {
     fontSize: 16,
@@ -23,6 +22,10 @@ const styles = (theme) => ({
     flexDirection: 'row',
     borderBottom: `2px solid #00b9aa`,
     maxWidth: 225,
+  },
+  listTitle: {
+    fontSize: 16,
+    maxHeight: 30,
   },
 
   boldNumber: {
@@ -85,10 +88,25 @@ const styles = (theme) => ({
     maxHeight: theme.spacing(7),
   },
   primaryTextContainer: {
-    fontSize: 16, //Insert your required size
+    fontSize: 16,
   },
   secondaryTextContainer: {
-    fontSize: 13, //Insert your required size
+    fontSize: 13,
+  },
+  primaryTitleContainer: {
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+
+  listTitleText: {
+    marginTop: theme.spacing(4.5),
+  },
+  listContainer: {
+    marginTop: theme.spacing(1),
+  },
+  searchBar: {
+    marginBottom: theme.spacing(1),
+    maxHeight: theme.spacing(5),
   },
 });
 export default withStyles(styles)(Home);
