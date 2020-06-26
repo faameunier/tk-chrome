@@ -85,7 +85,7 @@ const styles = (theme) => ({
   helpIcon: {
     color: '#e55c00',
     fontSize: 13,
-    marginBottom: theme.spacing(0.5),
+    marginTop: theme.spacing(0.25),
     marginLeft: theme.spacing(1),
   },
   modal: {
