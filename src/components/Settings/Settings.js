@@ -227,7 +227,7 @@ class Settings extends PureComponent {
           </div>
 
           <FormGroup className={classes.settingsWrapper}>
-            <LightTooltip title={'tends to reach 5 tabs'} placement="left">
+            <LightTooltip title={'tabby tends to reach 5 tabs'} placement="left">
               <div className={classes.firstProfilesContainer}>
                 <FormControlLabel
                   control={
@@ -244,7 +244,7 @@ class Settings extends PureComponent {
                 <HelpOutlineIcon className={classes.helpIcon} />
               </div>
             </LightTooltip>
-            <LightTooltip title={'tends to reach 12 tabs'} placement="left">
+            <LightTooltip title={'tabby tends to reach 12 tabs'} placement="left">
               <div className={classes.firstProfilesContainer}>
                 <FormControlLabel
                   control={
