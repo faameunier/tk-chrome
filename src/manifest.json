@@ -24,5 +24,6 @@
     "48": "./assets/static/icons/tabby_48.png",
     "128": "./assets/static/icons/tabby_128.png"
   },
+  "offline_enabled": true,
   "manifest_version": 2
 }
