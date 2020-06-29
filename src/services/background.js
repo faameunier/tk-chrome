@@ -30,6 +30,10 @@ chrome.runtime.onInstalled.addListener(function (details) {
     logger('Extension installed :D');
   } else if (details.reason == 'update') {
     MigrationManager.migrate();
+    chrome.runtime.setUninstallURL(
+      'https://docs.google.com/forms/d/e/1FAIpQLSfub2Ge_gQi7e6Vju7wWxZmZNSHa8AVs-Ds_1yVdOOd27R5Bw/viewform?usp=sf_link'
+    );
+
     logger('Extension updated :D');
   }
   logger(chrome.runtime.getManifest().version);
