@@ -72,7 +72,7 @@ class Home extends PureComponent {
     this.setState({ closed_history: items.reverse(), renderSaveBoolean: true });
     chrome.runtime.sendMessage({
       messageType: messageType,
-      tabId: restoredTab.tabId,
+      uuid: restoredTab.uuid,
     });
   }
 
