@@ -33,7 +33,8 @@ class MemoryManager {
     title: null,
     windowId: null,
     cache: [],
-    uuid: null
+    uuid: null,
+    sessionId: null
     // sessionId: optional sessionId
     // deletion_time: optional tabby deletion timestamp
   };
@@ -400,6 +401,16 @@ class MemoryManager {
     this.closed_history = this.closed_history.filter((tab) => {
       return tab.uuid !== uuid;
     });
+  }
+
+  async updateSessionId(uuid, sessionId) {
+    for (var i = 0; i < this.closed_history.length; i++) {
+      if (this.closed_history[i].uuid === uuid) {
+        this.closed_history[i].sessionId = sessionId;
+        logger(this, 'Updated sessionId ' + sessionId.toString() + ' for ' + uuid);
+        break;
+      }
+    }
   }
 
   async restoreTab(uuid, forceShell = false) {
