@@ -102,7 +102,7 @@ class PolicyManager {
           scores
         ); // [[tabId1, score1], [tabId2, score2]...]
 
-        logger(windowId.toString().concat('window scored :', JSON.stringify(scores)));
+        logger(windowId.toString().concat(' window scored :', JSON.stringify(scores)));
         let countProtected = 0;
         let minimumScore = MAXIMUM_SCORE;
         let minimumId = null;
