@@ -55,6 +55,8 @@ const styles = (theme) => ({
     overflowWrap: 'break-word',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
+    whiteSpace: 'break-spaces',
+
     maxHeight: 60,
   },
   timeDisplay: {
@@ -89,6 +91,11 @@ const styles = (theme) => ({
   },
   primaryTextContainer: {
     fontSize: 16,
+    overflowWrap: 'break-word',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    maxHeight: 22,
   },
   secondaryTextContainer: {
     fontSize: 13,

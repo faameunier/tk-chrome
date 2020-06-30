@@ -69,7 +69,6 @@ class Home extends PureComponent {
 
   restoreTab(items, key, messageType) {
     const restoredTab = items[key];
-    console.log(restoredTab);
     items.splice(key, 1);
     this.setState({ renderSaveBoolean: true }); // closed_history: items.reverse(),
     chrome.runtime.sendMessage({
@@ -82,9 +81,8 @@ class Home extends PureComponent {
     this.setState({ searchValue: value });
   };
 
-  searchOnRequestSearch = (event) => {
-    console.log(event);
-  };
+  searchOnRequestSearch = (event) => {};
+
   searchOnCancel = () => {
     this.setState({ searchValue: '' });
   };
@@ -96,17 +94,14 @@ class Home extends PureComponent {
   filterList(selectedList, endPeriod) {
     const now = Date.now();
     return selectedList.filter((item) => {
-      return now - Math.max(item.statistics.updated_at, item.statistics.last_active_timestamp) < endPeriod;
+      return now - item.deletion_time < endPeriod;
     });
   }
   filterListOnDate(selectedList, beginningDay) {
     const endDay = new Date(beginningDay.getTime());
     endDay.setDate(endDay.getDate() + 1);
     return selectedList.filter((item) => {
-      return (
-        beginningDay.getTime() < Math.max(item.statistics.updated_at, item.statistics.last_active_timestamp) &&
-        Math.max(item.statistics.updated_at, item.statistics.last_active_timestamp) < endDay.getTime()
-      );
+      return beginningDay.getTime() < item.deletion_time && item.deletion_time < endDay.getTime();
     });
   }
 
@@ -121,9 +116,6 @@ class Home extends PureComponent {
 
   renderList() {
     const { classes } = this.props;
-
-    const MAX_LENGTH_TITLE = 100;
-
     let selectedList = this.state.closed_history ? this.filterList(this.state.closed_history, TIME_PERIOD_72H) : [];
     selectedList = selectedList.map((website) => {
       if (typeof website !== 'undefined') {
@@ -131,10 +123,7 @@ class Home extends PureComponent {
         const formatted_deletion_time = deletionTime.toTimeString().split(' ')[0];
         website.hours_deletion = formatted_deletion_time.split(':')[0];
         website.minutes_deletion = formatted_deletion_time.split(':')[1];
-        if (website.title && website.title.length > MAX_LENGTH_TITLE) {
-          website.title = website.title.substring(0, MAX_LENGTH_TITLE).concat('...');
-        }
-        website.truncated_url = website.url.split('/')[0];
+        website.truncated_url = website.url;
       }
       return website;
     });
@@ -162,12 +151,12 @@ class Home extends PureComponent {
     const filteredList2daysAgo = this.filterListOnDate(selectedList, generatedDate2daysAgo[0]).reverse();
     const filteredList3daysAgo = this.filterListOnDate(selectedList, generatedDate3daysAgo[0]).reverse();
 
-    let YesterdayTitle = [];
+    let yesterdayTitle = [];
     let twoDaysTitle = [];
     let threeDaysTitle = [];
 
     if (filteredListYesterday.length > 0) {
-      YesterdayTitle = [{ day: generatedDateYesterday[1], text: 'Yesterday -' }];
+      yesterdayTitle = [{ day: generatedDateYesterday[1], text: 'Yesterday -' }];
     }
     if (filteredList2daysAgo.length > 0) {
       twoDaysTitle = [{ day: generatedDate2daysAgo[1], text: 'Previous day -' }];
@@ -176,7 +165,7 @@ class Home extends PureComponent {
       threeDaysTitle = [{ day: generatedDate3daysAgo[1], text: '' }];
     }
     const filteredList = filteredListToday
-      .concat(YesterdayTitle)
+      .concat(yesterdayTitle)
       .concat(filteredListYesterday)
       .concat(twoDaysTitle)
       .concat(filteredList2daysAgo)
