@@ -1,11 +1,8 @@
 import React, { PureComponent } from 'react';
 import Link from '@material-ui/core/Link';
-import Tabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
 import Paper from '@material-ui/core/Paper';
 import SettingsIcon from '@material-ui/icons/Settings';
 import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
-import Avatar from '@material-ui/core/Avatar/Avatar';
 import { SnackbarProvider } from 'notistack';
 import Settings from '../Settings';
 import IconButton from '@material-ui/core/IconButton';

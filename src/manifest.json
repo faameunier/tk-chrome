@@ -1,8 +1,9 @@
 {
   "name": "tabby",
-  "version": "1.0.2",
-  "version_name": "tabby 1.0.2",
-  "description": "Improve your focus on the browser",
+  "description": "__MSG_appDesc__",
+  "default_locale": "en",
+  "version": "1.0.3",
+  "version_name": "v1.0.3",
   "permissions": ["tabs", "storage", "sessions", "idle", "notifications"],
   "background": {
     "persistent": false,
@@ -23,5 +24,6 @@
     "48": "./assets/static/icons/tabby_48.png",
     "128": "./assets/static/icons/tabby_128.png"
   },
+  "offline_enabled": true,
   "manifest_version": 2
 }

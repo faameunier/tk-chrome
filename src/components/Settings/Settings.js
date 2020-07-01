@@ -1,4 +1,5 @@
 import React, { PureComponent } from 'react';
+import { withStyles } from '@material-ui/core/styles';
 import FormGroup from '@material-ui/core/FormGroup';
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
@@ -11,6 +12,8 @@ import TuneIcon from '@material-ui/icons/Tune';
 import HelpOutlineIcon from '@material-ui/icons/HelpOutline';
 import Modal from '@material-ui/core/Modal';
 import Backdrop from '@material-ui/core/Backdrop';
+import Tooltip from '@material-ui/core/Tooltip';
+
 import Box from '@material-ui/core/Box';
 import Fade from '@material-ui/core/Fade';
 
@@ -18,7 +21,17 @@ import { withSnackbar } from 'notistack';
 import { RELAXED, FOCUSED, CUSTOMIZED, INIT_FOCUSED_PROFILE } from '../../config/settingsProfiles.js';
 import { checkSettings, OPTIMAL_NUMBER_TABS, POLICY, INACTIVE_POLICY } from '../utils';
 import { isInteger, removeItem } from '../../services/utils';
-import Link from '@material-ui/core/Link/Link';
+import Link from '@material-ui/core/Link';
+
+const LightTooltip = withStyles((theme) => ({
+  tooltip: {
+    backgroundColor: theme.palette.common.white,
+    color: 'rgba(0, 0, 0, 1)',
+    boxShadow: theme.shadows[1],
+    fontSize: 13,
+    marginBottom: theme.spacing(0.5),
+  },
+}))(Tooltip);
 
 class Settings extends PureComponent {
   constructor(props) {
@@ -211,36 +224,44 @@ class Settings extends PureComponent {
           <div className={classes.introductionBlock}>
             <TuneIcon />
             <Typography className={classes.parametersTitle}>Select your profile</Typography>
-            <Link href="https://www.tabby.us/setup#setup_step4" target="_blank">
-              <HelpOutlineIcon className={classes.helpIcon} />
-            </Link>
           </div>
 
           <FormGroup className={classes.settingsWrapper}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={this.state.focusedMode}
-                  onChange={() => this.handleBoolChange(FOCUSED)}
-                  color="secondary"
-                  className={classes.checkboxWrapper}
+            <LightTooltip title={'tabby tends to keep 5 tabs'} placement="left">
+              <div className={classes.firstProfilesContainer}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={this.state.focusedMode}
+                      onChange={() => this.handleBoolChange(FOCUSED)}
+                      color="secondary"
+                      className={classes.checkboxWrapper}
+                    />
+                  }
+                  label={<Typography className={classes.styleLabel}>Focus</Typography>}
+                  className={classes.firstBooleans}
                 />
-              }
-              label={<Typography className={classes.styleLabel}>Focus</Typography>}
-              className={classes.firstBooleans}
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={this.state.relaxedMode}
-                  onChange={() => this.handleBoolChange(RELAXED)}
-                  color="secondary"
-                  className={classes.checkboxWrapper}
+                <HelpOutlineIcon className={classes.helpIcon} />
+              </div>
+            </LightTooltip>
+            <LightTooltip title={'tabby tends to keep 12 tabs'} placement="left">
+              <div className={classes.firstProfilesContainer}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={this.state.relaxedMode}
+                      onChange={() => this.handleBoolChange(RELAXED)}
+                      color="secondary"
+                      className={classes.checkboxWrapper}
+                    />
+                  }
+                  label={<Typography className={classes.styleLabel}>Relax</Typography>}
+                  className={classes.firstBooleans}
                 />
-              }
-              label={<Typography className={classes.styleLabel}>Relax</Typography>}
-              className={classes.firstBooleans}
-            />
+                <HelpOutlineIcon className={classes.helpIcon} />
+              </div>
+            </LightTooltip>
+
             <div className={classes.customizeWrapper}>
               <FormControlLabel
                 control={
@@ -276,7 +297,7 @@ class Settings extends PureComponent {
           </FormGroup>
         </div>
         <Button variant="text" onClick={this.handleOpen} className={classes.tipsButton}>
-          <Typography className={classes.styleLabelTips}>Tips</Typography>{' '}
+          <Typography className={classes.styleLabelTips}>Help</Typography>{' '}
         </Button>
         <Modal
           //disablePortal={true}

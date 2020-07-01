@@ -4,6 +4,7 @@ import { settingsManager } from './settings.js';
 import { MigrationManager } from './migration.js';
 import { logger, storageReset } from './utils.js';
 import { MAX_ACTIVE_DEBOUNCE } from '../config/env.js';
+import { updateOptions, installOptions } from '../config/notificationConf.js';
 
 // -----------------------------------------------
 // Installation and startup events
@@ -20,18 +21,16 @@ chrome.runtime.onInstalled.addListener(function (details) {
     eventQueue.enqueue(() => settingsManager.reset());
     eventQueue.enqueue(() => memoryManager.reset());
     MigrationManager.setVersion();
+    chrome.notifications.create(installOptions);
     logger('Extension installed :D');
   } else if (details.reason == 'update') {
     MigrationManager.migrate();
+    chrome.runtime.setUninstallURL(
+      'https://docs.google.com/forms/d/e/1FAIpQLSfub2Ge_gQi7e6Vju7wWxZmZNSHa8AVs-Ds_1yVdOOd27R5Bw/viewform?usp=sf_link'
+    );
+    chrome.notifications.create(updateOptions);
+
     logger('Extension updated :D');
-  } else if (details.reason == 'to_be_confirmed_reason') {
-    const options = {
-      type: 'basic',
-      title: 'Welcome to tabby!',
-      message: 'Discover our favorite tips in the settings',
-      iconUrl: '../assets/static/icons/tabby_128.png',
-    };
-    chrome.notifications.create(options);
   }
   logger(chrome.runtime.getManifest().version);
 });

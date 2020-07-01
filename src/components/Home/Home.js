@@ -11,14 +11,15 @@ import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import { FixedSizeList as List } from 'react-window';
 
 import { setAllReadBadge } from '../../services/utils';
+import SearchBar from 'material-ui-search-bar';
 
 const RESTORE = 'RESTORE';
 const SHELL_RESTORE = 'SHELL_RESTORE';
-const NEXT = 'NEXT';
 const REMOVED = 'REMOVED';
 const CLOSED_HISTORY = 'closed_history';
-const NUMBER_HOURS = 24;
-const TIME_PERIOD_TO_CONSIDER = 3600000 * NUMBER_HOURS; // in microsecond
+const NUMBER_HOURS_DAY = 24;
+const TIME_PERIOD_24H = 3600000 * NUMBER_HOURS_DAY; // in microsecond
+const TIME_PERIOD_72H = 3600000 * NUMBER_HOURS_DAY * 3; // in microsecond
 
 class Home extends PureComponent {
   constructor(props) {
@@ -31,6 +32,7 @@ class Home extends PureComponent {
         this.setState({
           closed_history: changesClosedHistory['newValue'],
           renderSaveBoolean: true,
+          searchValue: '',
         });
       }
     }.bind(this);
@@ -56,68 +58,137 @@ class Home extends PureComponent {
     }
   }
 
-  removeItem(key, e) {
-    let items = this.state.closed_history.reverse();
+  removeItem(listItems, key, e) {
     if (e.ctrlKey || e.metaKey) {
       // metaKey is cmd key on mac
-      this.restoreTab(items, key, SHELL_RESTORE);
+      this.restoreTab(listItems, key, SHELL_RESTORE);
     } else {
-      this.restoreTab(items, key, RESTORE);
+      this.restoreTab(listItems, key, RESTORE);
     }
   }
 
   restoreTab(items, key, messageType) {
     const restoredTab = items[key];
     items.splice(key, 1);
-    this.setState({ closed_history: items.reverse(), renderSaveBoolean: true });
+    this.setState({ renderSaveBoolean: true }); // closed_history: items.reverse(),
     chrome.runtime.sendMessage({
       messageType: messageType,
       uuid: restoredTab.uuid,
     });
   }
 
+  searchOnChange = (value) => {
+    this.setState({ searchValue: value });
+  };
+
+  searchOnRequestSearch = (event) => {};
+
+  searchOnCancel = () => {
+    this.setState({ searchValue: '' });
+  };
+
   forceRender() {
     this.setState({ renderSaveBoolean: false });
   }
 
-  filterList(selectedList) {
+  filterList(selectedList, endPeriod) {
     const now = Date.now();
     return selectedList.filter((item) => {
-      return (
-        now - Math.max(item.statistics.updated_at, item.statistics.last_active_timestamp) < TIME_PERIOD_TO_CONSIDER
-      );
+      return now - item.deletion_time < endPeriod;
+    });
+  }
+  filterListOnDate(selectedList, beginningDay) {
+    const endDay = new Date(beginningDay.getTime());
+    endDay.setDate(endDay.getDate() + 1);
+    return selectedList.filter((item) => {
+      return beginningDay.getTime() < item.deletion_time && item.deletion_time < endDay.getTime();
     });
   }
 
-  renderList(listToBeRendered) {
+  generateBeginDate(rollBackDays) {
+    const beginningDay = new Date();
+    beginningDay.setDate(beginningDay.getDate() - rollBackDays);
+    beginningDay.setHours(0, 0, 0, 0);
+    const dateDayBegin = String(beginningDay.getDate()).padStart(2, '0');
+    const dateMonthBegin = String(beginningDay.getMonth() + 1).padStart(2, '0');
+    return [beginningDay, dateDayBegin + '/' + dateMonthBegin];
+  }
+
+  renderList() {
     const { classes } = this.props;
+    let selectedList = this.state.closed_history ? this.filterList(this.state.closed_history, TIME_PERIOD_72H) : [];
+    selectedList = selectedList.map((website) => {
+      if (typeof website !== 'undefined') {
+        const deletionTime = new Date(website.deletion_time);
+        const formatted_deletion_time = deletionTime.toTimeString().split(' ')[0];
+        website.hours_deletion = formatted_deletion_time.split(':')[0];
+        website.minutes_deletion = formatted_deletion_time.split(':')[1];
+        website.truncated_url = website.url;
+      }
+      return website;
+    });
 
-    let selectedList;
-    const MAX_LENGTH_TITLE = 100;
-
-    switch (listToBeRendered) {
-      case NEXT:
-        selectedList = this.state.nextList ? this.state.nextList : [];
-        break;
-      default:
-        selectedList = this.state.closed_history ? this.state.closed_history : [];
-        selectedList = selectedList.map((website, i) => {
-          const deletionTime = new Date(website.deletion_time);
-          const formatted_deletion_time = deletionTime.toTimeString().split(' ')[0];
-          website.hours_deletion = formatted_deletion_time.split(':')[0];
-          website.minutes_deletion = formatted_deletion_time.split(':')[1];
-          if (website.title && website.title.length > MAX_LENGTH_TITLE) {
-            website.title = website.title.substring(0, MAX_LENGTH_TITLE).concat('...');
-          }
-          website.truncated_url = website.url.split('/')[0];
-          return website;
-        });
+    if (typeof this.state.searchValue !== 'undefined' && this.state.searchValue.length > 0) {
+      const searchPattern = new RegExp(
+        this.state.searchValue
+          .split(' ')
+          .map((term) => `(?=.*${term})`)
+          .join(''),
+        'i'
+      );
+      selectedList = selectedList.filter(
+        (option) => option.title.match(searchPattern) || option.url.match(searchPattern)
+      );
     }
-    const isNext = listToBeRendered === NEXT;
-    const filteredList = this.filterList(selectedList).reverse();
 
-    const listItem = ({ index, style }) => {
-      const website = filteredList[index];
+    const generatedDateToday = this.generateBeginDate(0);
+    const generatedDateYesterday = this.generateBeginDate(1);
+    const generatedDate2daysAgo = this.generateBeginDate(2);
+    const generatedDate3daysAgo = this.generateBeginDate(3);
+
+    const filteredListToday = this.filterListOnDate(selectedList, generatedDateToday[0]).reverse();
+    const filteredListYesterday = this.filterListOnDate(selectedList, generatedDateYesterday[0]).reverse();
+    const filteredList2daysAgo = this.filterListOnDate(selectedList, generatedDate2daysAgo[0]).reverse();
+    const filteredList3daysAgo = this.filterListOnDate(selectedList, generatedDate3daysAgo[0]).reverse();
+
+    let yesterdayTitle = [];
+    let twoDaysTitle = [];
+    let threeDaysTitle = [];
+
+    if (filteredListYesterday.length > 0) {
+      yesterdayTitle = [{ day: generatedDateYesterday[1], text: 'Yesterday -' }];
+    }
+    if (filteredList2daysAgo.length > 0) {
+      twoDaysTitle = [{ day: generatedDate2daysAgo[1], text: 'Previous day -' }];
+    }
+    if (filteredList3daysAgo.length > 0) {
+      threeDaysTitle = [{ day: generatedDate3daysAgo[1], text: '' }];
+    }
+    const filteredList = filteredListToday
+      .concat(yesterdayTitle)
+      .concat(filteredListYesterday)
+      .concat(twoDaysTitle)
+      .concat(filteredList2daysAgo)
+      .concat(threeDaysTitle)
+      .concat(filteredList3daysAgo);
+
+    const listItem = (myFilteredList) => ({ index, style }) => {
+      const website = myFilteredList[index];
+      if (typeof website.day !== 'undefined') {
+        return (
+          <div key={index} style={style}>
+            <ListItem ContainerComponent="div">
+              <ListItemText
+                primary={`${website.text} ${website.day}`}
+                classes={{
+                  primary: classes.primaryTitleContainer,
+                }}
+                className={classes.listTitleText}
+              />
+            </ListItem>
+          </div>
+        );
+      }
       return (
         <div key={index} style={style}>
           <ListItem ContainerComponent="div">
@@ -126,7 +197,12 @@ class Home extends PureComponent {
                 {`${website.hours_deletion}:${website.minutes_deletion}`}
               </Typography>
               <ListItemAvatar>
-                <Avatar alt={website.title} src={website.favIconUrl} className={classes.avatarContainer} />
+                <Avatar
+                  variant="square"
+                  alt={website.title}
+                  src={website.favIconUrl}
+                  className={classes.avatarContainer}
+                />
               </ListItemAvatar>
             </div>
             <ListItemText
@@ -142,12 +218,12 @@ class Home extends PureComponent {
               <div className={classes.buttonContainer}>
                 <Button
                   size="small"
-                  onClick={isNext ? this.removeNextItem.bind(this, index) : this.removeItem.bind(this, index)}
+                  onClick={this.removeItem.bind(this, myFilteredList, index)}
                   variant="outlined"
                   color="secondary"
                   className={classes.button}
                 >
-                  {isNext ? 'Skip' : 'Restore'}
+                  {'Restore'}
                 </Button>
               </div>
             </ListItemSecondaryAction>
@@ -157,16 +233,18 @@ class Home extends PureComponent {
     };
     return (
       <div className={classes.listWebsites}>
-        <Typography variant="h6" className={classes.greenTitle}>
-          {isNext ? 'Next tabs to be closed' : `Last closed tabs`}
-        </Typography>
-
-        <div>
-          {filteredList.length === 0 ? (
-            <div className={classes.subText}>{`You should maybe update your settings.`}</div>
-          ) : (
+        <SearchBar
+          placeholder="Search on last 72h"
+          onChange={this.searchOnChange}
+          onRequestSearch={this.searchOnRequestSearch}
+          onCancelSearch={this.searchOnCancel}
+          value={this.state.searchValue}
+          className={classes.searchBar}
+        />
+        <div className={classes.list}>
+          {filteredList.length === 0 ? null : (
             <List height={Math.min(80 * filteredList.length, 300)} itemCount={filteredList.length} itemSize={80}>
-              {listItem}
+              {listItem(filteredList)}
             </List>
           )}
         </div>
@@ -176,7 +254,9 @@ class Home extends PureComponent {
 
   render() {
     const { classes } = this.props;
-    const numberClosedTabsLastHour = this.state.closed_history ? this.filterList(this.state.closed_history).length : 0;
+    const numberClosedTabsLastHour = this.state.closed_history
+      ? this.filterList(this.state.closed_history, TIME_PERIOD_24H).length
+      : 0;
     return (
       <div className="card-body">
         <div variant="h3" className={classes.title}>
@@ -189,7 +269,7 @@ class Home extends PureComponent {
               tab
               {numberClosedTabsLastHour <= 1 ? '' : 's'} closed
             </Typography>
-            <Typography className={classes.middleText}> in the last {`${NUMBER_HOURS} hours`} </Typography>
+            <Typography className={classes.middleText}> in the last {`${NUMBER_HOURS_DAY} hours`} </Typography>
           </div>
         </div>
         {this.renderList.bind(this)(REMOVED)}

@@ -7,7 +7,7 @@ class MigrationManager {
   static async setVersion() {
     logger('Saving version.');
     await storageSet({
-      version: chrome.runtime.getManifest().version
+      version: chrome.runtime.getManifest().version,
     });
   }
 
