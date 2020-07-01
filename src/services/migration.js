@@ -1,6 +1,7 @@
 import { settingsManager } from './settings.js';
 import { memoryManager } from './memory.js';
 import { logger, storageSet, storageGet, storageReset } from './utils.js';
+import { v4 as uuidv4 } from 'uuid';
 
 class MigrationManager {
   static async setVersion() {
@@ -37,16 +38,37 @@ class MigrationManager {
     await memoryManager.reset();
   }
 
+  static async addUUIDs(version) {
+    await memoryManager.load();
+    let tabs = memoryManager.tabs;
+    let tab_ids = Object.keys(tabs);
+    for (var i = 0; i < tab_ids.length; i++) {
+      tabs[tab_ids[i]].uuid = uuidv4();
+    }
+    memoryManager.tabs = tabs;
+
+    let closed_history = memoryManager.closed_history;
+    for (var i = 0; i < closed_history.length; i++) {
+      closed_history[i].uuid = uuidv4();
+    }
+    memoryManager.closed_history = closed_history;
+
+    await memoryManager.save();
+  }
+
   static async toCurrent(version) {
-    // till 1.0.2
+    // till 1.1.x
+    if (parseInt(version[0]) > 1){
+      await this.toIPO(version); // fuck you
+    }
     if (parseInt(version[0]) < 1) {
       await this.toIPO(version);
-    } else if (parseInt(version[0]) > 1){
-      await this.toIPO(version); // fuck you
-    } else {
-      // nothing to do between 1.0.0, 1.0.1 and 1.0.2
-      logger('Migration done.');
     }
+    if (parseInt(version[1]) < 1){
+      await this.addUUIDs(version);
+    }
+    // nothing to do between 1.0.0, 1.0.1 and 1.0.2
+    logger('Migration done.');
   }
 }
 

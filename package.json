@@ -35,6 +35,7 @@
     "prettier": "^2.0.4",
     "psl": "^1.8.0",
     "style-loader": "^0.23.1",
+    "uuid": "^8.2.0",
     "webpack": "github:webpack/webpack#master",
     "webpack-cli": "^3.3.6",
     "webpack-dev-server": "^3.7.2"

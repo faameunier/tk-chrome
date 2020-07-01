@@ -110,11 +110,29 @@ function removeItem(arr, value) {
   return arr;
 }
 
+const retryPromise = (func, delay, times) => new Promise((resolve, reject) => {
+  return func()
+    .then(resolve)
+    .catch((reason) => {
+      if (reason === false) {
+        return reject(reason);
+      }
+      if (times > 0) {
+        return timeout(delay)
+          .then(retryPromise.bind(null, func, delay, times - 1))
+          .then(resolve)
+          .catch(reject);
+      }
+      return reject(reason);
+    });
+});
+
 logger('Starting in ' + ENV + ' env.');
 export {
   logger,
   copy,
   timeout,
+  retryPromise,
   getDomain,
   storageGet,
   storageSet,
