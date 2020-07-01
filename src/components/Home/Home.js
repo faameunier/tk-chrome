@@ -69,8 +69,8 @@ class Home extends PureComponent {
 
   restoreTab(items, key, messageType) {
     const restoredTab = items[key];
-    items.splice(key, 1);
-    this.setState({ renderSaveBoolean: true }); // closed_history: items.reverse(),
+    const closed_history = this.state.closed_history.filter((item) => item.uuid !== restoredTab.uuid);
+    this.setState({ closed_history: closed_history, renderSaveBoolean: true });
     chrome.runtime.sendMessage({
       messageType: messageType,
       uuid: restoredTab.uuid,
