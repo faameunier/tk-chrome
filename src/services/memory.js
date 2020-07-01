@@ -3,6 +3,7 @@ import { logger, getDomain, storageSet, copy, storageGet, getLastFocusedWindow, 
 import { MIN_ACTIVE_DEBOUNCE, MAX_ACTIVE_DEBOUNCE } from '../config/env.js';
 import { LRUfactory, LRU } from './LRU.js';
 import { settingsManager } from './settings.js';
+import { v4 as uuidv4 } from 'uuid';
 
 class MemoryManager {
   focused_window_id = null;
@@ -32,6 +33,8 @@ class MemoryManager {
     title: null,
     windowId: null,
     cache: [],
+    uuid: null,
+    sessionId: null
     // sessionId: optional sessionId
     // deletion_time: optional tabby deletion timestamp
   };
@@ -149,6 +152,7 @@ class MemoryManager {
         new_tab.tabId = tab.id;
         new_tab.pinned = tab.pinned;
         new_tab.windowId = tab.windowId;
+        new_tab.uuid = uuidv4();
         let now = Date.now();
 
         if (typeof tab.url !== 'undefined') {
@@ -393,16 +397,26 @@ class MemoryManager {
     }
   }
 
-  async removeTabFromClosedHistory(tabId) {
+  async removeTabFromClosedHistory(uuid) {
     this.closed_history = this.closed_history.filter((tab) => {
-      return tab.tabId !== tabId;
+      return tab.uuid !== uuid;
     });
   }
 
-  async restoreTab(tabId, forceShell = false) {
-    logger(this, 'Restoring tab ' + tabId);
+  async updateSessionId(uuid, sessionId) {
+    for (var i = 0; i < this.closed_history.length; i++) {
+      if (this.closed_history[i].uuid === uuid) {
+        this.closed_history[i].sessionId = sessionId;
+        logger(this, 'Updated sessionId ' + sessionId.toString() + ' for ' + uuid);
+        break;
+      }
+    }
+  }
+
+  async restoreTab(uuid, forceShell = false) {
+    logger(this, 'Restoring tab ' + uuid);
     let restoredTab = this.closed_history.filter((tab) => {
-      return tab.tabId === tabId;
+      return tab.uuid === uuid;
     })[0];
 
     let tab = null;

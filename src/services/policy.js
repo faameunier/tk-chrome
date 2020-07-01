@@ -3,12 +3,13 @@ import {
   MAXIMUM_SCORE,
   MAXIMUM_HISTORY_SIZE,
   SESSIONS_TIMEOUT_MS,
+  SESSIONS_RETRIES,
   SESSIONS_MAX_FUZZY_DELTA_MS,
 } from '../config/env.js';
 import { memoryManager } from './memory.js';
 import { settingsManager } from './settings.js';
 import { Scorer } from './scorer.js';
-import { logger, copy, timeout } from './utils.js';
+import { logger, copy, retryPromise } from './utils.js';
 import { setUnreadBadge } from './utils';
 
 class PolicyManager {
@@ -102,7 +103,7 @@ class PolicyManager {
           scores
         ); // [[tabId1, score1], [tabId2, score2]...]
 
-        logger(windowId.toString().concat('window scored :', JSON.stringify(scores)));
+        logger(windowId.toString().concat(' window scored :', JSON.stringify(scores)));
         let countProtected = 0;
         let minimumScore = MAXIMUM_SCORE;
         let minimumId = null;
@@ -134,6 +135,37 @@ class PolicyManager {
     return [false, {}]; // old scores are kept for windows without a run
   }
 
+  static async retrieveSessionId(tab) {
+    var attempt = () => new Promise((resolve, reject) => {
+      chrome.sessions.getRecentlyClosed({ maxResults: 5 }, (sessions) => {
+        let error = chrome.runtime.lastError;
+        if (error) {
+          logger('getRecentlyClosed failed');
+          reject(false);
+        } else {
+          for (let i = 0; i < sessions.length; i++) {
+            // Closed tabs are explored from more recent to oldest
+            let sessionTab = sessions[i].tab;
+            let lastModified = sessions[i].lastModified;
+            if (
+              sessionTab &&
+              sessionTab.url === tab.full_url &&
+              Date.now() - lastModified * 1000 <= SESSIONS_MAX_FUZZY_DELTA_MS
+            ) {
+              resolve(sessionTab.sessionId);
+              break;
+            }
+          }
+          reject(true);
+        }
+      });
+    });
+    let p = retryPromise(attempt, SESSIONS_TIMEOUT_MS, SESSIONS_RETRIES);
+    p.then((sessionId) => memoryManager.updateSessionId(tab.uuid, sessionId),
+           (reason) => {})
+     .then(() => memoryManager.save());
+  }
+
   static async killTab(tabId, tab) {
     try {
       let p = await new Promise((resolve, reject) => {
@@ -147,40 +179,14 @@ class PolicyManager {
         });
       });
       await memoryManager.updateStatistics(tab); // updating statistics of the tab before removing it from memory
-      await timeout(SESSIONS_TIMEOUT_MS); // There is no guarantee that Chrome sessions will be updated after that time.
-      p = await new Promise((resolve, reject) => {
-        chrome.sessions.getRecentlyClosed({ maxResults: 5 }, (sessions) => {
-          let error = chrome.runtime.lastError;
-          if (error) {
-            logger('getRecentlyClosed failed');
-            resolve();
-          } else {
-            for (let i = 0; i < sessions.length; i++) {
-              // Closed tabs are explored from more recent to oldest
-              let sessionTab = sessions[i].tab;
-              let lastModified = sessions[i].lastModified;
-              if (
-                sessionTab &&
-                sessionTab.url === tab.full_url &&
-                Date.now() - lastModified * 1000 <= SESSIONS_MAX_FUZZY_DELTA_MS
-              ) {
-                resolve(sessionTab.sessionId);
-                break;
-              }
-            }
-            resolve();
-          }
-        });
-      });
-      // Deleting the tab will trigger all cleaning actions in memoryManager through the onRemoved trigger.
       let copiedTab = copy(tab); // making a simple json copy
       copiedTab.deletion_time = Date.now();
-      copiedTab.sessionId = p; // p can be null
       memoryManager.closed_history.push(copiedTab);
       memoryManager.closed_history = memoryManager.closed_history.slice(0, MAXIMUM_HISTORY_SIZE);
       setUnreadBadge();
+      this.retrieveSessionId(tab); // async
       logger('Tab '.concat(tabId, ' killed by policy'));
-    } catch {
+    } catch(err) {
       logger('Tab '.concat(tabId, " couldn't be killed"));
     }
   }
