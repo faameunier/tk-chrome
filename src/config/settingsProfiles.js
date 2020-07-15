@@ -13,8 +13,8 @@ if (ENV === 'debug') {
     },
     policy: {
       target_tabs: 12, // tabby will stop closing tabs when we have less than target_tabs open
-      decay: 0.9, // when the number of tab increases, tabby will delete more tabs
-      min_time: 45 * 1000, // Tabby will kill about 1 tab per min_time (depending on activation rules)
+      decay: 0.8, // when the number of tab increases, tabby will delete more tabs
+      min_time: 3 * 1000, // Tabby will kill about 1 tab per min_time (depending on activation rules)
 
       // IGNORED tabs
       active: false, // these status are absolutely protected tabs: these are ignored and do not count as tabs.
@@ -41,8 +41,8 @@ if (ENV === 'debug') {
     },
     policy: {
       target_tabs: 5,
-      decay: 0.9,
-      min_time: 45 * 1000,
+      decay: 0.8,
+      min_time: 3 * 1000,
 
       // IGNORED tabs
       active: false, // these status are absolutely protected tabs: these are ignored and do not count as tabs.
