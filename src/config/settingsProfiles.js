@@ -69,8 +69,8 @@ if (ENV === 'debug') {
     },
     policy: {
       target_tabs: 12,
-      decay: 0.8,
-      min_time: 3 * 1000,
+      decay: 0.9,
+      min_time: 45 * 1000,
 
       // IGNORED tabs
       active: false, // these status are absolutely protected tabs: these are ignored and do not count as tabs.
@@ -97,8 +97,8 @@ if (ENV === 'debug') {
     },
     policy: {
       target_tabs: 5,
-      decay: 0.8,
-      min_time: 3 * 1000,
+      decay: 0.9,
+      min_time: 45 * 1000,
 
       // IGNORED tabs
       active: false, // these status are absolutely protected tabs: these are ignored and do not count as tabs.
