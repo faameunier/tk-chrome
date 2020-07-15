@@ -1,3 +1,4 @@
+import * as browser from 'webextension-polyfill';
 import _ from 'lodash';
 import {
   MAXIMUM_SCORE,
@@ -136,48 +137,40 @@ class PolicyManager {
   }
 
   static async retrieveSessionId(tab) {
-    var attempt = () => new Promise((resolve, reject) => {
-      chrome.sessions.getRecentlyClosed({ maxResults: 5 }, (sessions) => {
-        let error = chrome.runtime.lastError;
-        if (error) {
-          logger('getRecentlyClosed failed');
-          reject(false);
-        } else {
-          for (let i = 0; i < sessions.length; i++) {
-            // Closed tabs are explored from more recent to oldest
-            let sessionTab = sessions[i].tab;
-            let lastModified = sessions[i].lastModified;
-            if (
-              sessionTab &&
-              sessionTab.url === tab.full_url &&
-              Date.now() - lastModified * 1000 <= SESSIONS_MAX_FUZZY_DELTA_MS
-            ) {
-              resolve(sessionTab.sessionId);
-              break;
-            }
-          }
-          reject(true);
+    // not compatible with Safari
+    var attempt = () => browser.sessions.getRecentlyClosed({
+      maxResults: 5 
+    }).then((sessions) => {
+      for (let i = 0; i < sessions.length; i++) {
+        // Closed tabs are explored from more recent to oldest
+        let sessionTab = sessions[i].tab;
+        let lastModified = sessions[i].lastModified;
+        if (
+          sessionTab &&
+          sessionTab.url === tab.full_url &&
+          Date.now() - lastModified * 1000 <= SESSIONS_MAX_FUZZY_DELTA_MS
+        ) {
+          return sessionTab.sessionId;
         }
-      });
+      }
+      throw true;
+    }).catch((error) => {
+      if (error !== true) {
+        logger('getRecentlyClosed failed');
+        throw false;
+      }
+      throw true;
     });
     let p = retryPromise(attempt, SESSIONS_TIMEOUT_MS, SESSIONS_RETRIES);
     p.then((sessionId) => memoryManager.updateSessionId(tab.uuid, sessionId),
            (reason) => {})
-     .then(() => memoryManager.save());
+     .then(() => memoryManager.save())
+     .catch(() => logger('Couldn\'t retrieve sessionId'));
   }
 
   static async killTab(tabId, tab) {
     try {
-      let p = await new Promise((resolve, reject) => {
-        chrome.tabs.remove(parseInt(tabId), function (tab) {
-          let error = chrome.runtime.lastError;
-          if (error) {
-            reject('Tab not found');
-          } else {
-            resolve('success');
-          }
-        });
-      });
+      await browser.tabs.remove(parseInt(tabId));
       await memoryManager.updateStatistics(tab); // updating statistics of the tab before removing it from memory
       let copiedTab = copy(tab); // making a simple json copy
       copiedTab.deletion_time = Date.now();

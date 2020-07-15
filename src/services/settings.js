@@ -1,4 +1,5 @@
-import { logger, storageSet, storageGet, getDomain, removeItem } from './utils.js';
+import * as browser from 'webextension-polyfill';
+import { logger, getDomain, removeItem } from './utils.js';
 import {
   RELAXED,
   FOCUSED,
@@ -43,7 +44,7 @@ class SettingsManager {
 
   async save() {
     logger(this, 'Saved');
-    await storageSet({
+    await browser.storage.local.set({
       settings: this.settings,
       active_profile: this.active_profile,
       whitelist: this.whitelist,
@@ -53,7 +54,7 @@ class SettingsManager {
 
   async load() {
     if (!this.loaded) {
-      let data = await storageGet(['settings', 'active_profile', 'whitelist', 'inactive_policy']);
+      let data = await browser.storage.local.get(['settings', 'active_profile', 'whitelist', 'inactive_policy']);
       try {
         logger(this, 'Loading settings from storage');
         if (

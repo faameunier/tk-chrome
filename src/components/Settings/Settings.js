@@ -1,3 +1,4 @@
+import * as browser from 'webextension-polyfill';
 import React, { PureComponent } from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import FormGroup from '@material-ui/core/FormGroup';
@@ -69,7 +70,9 @@ class Settings extends PureComponent {
   }
 
   componentDidMount() {
-    chrome.storage.local.get(['active_profile', 'settings', 'focused_window_id', 'inactive_policy'], (result) => {
+    browser.storage.local.get(
+      ['active_profile', 'settings', 'focused_window_id', 'inactive_policy']
+    ).then((result) => {
       const profile = result.active_profile || FOCUSED;
       const focusedMode = profile === FOCUSED;
       const relaxedMode = profile === RELAXED;
@@ -86,11 +89,11 @@ class Settings extends PureComponent {
         inactivePolicy,
       });
     });
-    chrome.storage.onChanged.addListener(this.onChangedCallback);
+    browser.storage.onChanged.addListener(this.onChangedCallback);
   }
 
   componentWillUnmount() {
-    chrome.storage.onChanged.removeListener(this.onChangedCallback);
+    browser.storage.onChanged.removeListener(this.onChangedCallback);
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -100,7 +103,7 @@ class Settings extends PureComponent {
   }
 
   handleBoolChange(changeType) {
-    chrome.runtime.sendMessage({
+    browser.runtime.sendMessage({
       messageType: 'SETTINGS_PROFILE',
       profile: changeType,
     });
@@ -120,7 +123,7 @@ class Settings extends PureComponent {
     // TODO Add function to check for all potential values
     let success = false;
     if (checkSettings(this.state.settings)) {
-      chrome.runtime.sendMessage({
+      browser.runtime.sendMessage({
         messageType: 'SETTINGS_PARAMETERS',
         settings: this.state.settings,
       });
@@ -154,13 +157,13 @@ class Settings extends PureComponent {
 
     if (inactivePolicy.includes(this.state.focusedWindowId)) {
       inactivePolicy = removeItem(inactivePolicy, this.state.focusedWindowId);
-      chrome.runtime.sendMessage({
+      browser.runtime.sendMessage({
         messageType: 'REMOVE_INACTIVE_POLICY',
         windowId: this.state.focusedWindowId,
       });
     } else {
       inactivePolicy.push(this.state.focusedWindowId);
-      chrome.runtime.sendMessage({
+      browser.runtime.sendMessage({
         messageType: 'ADD_INACTIVE_POLICY',
         windowId: this.state.focusedWindowId,
       });
@@ -345,7 +348,7 @@ class Settings extends PureComponent {
                 <Link href="https://tabby.us/faq" target="_blank">
                   <Typography className={classes.styleLabelTips}>FAQ available here</Typography>{' '}
                 </Link>
-                <Typography className={classes.styleLabelTips}>tabby {chrome.runtime.getManifest().version}</Typography>{' '}
+                <Typography className={classes.styleLabelTips}>tabby {browser.runtime.getManifest().version}</Typography>{' '}
               </div>
             </Box>
           </Fade>

@@ -1,3 +1,4 @@
+import * as browser from 'webextension-polyfill';
 import React, { PureComponent } from 'react';
 import Button from '@material-ui/core/Button';
 import ListItem from '@material-ui/core/ListItem';
@@ -39,17 +40,19 @@ class Home extends PureComponent {
   }
 
   componentDidMount() {
-    chrome.storage.local.get([CLOSED_HISTORY], (result) => {
+    browser.storage.local.get(
+      [CLOSED_HISTORY]
+    ).then((result) => {
       const closed_history = result.closed_history || [];
       this.setState({ closed_history });
     });
     this.setState({ nextList: [] });
-    chrome.storage.onChanged.addListener(this.onChangedCallback);
+    browser.storage.onChanged.addListener(this.onChangedCallback);
   }
 
   componentWillUnmount() {
     setAllReadBadge();
-    chrome.storage.onChanged.removeListener(this.onChangedCallback);
+    browser.storage.onChanged.removeListener(this.onChangedCallback);
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -71,7 +74,7 @@ class Home extends PureComponent {
     const restoredTab = items[key];
     const closed_history = this.state.closed_history.filter((item) => item.uuid !== restoredTab.uuid);
     this.setState({ closed_history: closed_history, renderSaveBoolean: true });
-    chrome.runtime.sendMessage({
+    browser.runtime.sendMessage({
       messageType: messageType,
       uuid: restoredTab.uuid,
     });

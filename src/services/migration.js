@@ -1,18 +1,19 @@
+import * as browser from 'webextension-polyfill';
 import { settingsManager } from './settings.js';
 import { memoryManager } from './memory.js';
-import { logger, storageSet, storageGet, storageReset } from './utils.js';
+import { logger, storageReset } from './utils.js';
 import { v4 as uuidv4 } from 'uuid';
 
 class MigrationManager {
   static async setVersion() {
     logger('Saving version.');
-    await storageSet({
-      version: chrome.runtime.getManifest().version,
+    await browser.storage.local.set({
+      version: browser.runtime.getManifest().version,
     });
   }
 
   static async migrate() {
-    let version = await storageGet(['version']);
+    let version = await browser.storage.local.get(['version']);
     if (!version.version) {
       version = await this.guessVersion();
     } else {
@@ -25,7 +26,7 @@ class MigrationManager {
   }
 
   static async guessVersion() {
-    const data = await storageGet(['inactive_policy']);
+    const data = await browser.storage.local.get(['inactive_policy']);
     if (data.inactive_policy) {
       return '1.0.x';
     }
