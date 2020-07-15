@@ -25,7 +25,7 @@ browser.runtime.onInstalled.addListener(function (details) {
     eventQueue.enqueue(() => storageReset());
     eventQueue.enqueue(() => settingsManager.reset());
     eventQueue.enqueue(() => memoryManager.reset());
-    MigrationManager.setVersion();
+    eventQueue.enqueue(() => MigrationManager.setVersion());
     browser.notifications.create(installOptions); // Safari not supported
     logger('Extension installed :D');
   } else if (details.reason == 'update') {

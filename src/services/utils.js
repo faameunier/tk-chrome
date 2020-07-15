@@ -78,7 +78,8 @@ function storageReset() {
 }
 
 function getLastFocusedWindow() {
-  return browser.windows.getLastFocused({ populate: false, windowTypes: ['normal'] }).then((d) => {return d.id});
+  // windowType is deprecated in FF, it doesn't seem critical anyways
+  return browser.windows.getLastFocused({ populate: false }).then((d) => {return d.id});
 }
 
 function removeItem(arr, value) {

@@ -66,7 +66,7 @@ class MemoryManager {
 
   async reset() {
     logger(this, 'Hard reset');
-    this.init();
+    await this.init();
     await this.save();
     await this.load();
   }
