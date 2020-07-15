@@ -49,7 +49,7 @@ const styles = (theme) => ({
     minWidth: theme.spacing(8),
     maxHeight: 20,
     marginTop: 5,
-    pointerEvents: 'none',
+    // pointerEvents: 'none',
   },
   firstProfilesContainer: {
     display: 'flex',
