@@ -1,4 +1,6 @@
 import * as browser from 'webextension-polyfill';
+import _ from 'lodash';
+import moment from 'moment';
 import React, { PureComponent } from 'react';
 import Button from '@material-ui/core/Button';
 import ListItem from '@material-ui/core/ListItem';
@@ -80,13 +82,13 @@ class Home extends PureComponent {
     });
   }
 
-  searchOnChange = (value) => {
+  searchOnChange(value) {
     this.setState({ searchValue: value });
   };
 
-  searchOnRequestSearch = (event) => {};
+  searchOnRequestSearch(event) {};
 
-  searchOnCancel = () => {
+  searchOnCancel() {
     this.setState({ searchValue: '' });
   };
 
@@ -100,37 +102,25 @@ class Home extends PureComponent {
       return now - item.deletion_time < endPeriod;
     });
   }
-  filterListOnDate(selectedList, beginningDay) {
-    const endDay = new Date(beginningDay.getTime());
-    endDay.setDate(endDay.getDate() + 1);
-    return selectedList.filter((item) => {
-      return beginningDay.getTime() < item.deletion_time && item.deletion_time < endDay.getTime();
-    });
-  }
-
-  generateBeginDate(rollBackDays) {
-    const beginningDay = new Date();
-    beginningDay.setDate(beginningDay.getDate() - rollBackDays);
-    beginningDay.setHours(0, 0, 0, 0);
-    const dateDayBegin = String(beginningDay.getDate()).padStart(2, '0');
-    const dateMonthBegin = String(beginningDay.getMonth() + 1).padStart(2, '0');
-    return [beginningDay, dateDayBegin + '/' + dateMonthBegin];
-  }
 
   renderList() {
     const { classes } = this.props;
+
+    // keep elements only in time-frame
     let selectedList = this.state.closed_history ? this.filterList(this.state.closed_history, TIME_PERIOD_72H) : [];
+
+    // list enrichment
     selectedList = selectedList.map((website) => {
       if (typeof website !== 'undefined') {
         const deletionTime = new Date(website.deletion_time);
-        const formatted_deletion_time = deletionTime.toTimeString().split(' ')[0];
-        website.hours_deletion = formatted_deletion_time.split(':')[0];
-        website.minutes_deletion = formatted_deletion_time.split(':')[1];
+        website.hours_minutes_format = moment(deletionTime).format('HH:mm');
+        website.date = moment(deletionTime).startOf('date');
         website.truncated_url = website.url;
       }
       return website;
     });
 
+    // keeping only websites that match search criteria
     if (typeof this.state.searchValue !== 'undefined' && this.state.searchValue.length > 0) {
       const searchPattern = new RegExp(
         this.state.searchValue
@@ -144,36 +134,26 @@ class Home extends PureComponent {
       );
     }
 
-    const generatedDateToday = this.generateBeginDate(0);
-    const generatedDateYesterday = this.generateBeginDate(1);
-    const generatedDate2daysAgo = this.generateBeginDate(2);
-    const generatedDate3daysAgo = this.generateBeginDate(3);
-
-    const filteredListToday = this.filterListOnDate(selectedList, generatedDateToday[0]).reverse();
-    const filteredListYesterday = this.filterListOnDate(selectedList, generatedDateYesterday[0]).reverse();
-    const filteredList2daysAgo = this.filterListOnDate(selectedList, generatedDate2daysAgo[0]).reverse();
-    const filteredList3daysAgo = this.filterListOnDate(selectedList, generatedDate3daysAgo[0]).reverse();
-
-    let yesterdayTitle = [];
-    let twoDaysTitle = [];
-    let threeDaysTitle = [];
-
-    if (filteredListYesterday.length > 0) {
-      yesterdayTitle = [{ day: generatedDateYesterday[1], text: 'Yesterday -' }];
+    const totalLength = selectedList.length;
+    selectedList = selectedList.reverse();
+    let current = moment().startOf('date');
+    let last = 0;
+    for (let i = 0; i < selectedList.length; i++) {
+      let next = selectedList[i].date;
+      let delta = Math.max(0, Math.ceil(current.diff(next, 'days', true)));
+      if (delta > last) {
+        console.log(delta);
+        console.log(next)
+        if (delta === 1) {
+          selectedList.splice(i, 0, {'text': 'Yesterday - ', 'day': next.format('MMM DD')});
+        } else if ( delta === 2) {
+          selectedList.splice(i, 0, {'text': 'Previous day - ', 'day': next.format('MMM DD')});
+        } else {
+          selectedList.splice(i, 0, {'text': '', 'day': next.format('MMM DD')});
+        }
+        last = delta;
+      }
     }
-    if (filteredList2daysAgo.length > 0) {
-      twoDaysTitle = [{ day: generatedDate2daysAgo[1], text: 'Previous day -' }];
-    }
-    if (filteredList3daysAgo.length > 0) {
-      threeDaysTitle = [{ day: generatedDate3daysAgo[1], text: '' }];
-    }
-    const filteredList = filteredListToday
-      .concat(yesterdayTitle)
-      .concat(filteredListYesterday)
-      .concat(twoDaysTitle)
-      .concat(filteredList2daysAgo)
-      .concat(threeDaysTitle)
-      .concat(filteredList3daysAgo);
 
     const listItem = (myFilteredList) => ({ index, style }) => {
       const website = myFilteredList[index];
@@ -197,7 +177,7 @@ class Home extends PureComponent {
           <ListItem ContainerComponent="div">
             <div className={classes.gridAvatarWithTime}>
               <Typography className={classes.timeDisplay}>
-                {`${website.hours_deletion}:${website.minutes_deletion}`}
+                {`${website.hours_minutes_format}`}
               </Typography>
               <ListItemAvatar>
                 <Avatar
@@ -238,16 +218,16 @@ class Home extends PureComponent {
       <div className={classes.listWebsites}>
         <SearchBar
           placeholder="Search on last 72h"
-          onChange={this.searchOnChange}
-          onRequestSearch={this.searchOnRequestSearch}
-          onCancelSearch={this.searchOnCancel}
+          onChange={this.searchOnChange.bind(this)}
+          onRequestSearch={this.searchOnRequestSearch.bind(this)}
+          onCancelSearch={this.searchOnCancel.bind(this)}
           value={this.state.searchValue}
           className={classes.searchBar}
         />
         <div className={classes.list}>
-          {filteredList.length === 0 ? null : (
-            <List height={Math.min(80 * filteredList.length, 300)} itemCount={filteredList.length} itemSize={80}>
-              {listItem(filteredList)}
+          {selectedList.length === 0 ? null : (
+            <List height={Math.min(80 * selectedList.length, 300)} itemCount={selectedList.length} itemSize={80}>
+              {listItem(selectedList)}
             </List>
           )}
         </div>
