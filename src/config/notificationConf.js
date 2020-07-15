@@ -5,11 +5,11 @@ const installOptions = {
   iconUrl: '../assets/static/icons/tabby_128.png',
 };
 
-const updateOptions = {
+const to1_1_0 = {
   type: 'basic',
   title: 'New tabby version',
-  message: 'Check out the brand new features & additional help section!',
+  message: 'Check out the brand new search feature & help section!',
   iconUrl: '../assets/static/icons/tabby_128.png',
 };
 
-export { installOptions, updateOptions };
+export { installOptions, to1_1_0 };

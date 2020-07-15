@@ -5,7 +5,7 @@ import { settingsManager } from './settings.js';
 import { MigrationManager } from './migration.js';
 import { logger, storageReset } from './utils.js';
 import { MAX_ACTIVE_DEBOUNCE } from '../config/env.js';
-import { updateOptions, installOptions } from '../config/notificationConf.js';
+import { installOptions } from '../config/notificationConf.js';
 
 // -----------------------------------------------
 // Installation and startup events
@@ -30,7 +30,6 @@ browser.runtime.onInstalled.addListener(function (details) {
     logger('Extension installed :D');
   } else if (details.reason == 'update') {
     MigrationManager.migrate();
-    browser.notifications.create(updateOptions); // Safari not supported
     logger('Extension updated :D');
   }
   logger(browser.runtime.getManifest().version);
