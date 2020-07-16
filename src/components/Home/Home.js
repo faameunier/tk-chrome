@@ -23,6 +23,7 @@ const CLOSED_HISTORY = 'closed_history';
 const NUMBER_HOURS_DAY = 24;
 const TIME_PERIOD_24H = 3600000 * NUMBER_HOURS_DAY; // in microsecond
 const TIME_PERIOD_72H = 3600000 * NUMBER_HOURS_DAY * 3; // in microsecond
+const FULL_SKELETON = false;
 
 class Home extends PureComponent {
   constructor(props) {
@@ -171,7 +172,9 @@ class Home extends PureComponent {
         <div key={index} style={style}>
           <ListItem ContainerComponent="div">
             <div className={classes.gridAvatarWithTime}>
-              <Typography className={classes.timeDisplay}>{`${website.hours_minutes_format}`}</Typography>
+              <Typography className={classes.timeDisplay}>
+                {this.state.loading && FULL_SKELETON ? <Skeleton width="3em"/> : `${website.hours_minutes_format}`}
+              </Typography>
               <ListItemAvatar>
                 {this.state.loading ? (
                   <Skeleton variant="circle">
@@ -187,28 +190,41 @@ class Home extends PureComponent {
                 )}
               </ListItemAvatar>
             </div>
-            <ListItemText
-              primary={website.truncated_url}
-              secondary={website.title}
-              classes={{
-                primary: classes.primaryTextContainer,
-                secondary: classes.secondaryTextContainer,
-              }}
-              className={classes.itemText}
-            />
-            <ListItemSecondaryAction>
-              <div className={classes.buttonContainer}>
-                <Button
-                  size="small"
-                  onClick={this.removeItem.bind(this, myFilteredList, index)}
-                  variant="outlined"
-                  color="secondary"
-                  className={classes.button}
-                >
-                  {'Restore'}
-                </Button>
+            {this.state.loading && FULL_SKELETON ?
+            (
+              <div>
+                <Skeleton width="15em"/>
+                <Skeleton width="10em"/>
               </div>
-            </ListItemSecondaryAction>
+            ) : (
+              <ListItemText
+                primary={website.truncated_url}
+                secondary={website.title}
+                classes={{
+                  primary: classes.primaryTextContainer,
+                  secondary: classes.secondaryTextContainer,
+                }}
+                className={classes.itemText}
+              />
+            )}
+            {this.state.loading && FULL_SKELETON ?
+            (
+              null
+            ) : (
+              <ListItemSecondaryAction>
+                <div className={classes.buttonContainer}>
+                  <Button
+                    size="small"
+                    onClick={this.removeItem.bind(this, myFilteredList, index)}
+                    variant="outlined"
+                    color="secondary"
+                    className={classes.button}
+                  >
+                    {'Restore'}
+                  </Button>
+                </div>
+              </ListItemSecondaryAction>
+            )}
           </ListItem>
         </div>
       );
