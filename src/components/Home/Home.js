@@ -18,7 +18,6 @@ import SearchBar from 'material-ui-search-bar';
 
 const RESTORE = 'RESTORE';
 const SHELL_RESTORE = 'SHELL_RESTORE';
-const REMOVED = 'REMOVED';
 const CLOSED_HISTORY = 'closed_history';
 const NUMBER_HOURS_DAY = 24;
 const TIME_PERIOD_24H = 3600000 * NUMBER_HOURS_DAY; // in microsecond
@@ -28,13 +27,16 @@ class Home extends PureComponent {
   constructor(props) {
     super(props);
     setAllReadBadge();
-    this.state = { renderSaveBoolean: false };
+    this.state = { closed_history: [] };
+    browser.storage.local.get([CLOSED_HISTORY]).then((result) => {
+      const closed_history = result.closed_history || [];
+      this.setState({ closed_history });
+    });
     this.onChangedCallback = function (changes) {
       const changesClosedHistory = changes[CLOSED_HISTORY];
       if (changesClosedHistory) {
         this.setState({
           closed_history: changesClosedHistory['newValue'],
-          renderSaveBoolean: true,
           searchValue: '',
         });
       }
@@ -42,23 +44,12 @@ class Home extends PureComponent {
   }
 
   componentDidMount() {
-    browser.storage.local.get([CLOSED_HISTORY]).then((result) => {
-      const closed_history = result.closed_history || [];
-      this.setState({ closed_history });
-    });
-    this.setState({ nextList: [] });
     browser.storage.onChanged.addListener(this.onChangedCallback);
   }
 
   componentWillUnmount() {
     setAllReadBadge();
     browser.storage.onChanged.removeListener(this.onChangedCallback);
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    if (this.state.renderSaveBoolean) {
-      this.forceRender();
-    }
   }
 
   removeItem(listItems, key, e) {
@@ -72,8 +63,9 @@ class Home extends PureComponent {
 
   restoreTab(items, key, messageType) {
     const restoredTab = items[key];
+    logger(this, messageType + ' for tab ' + restoredTab.uuid);
     const closed_history = this.state.closed_history.filter((item) => item.uuid !== restoredTab.uuid);
-    this.setState({ closed_history: closed_history, renderSaveBoolean: true });
+    this.setState({ closed_history: closed_history });
     browser.runtime.sendMessage({
       messageType: messageType,
       uuid: restoredTab.uuid,
@@ -88,10 +80,6 @@ class Home extends PureComponent {
 
   searchOnCancel() {
     this.setState({ searchValue: '' });
-  }
-
-  forceRender() {
-    this.setState({ renderSaveBoolean: false });
   }
 
   filterList(selectedList, endPeriod) {
@@ -249,7 +237,7 @@ class Home extends PureComponent {
             <Typography className={classes.middleText}> in the last {`${NUMBER_HOURS_DAY} hours`} </Typography>
           </div>
         </div>
-        {this.renderList.bind(this)(REMOVED)}
+        {this.renderList.bind(this)()}
         <div className={classes.footerContainer}>
           <ErrorOutlineIcon color="secondary" className={classes.iconContainer} />
           <Link
