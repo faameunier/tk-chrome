@@ -1,5 +1,6 @@
 import * as browser from 'webextension-polyfill';
 import _ from 'lodash';
+import { logger } from '../../services/utils.js';
 import moment from 'moment';
 import React, { PureComponent } from 'react';
 import Button from '@material-ui/core/Button';
