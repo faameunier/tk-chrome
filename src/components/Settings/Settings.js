@@ -138,7 +138,7 @@ class Settings extends PureComponent {
         settings[path][parameter] = nextValue;
         this.setState({ settings: settings });
       }
-    }
+    };
   }
 
   handleSwitch() {
