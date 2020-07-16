@@ -1,9 +1,11 @@
 import * as browser from 'webextension-polyfill';
 import _ from 'lodash';
-import { logger } from '../../services/utils.js';
+import { FRONTEND_SKELETON_DISPLAY } from '../../config/env.js';
+import { logger, timeout, setAllReadBadge } from '../../services/utils.js';
 import moment from 'moment';
 import React, { PureComponent } from 'react';
 import Button from '@material-ui/core/Button';
+import Skeleton from '@material-ui/lab/Skeleton';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemAvatar from '@material-ui/core/ListItemAvatar';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
@@ -13,8 +15,6 @@ import Typography from '@material-ui/core/Typography';
 import Link from '@material-ui/core/Link';
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import { FixedSizeList as List } from 'react-window';
-
-import { setAllReadBadge } from '../../services/utils';
 import SearchBar from 'material-ui-search-bar';
 
 const RESTORE = 'RESTORE';
@@ -28,7 +28,17 @@ class Home extends PureComponent {
   constructor(props) {
     super(props);
     setAllReadBadge();
-    this.state = { closed_history: [] };
+
+    if (props.skeleton) {
+      this.state = { closed_history: [], loading: true };
+      timeout(FRONTEND_SKELETON_DISPLAY).then(() => {
+        logger(this, 'Displaying list');
+        this.setState({ loading: false });
+      });
+    } else {
+      this.state = { closed_history: [], loading: false };
+    }
+    
     browser.storage.local.get([CLOSED_HISTORY]).then((result) => {
       const closed_history = result.closed_history || [];
       this.setState({ closed_history });
@@ -163,12 +173,18 @@ class Home extends PureComponent {
             <div className={classes.gridAvatarWithTime}>
               <Typography className={classes.timeDisplay}>{`${website.hours_minutes_format}`}</Typography>
               <ListItemAvatar>
-                <Avatar
-                  variant="square"
-                  alt={website.title}
-                  src={website.favIconUrl}
-                  className={classes.avatarContainer}
-                />
+                {this.state.loading ? (
+                  <Skeleton variant="circle">
+                    <Avatar />
+                  </Skeleton>
+                ) : (
+                  <Avatar
+                    variant="square"
+                    alt={website.title}
+                    src={website.favIconUrl}
+                    className={classes.avatarContainer}
+                  />
+                )}
               </ListItemAvatar>
             </div>
             <ListItemText
