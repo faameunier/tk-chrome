@@ -70,16 +70,21 @@ function isUserActive() {
 }
 
 function storageReset() {
-  return browser.storage.local.get(null).then((d) => {
-    return browser.storage.local.remove(Object.keys(d));
-  }).then(() => {
+  return browser.storage.local
+    .get(null)
+    .then((d) => {
+      return browser.storage.local.remove(Object.keys(d));
+    })
+    .then(() => {
       logger('Memory flushed.');
-  });
+    });
 }
 
 function getLastFocusedWindow() {
   // windowType is deprecated in FF, it doesn't seem critical anyways
-  return browser.windows.getLastFocused({ populate: false }).then((d) => {return d.id});
+  return browser.windows.getLastFocused({ populate: false }).then((d) => {
+    return d.id;
+  });
 }
 
 function removeItem(arr, value) {
@@ -90,22 +95,23 @@ function removeItem(arr, value) {
   return arr;
 }
 
-const retryPromise = (func, delay, times) => new Promise((resolve, reject) => {
-  return func()
-    .then(resolve)
-    .catch((reason) => {
-      if (reason === false) {
+const retryPromise = (func, delay, times) =>
+  new Promise((resolve, reject) => {
+    return func()
+      .then(resolve)
+      .catch((reason) => {
+        if (reason === false) {
+          return reject(reason);
+        }
+        if (times > 0) {
+          return timeout(delay)
+            .then(retryPromise.bind(null, func, delay, times - 1))
+            .then(resolve)
+            .catch(reject);
+        }
         return reject(reason);
-      }
-      if (times > 0) {
-        return timeout(delay)
-          .then(retryPromise.bind(null, func, delay, times - 1))
-          .then(resolve)
-          .catch(reject);
-      }
-      return reject(reason);
-    });
-});
+      });
+  });
 
 logger('Starting in ' + ENV + ' env.');
 export {

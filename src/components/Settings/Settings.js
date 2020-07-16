@@ -70,9 +70,7 @@ class Settings extends PureComponent {
   }
 
   componentDidMount() {
-    browser.storage.local.get(
-      ['active_profile', 'settings', 'focused_window_id', 'inactive_policy']
-    ).then((result) => {
+    browser.storage.local.get(['active_profile', 'settings', 'focused_window_id', 'inactive_policy']).then((result) => {
       const profile = result.active_profile || FOCUSED;
       const focusedMode = profile === FOCUSED;
       const relaxedMode = profile === RELAXED;
@@ -348,7 +346,9 @@ class Settings extends PureComponent {
                 <Link href="https://tabby.us/faq" target="_blank">
                   <Typography className={classes.styleLabelTips}>FAQ available here</Typography>{' '}
                 </Link>
-                <Typography className={classes.styleLabelTips}>tabby {browser.runtime.getManifest().version}</Typography>{' '}
+                <Typography className={classes.styleLabelTips}>
+                  tabby {browser.runtime.getManifest().version}
+                </Typography>{' '}
               </div>
             </Box>
           </Fade>

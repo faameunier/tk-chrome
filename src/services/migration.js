@@ -63,7 +63,7 @@ class MigrationManager {
     if (parseInt(version[0]) < 1) {
       await this.toIPO(version);
     }
-    if (parseInt(version[1]) < 1){
+    if (parseInt(version[1]) < 1) {
       await this.addUUIDs(version);
       browser.notifications.create(to1_1_0);
     }

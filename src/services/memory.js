@@ -35,7 +35,7 @@ class MemoryManager {
     windowId: null,
     cache: [],
     uuid: null,
-    sessionId: null
+    sessionId: null,
     // sessionId: optional sessionId
     // deletion_time: optional tabby deletion timestamp
   };
@@ -84,7 +84,13 @@ class MemoryManager {
 
   async load() {
     if (!this.loaded) {
-      let data = await browser.storage.local.get(['tabs', 'closed_history', 'current_scores', 'runtime_events', 'focused_window_id']);
+      let data = await browser.storage.local.get([
+        'tabs',
+        'closed_history',
+        'current_scores',
+        'runtime_events',
+        'focused_window_id',
+      ]);
       try {
         logger(this, 'Loading state from storage');
         this.closed_history = data.closed_history;
@@ -432,9 +438,7 @@ class MemoryManager {
     if (!forceShell && restoredTab.sessionId && windows.includes(restoredTab.windowId.toString())) {
       // not compatible with Safari
       try {
-        tab = await browser.sessions.restore(
-          restoredTab.sessionId
-        ).then((session) => {
+        tab = await browser.sessions.restore(restoredTab.sessionId).then((session) => {
           return session.tab;
         });
       } catch {
@@ -448,7 +452,7 @@ class MemoryManager {
     } else {
       logger(this, 'Creating shell tab');
       tab = await browser.tabs.create({ url: restoredTab.full_url, active: false }).catch((error) => {
-        logger("Unable to create shell tab !");
+        logger('Unable to create shell tab !');
         throw error; // should this really hard crash ?
       });
     }

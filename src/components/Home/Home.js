@@ -42,9 +42,7 @@ class Home extends PureComponent {
   }
 
   componentDidMount() {
-    browser.storage.local.get(
-      [CLOSED_HISTORY]
-    ).then((result) => {
+    browser.storage.local.get([CLOSED_HISTORY]).then((result) => {
       const closed_history = result.closed_history || [];
       this.setState({ closed_history });
     });
@@ -84,13 +82,13 @@ class Home extends PureComponent {
 
   searchOnChange(value) {
     this.setState({ searchValue: value });
-  };
+  }
 
-  searchOnRequestSearch(event) {};
+  searchOnRequestSearch(event) {}
 
   searchOnCancel() {
     this.setState({ searchValue: '' });
-  };
+  }
 
   forceRender() {
     this.setState({ renderSaveBoolean: false });
@@ -143,11 +141,11 @@ class Home extends PureComponent {
       let delta = Math.max(0, Math.ceil(current.diff(next, 'days', true)));
       if (delta > last) {
         if (delta === 1) {
-          selectedList.splice(i, 0, {'text': 'Yesterday - ', 'day': next.format('MMM DD')});
-        } else if ( delta === 2) {
-          selectedList.splice(i, 0, {'text': 'Previous day - ', 'day': next.format('MMM DD')});
+          selectedList.splice(i, 0, { text: 'Yesterday - ', day: next.format('MMM DD') });
+        } else if (delta === 2) {
+          selectedList.splice(i, 0, { text: 'Previous day - ', day: next.format('MMM DD') });
         } else {
-          selectedList.splice(i, 0, {'text': '', 'day': next.format('MMM DD')});
+          selectedList.splice(i, 0, { text: '', day: next.format('MMM DD') });
         }
         last = delta;
       }
@@ -174,9 +172,7 @@ class Home extends PureComponent {
         <div key={index} style={style}>
           <ListItem ContainerComponent="div">
             <div className={classes.gridAvatarWithTime}>
-              <Typography className={classes.timeDisplay}>
-                {`${website.hours_minutes_format}`}
-              </Typography>
+              <Typography className={classes.timeDisplay}>{`${website.hours_minutes_format}`}</Typography>
               <ListItemAvatar>
                 <Avatar
                   variant="square"

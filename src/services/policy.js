@@ -138,34 +138,40 @@ class PolicyManager {
 
   static async retrieveSessionId(tab) {
     // not compatible with Safari
-    var attempt = () => browser.sessions.getRecentlyClosed({
-      maxResults: 5 
-    }).then((sessions) => {
-      for (let i = 0; i < sessions.length; i++) {
-        // Closed tabs are explored from more recent to oldest
-        let sessionTab = sessions[i].tab;
-        let lastModified = sessions[i].lastModified;
-        if (
-          sessionTab &&
-          sessionTab.url === tab.full_url &&
-          Date.now() - lastModified * 1000 <= SESSIONS_MAX_FUZZY_DELTA_MS
-        ) {
-          return sessionTab.sessionId;
-        }
-      }
-      throw true;
-    }).catch((error) => {
-      if (error !== true) {
-        logger('getRecentlyClosed failed');
-        throw false;
-      }
-      throw true;
-    });
+    var attempt = () =>
+      browser.sessions
+        .getRecentlyClosed({
+          maxResults: 5,
+        })
+        .then((sessions) => {
+          for (let i = 0; i < sessions.length; i++) {
+            // Closed tabs are explored from more recent to oldest
+            let sessionTab = sessions[i].tab;
+            let lastModified = sessions[i].lastModified;
+            if (
+              sessionTab &&
+              sessionTab.url === tab.full_url &&
+              Date.now() - lastModified * 1000 <= SESSIONS_MAX_FUZZY_DELTA_MS
+            ) {
+              return sessionTab.sessionId;
+            }
+          }
+          throw true;
+        })
+        .catch((error) => {
+          if (error !== true) {
+            logger('getRecentlyClosed failed');
+            throw false;
+          }
+          throw true;
+        });
     let p = retryPromise(attempt, SESSIONS_TIMEOUT_MS, SESSIONS_RETRIES);
-    p.then((sessionId) => memoryManager.updateSessionId(tab.uuid, sessionId),
-           (reason) => {})
-     .then(() => memoryManager.save())
-     .catch(() => logger('Couldn\'t retrieve sessionId'));
+    p.then(
+      (sessionId) => memoryManager.updateSessionId(tab.uuid, sessionId),
+      (reason) => {}
+    )
+      .then(() => memoryManager.save())
+      .catch(() => logger("Couldn't retrieve sessionId"));
   }
 
   static async killTab(tabId, tab) {
@@ -179,7 +185,7 @@ class PolicyManager {
       setUnreadBadge();
       this.retrieveSessionId(tab); // async
       logger('Tab '.concat(tabId, ' killed by policy'));
-    } catch(err) {
+    } catch (err) {
       logger('Tab '.concat(tabId, " couldn't be killed"));
     }
   }
