@@ -142,8 +142,6 @@ class Home extends PureComponent {
       let next = selectedList[i].date;
       let delta = Math.max(0, Math.ceil(current.diff(next, 'days', true)));
       if (delta > last) {
-        console.log(delta);
-        console.log(next)
         if (delta === 1) {
           selectedList.splice(i, 0, {'text': 'Yesterday - ', 'day': next.format('MMM DD')});
         } else if ( delta === 2) {
