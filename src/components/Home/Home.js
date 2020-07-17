@@ -184,7 +184,7 @@ class Home extends PureComponent {
                   <Avatar
                     variant="square"
                     alt={website.title}
-                    src={website.favIconUrl}
+                    src={website.favIconUrl ? website.favIconUrl : 'error'}
                     className={classes.avatarContainer}
                   />
                 )}
