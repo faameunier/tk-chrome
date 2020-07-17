@@ -76,7 +76,7 @@ class HomeDispatcher extends PureComponent {
         }}
       >
         <div className={classes.homeContainer}>
-          <Paper square>
+          <Paper square={false} variant="outlined" className={classes.paperShadow}>
             <div className={classes.gridLogoTabs}>
               <Link href="https://tabby.us" target="_blank" className={classes.ensemblelogo}>
                 <img src={'../../assets/static/icons/tabby_2.png'} className={classes.logoFull} />

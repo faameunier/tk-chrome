@@ -8,6 +8,9 @@ const styles = (theme) => ({
   homeContainer: {
     minWidth: 400,
   },
+  paperShadow: {
+    boxShadow: '0px 0px 1px -1px rgba(0,0,0,0.3), 0px 0px 1px 0px rgba(0,0,0,0.3), 0px 0px 3px 0px rgba(0,0,0,0.3)',
+  },
   tab: {
     color: '#00b9aa',
   },
