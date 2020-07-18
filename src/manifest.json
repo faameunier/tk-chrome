@@ -2,8 +2,13 @@
   "name": "tabby",
   "description": "__MSG_appDesc__",
   "default_locale": "en",
-  "version": "1.0.3",
-  "version_name": "v1.0.3",
+  "author": "tabby.us",
+  "developer": {
+    "name": "tabby.us",
+    "url": "https://tabby.us/"
+  },
+  "version": "1.1.0",
+  "version_name": "v1.1.0",
   "permissions": ["tabs", "storage", "sessions", "idle", "notifications"],
   "background": {
     "persistent": false,

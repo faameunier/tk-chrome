@@ -1,4 +1,5 @@
 import * as psl from 'psl';
+import * as browser from 'webextension-polyfill';
 import { MAX_ACTIVE_DEBOUNCE } from '../config/env.js';
 
 const logger = function (...args) {
@@ -35,70 +36,54 @@ function getDomain(str) {
   }
 }
 
-function storageSet(args) {
-  return new Promise((resolve, reject) => {
-    chrome.storage.local.set(args, function () {
-      resolve();
-    });
-  });
-}
-
-function storageGet(args) {
-  return new Promise((resolve, reject) => {
-    chrome.storage.local.get(args, function (data) {
-      resolve(data);
-    });
-  });
-}
-
 function isInteger(value) {
   return /^\d+$/.test(value);
 }
 
 function setAllReadBadge() {
-  chrome.browserAction.setBadgeText({ text: '' }); // <-- set text to '' to remove the badge
+  browser.browserAction.setBadgeText({ text: '' }); // <-- set text to '' to remove the badge
 }
 
 function setUnreadBadge() {
-  chrome.browserAction.setBadgeBackgroundColor({ color: [229, 92, 0, 128] });
-  chrome.browserAction.getBadgeText({}, function (badgeText) {
+  browser.browserAction.setBadgeBackgroundColor({ color: [229, 92, 0, 128] });
+  browser.browserAction.getBadgeText({}).then(function (badgeText) {
     let counter = 1;
     if (isInteger(badgeText)) {
       counter = parseInt(badgeText) + 1;
     }
-    chrome.browserAction.setBadgeText({ text: `${counter}` });
+    browser.browserAction.setBadgeText({ text: `${counter}` });
   });
 }
 
 function isUserActive() {
-  return new Promise((resolve, reject) => {
-    chrome.idle.queryState(Math.round(MAX_ACTIVE_DEBOUNCE / 1000), (status) => {
-      if (status === 'active') {
-        resolve(true);
-      } else if (status) {
-        resolve(false);
-      } else {
-        logger("Couldn't check user activity.");
-        resolve(true);
-      }
-    });
+  // Not compatible with Safari
+  return browser.idle.queryState(Math.round(MAX_ACTIVE_DEBOUNCE / 1000)).then((status) => {
+    if (status === 'active') {
+      return true;
+    } else if (status) {
+      return false;
+    } else {
+      logger("Couldn't check user activity.");
+      return true;
+    }
   });
 }
 
 function storageReset() {
-  return new Promise((resolve, reject) => {
-    chrome.storage.local.get(null, (d) => {
-      chrome.storage.local.remove(Object.keys(d), () => {
-        logger('Memory flushed.');
-        resolve();
-      });
+  return browser.storage.local
+    .get(null)
+    .then((d) => {
+      return browser.storage.local.remove(Object.keys(d));
+    })
+    .then(() => {
+      logger('Memory flushed.');
     });
-  });
 }
 
 function getLastFocusedWindow() {
-  return new Promise((resolve, reject) => {
-    chrome.windows.getLastFocused({ populate: false, windowTypes: ['normal'] }, (d) => resolve(d.id));
+  // windowType is deprecated in FF, it doesn't seem critical anyways
+  return browser.windows.getLastFocused({ populate: false }).then((d) => {
+    return d.id;
   });
 }
 
@@ -110,22 +95,23 @@ function removeItem(arr, value) {
   return arr;
 }
 
-const retryPromise = (func, delay, times) => new Promise((resolve, reject) => {
-  return func()
-    .then(resolve)
-    .catch((reason) => {
-      if (reason === false) {
+const retryPromise = (func, delay, times) =>
+  new Promise((resolve, reject) => {
+    return func()
+      .then(resolve)
+      .catch((reason) => {
+        if (reason === false) {
+          return reject(reason);
+        }
+        if (times > 0) {
+          return timeout(delay)
+            .then(retryPromise.bind(null, func, delay, times - 1))
+            .then(resolve)
+            .catch(reject);
+        }
         return reject(reason);
-      }
-      if (times > 0) {
-        return timeout(delay)
-          .then(retryPromise.bind(null, func, delay, times - 1))
-          .then(resolve)
-          .catch(reject);
-      }
-      return reject(reason);
-    });
-});
+      });
+  });
 
 logger('Starting in ' + ENV + ' env.');
 export {
@@ -134,8 +120,6 @@ export {
   timeout,
   retryPromise,
   getDomain,
-  storageGet,
-  storageSet,
   setAllReadBadge,
   setUnreadBadge,
   isInteger,
@@ -144,3 +128,19 @@ export {
   getLastFocusedWindow,
   removeItem,
 };
+if (ENV === 'debug') {
+  window.utils = {
+    logger,
+    copy,
+    timeout,
+    retryPromise,
+    getDomain,
+    setAllReadBadge,
+    setUnreadBadge,
+    isInteger,
+    isUserActive,
+    storageReset,
+    getLastFocusedWindow,
+    removeItem,
+  };
+}

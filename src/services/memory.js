@@ -1,5 +1,6 @@
+import * as browser from 'webextension-polyfill';
 import _ from 'lodash';
-import { logger, getDomain, storageSet, copy, storageGet, getLastFocusedWindow, isUserActive } from './utils.js';
+import { logger, getDomain, copy, getLastFocusedWindow, isUserActive } from './utils.js';
 import { MIN_ACTIVE_DEBOUNCE, MAX_ACTIVE_DEBOUNCE } from '../config/env.js';
 import { LRUfactory, LRU } from './LRU.js';
 import { settingsManager } from './settings.js';
@@ -34,7 +35,7 @@ class MemoryManager {
     windowId: null,
     cache: [],
     uuid: null,
-    sessionId: null
+    sessionId: null,
     // sessionId: optional sessionId
     // deletion_time: optional tabby deletion timestamp
   };
@@ -65,14 +66,14 @@ class MemoryManager {
 
   async reset() {
     logger(this, 'Hard reset');
-    this.init();
+    await this.init();
     await this.save();
     await this.load();
   }
 
   async save() {
     logger(this, 'Saved');
-    await storageSet({
+    await browser.storage.local.set({
       tabs: JSON.stringify(this.tabs),
       closed_history: this.closed_history,
       current_scores: this.current_scores,
@@ -83,7 +84,13 @@ class MemoryManager {
 
   async load() {
     if (!this.loaded) {
-      let data = await storageGet(['tabs', 'closed_history', 'current_scores', 'runtime_events', 'focused_window_id']);
+      let data = await browser.storage.local.get([
+        'tabs',
+        'closed_history',
+        'current_scores',
+        'runtime_events',
+        'focused_window_id',
+      ]);
       try {
         logger(this, 'Loading state from storage');
         this.closed_history = data.closed_history;
@@ -429,15 +436,10 @@ class MemoryManager {
     );
 
     if (!forceShell && restoredTab.sessionId && windows.includes(restoredTab.windowId.toString())) {
+      // not compatible with Safari
       try {
-        tab = await new Promise((resolve, reject) => {
-          chrome.sessions.restore(restoredTab.sessionId, (session) => {
-            if (chrome.runtime.lastError) {
-              reject(false);
-            } else {
-              resolve(session.tab);
-            }
-          });
+        tab = await browser.sessions.restore(restoredTab.sessionId).then((session) => {
+          return session.tab;
         });
       } catch {
         logger(this, 'Invalid sessionId, was the tab already restored ?');
@@ -449,14 +451,9 @@ class MemoryManager {
       fromSession = true;
     } else {
       logger(this, 'Creating shell tab');
-      tab = await new Promise((resolve, reject) => {
-        chrome.tabs.create({ url: restoredTab.full_url, active: false }, (tab) => {
-          if (chrome.runtime.lastError) {
-            reject(false);
-          } else {
-            resolve(tab);
-          }
-        });
+      tab = await browser.tabs.create({ url: restoredTab.full_url, active: false }).catch((error) => {
+        logger('Unable to create shell tab !');
+        throw error; // should this really hard crash ?
       });
     }
 
@@ -490,15 +487,7 @@ class MemoryManager {
   async backfillTab(tab) {
     logger(this, 'OOS, trying to backfill tab ' + tab.id);
     try {
-      let realTab = await new Promise((resolve, reject) => {
-        chrome.tabs.get(parseInt(tab.id), function (data) {
-          if (chrome.runtime.lastError) {
-            reject(false);
-          } else {
-            resolve(data);
-          }
-        });
-      });
+      let realTab = await browser.tabs.get(parseInt(tab.id));
       await this.createTab(realTab);
       logger(this, 'Backfill succesful');
     } catch (e) {
@@ -512,16 +501,8 @@ class MemoryManager {
     for (let i = 0; i < tab_ids.length; i++) {
       let tabId = tab_ids[i];
       try {
-        let p = new Promise((resolve, reject) => {
-          chrome.tabs.get(parseInt(tabId), function (tab) {
-            if (chrome.runtime.lastError) {
-              reject(false);
-            } else {
-              resolve();
-            }
-          });
-        });
-        await p;
+        // if it works then the tab exists
+        await browser.tabs.get(parseInt(tabId));
       } catch {
         logger(this, 'Tab ' + tabId + ' collected by garbage collector');
         await this.deleteTab(tabId);
