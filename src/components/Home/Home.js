@@ -1,8 +1,11 @@
 import * as browser from 'webextension-polyfill';
 import _ from 'lodash';
+import { FRONTEND_SKELETON_DISPLAY } from '../../config/env.js';
+import { logger, timeout, setAllReadBadge } from '../../services/utils.js';
 import moment from 'moment';
 import React, { PureComponent } from 'react';
 import Button from '@material-ui/core/Button';
+import Skeleton from '@material-ui/lab/Skeleton';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemAvatar from '@material-ui/core/ListItemAvatar';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
@@ -12,29 +15,40 @@ import Typography from '@material-ui/core/Typography';
 import Link from '@material-ui/core/Link';
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import { FixedSizeList as List } from 'react-window';
-
-import { setAllReadBadge } from '../../services/utils';
 import SearchBar from 'material-ui-search-bar';
 
 const RESTORE = 'RESTORE';
 const SHELL_RESTORE = 'SHELL_RESTORE';
-const REMOVED = 'REMOVED';
 const CLOSED_HISTORY = 'closed_history';
 const NUMBER_HOURS_DAY = 24;
 const TIME_PERIOD_24H = 3600000 * NUMBER_HOURS_DAY; // in microsecond
 const TIME_PERIOD_72H = 3600000 * NUMBER_HOURS_DAY * 3; // in microsecond
+const FULL_SKELETON = false;
 
 class Home extends PureComponent {
   constructor(props) {
     super(props);
     setAllReadBadge();
-    this.state = { renderSaveBoolean: false };
+
+    if (props.skeleton) {
+      this.state = { closed_history: [], loading: true };
+      timeout(FRONTEND_SKELETON_DISPLAY).then(() => {
+        logger(this, 'Displaying list');
+        this.setState({ loading: false });
+      });
+    } else {
+      this.state = { closed_history: [], loading: false };
+    }
+    
+    browser.storage.local.get([CLOSED_HISTORY]).then((result) => {
+      const closed_history = result.closed_history || [];
+      this.setState({ closed_history });
+    });
     this.onChangedCallback = function (changes) {
       const changesClosedHistory = changes[CLOSED_HISTORY];
       if (changesClosedHistory) {
         this.setState({
           closed_history: changesClosedHistory['newValue'],
-          renderSaveBoolean: true,
           searchValue: '',
         });
       }
@@ -42,23 +56,12 @@ class Home extends PureComponent {
   }
 
   componentDidMount() {
-    browser.storage.local.get([CLOSED_HISTORY]).then((result) => {
-      const closed_history = result.closed_history || [];
-      this.setState({ closed_history });
-    });
-    this.setState({ nextList: [] });
     browser.storage.onChanged.addListener(this.onChangedCallback);
   }
 
   componentWillUnmount() {
     setAllReadBadge();
     browser.storage.onChanged.removeListener(this.onChangedCallback);
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    if (this.state.renderSaveBoolean) {
-      this.forceRender();
-    }
   }
 
   removeItem(listItems, key, e) {
@@ -72,8 +75,9 @@ class Home extends PureComponent {
 
   restoreTab(items, key, messageType) {
     const restoredTab = items[key];
+    logger(this, messageType + ' for tab ' + restoredTab.uuid);
     const closed_history = this.state.closed_history.filter((item) => item.uuid !== restoredTab.uuid);
-    this.setState({ closed_history: closed_history, renderSaveBoolean: true });
+    this.setState({ closed_history: closed_history });
     browser.runtime.sendMessage({
       messageType: messageType,
       uuid: restoredTab.uuid,
@@ -88,10 +92,6 @@ class Home extends PureComponent {
 
   searchOnCancel() {
     this.setState({ searchValue: '' });
-  }
-
-  forceRender() {
-    this.setState({ renderSaveBoolean: false });
   }
 
   filterList(selectedList, endPeriod) {
@@ -172,38 +172,59 @@ class Home extends PureComponent {
         <div key={index} style={style}>
           <ListItem ContainerComponent="div">
             <div className={classes.gridAvatarWithTime}>
-              <Typography className={classes.timeDisplay}>{`${website.hours_minutes_format}`}</Typography>
+              <Typography className={classes.timeDisplay}>
+                {this.state.loading && FULL_SKELETON ? <Skeleton width="3em"/> : `${website.hours_minutes_format}`}
+              </Typography>
               <ListItemAvatar>
-                <Avatar
-                  variant="square"
-                  alt={website.title}
-                  src={website.favIconUrl}
-                  className={classes.avatarContainer}
-                />
+                {this.state.loading ? (
+                  <Skeleton variant="circle">
+                    <Avatar />
+                  </Skeleton>
+                ) : (
+                  <Avatar
+                    variant="square"
+                    alt={website.title}
+                    src={website.favIconUrl}
+                    className={classes.avatarContainer}
+                  />
+                )}
               </ListItemAvatar>
             </div>
-            <ListItemText
-              primary={website.truncated_url}
-              secondary={website.title}
-              classes={{
-                primary: classes.primaryTextContainer,
-                secondary: classes.secondaryTextContainer,
-              }}
-              className={classes.itemText}
-            />
-            <ListItemSecondaryAction>
-              <div className={classes.buttonContainer}>
-                <Button
-                  size="small"
-                  onClick={this.removeItem.bind(this, myFilteredList, index)}
-                  variant="outlined"
-                  color="secondary"
-                  className={classes.button}
-                >
-                  {'Restore'}
-                </Button>
+            {this.state.loading && FULL_SKELETON ?
+            (
+              <div>
+                <Skeleton width="15em"/>
+                <Skeleton width="10em"/>
               </div>
-            </ListItemSecondaryAction>
+            ) : (
+              <ListItemText
+                primary={website.truncated_url}
+                secondary={website.title}
+                classes={{
+                  primary: classes.primaryTextContainer,
+                  secondary: classes.secondaryTextContainer,
+                }}
+                className={classes.itemText}
+              />
+            )}
+            {this.state.loading && FULL_SKELETON ?
+            (
+              null
+            ) : (
+              <ListItemSecondaryAction>
+                <div className={classes.buttonContainer}>
+                  <Button
+                    size="small"
+                    onClick={this.removeItem.bind(this, myFilteredList, index)}
+                    variant="outlined"
+                    color="secondary"
+                    className={classes.button}
+                  >
+                    {'Restore'}
+                  </Button>
+                </div>
+              </ListItemSecondaryAction>
+            )}
           </ListItem>
         </div>
       );
@@ -249,7 +270,7 @@ class Home extends PureComponent {
             <Typography className={classes.middleText}> in the last {`${NUMBER_HOURS_DAY} hours`} </Typography>
           </div>
         </div>
-        {this.renderList.bind(this)(REMOVED)}
+        {this.renderList.bind(this)()}
         <div className={classes.footerContainer}>
           <ErrorOutlineIcon color="secondary" className={classes.iconContainer} />
           <Link

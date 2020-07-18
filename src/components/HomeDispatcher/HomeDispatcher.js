@@ -12,23 +12,22 @@ import { logger } from '../../services/utils.js';
 class HomeDispatcher extends PureComponent {
   constructor(props) {
     super(props);
-    this.state = { appBarValue: 'HOME' };
+    this.state = { appBarValue: 'HOME', firstLoad: true };
   }
 
   componentDidMount() {
-    this.setState({ appBarValue: 'HOME' });
     logger(this, 'Popup opened');
   }
 
   handleChange = (newValue) => () => {
-    this.setState({ appBarValue: newValue });
+    this.setState({ appBarValue: newValue, firstLoad: false});
     logger(this, 'Switch to ' + newValue);
   };
 
   dispatchPage() {
     switch (this.state.appBarValue) {
       case 'HOME':
-        return <Home />;
+        return <Home skeleton={this.state.firstLoad}/>;
       case 'SETTINGS':
         return <Settings />;
       default:

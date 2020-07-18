@@ -42,34 +42,9 @@ class Settings extends PureComponent {
       relaxedMode: false,
       customizedBool: false,
       settings: INIT_FOCUSED_PROFILE,
-      renderSaveBoolean: false,
       focusedWindowId: true,
       openModal: false,
     };
-    this.onChangedCallback = function (changes) {
-      const changesSettings = changes['settings'];
-      const changesProfile = changes['active_profile'];
-      const changedInactivePolicy = changes['inactive_policy'];
-      if (changesSettings) {
-        this.setState({
-          settings: changesSettings['newValue'],
-          renderSaveBoolean: true,
-        });
-      }
-      if (changesProfile) {
-        this.setState({
-          focusedMode: changesProfile['newValue'] === FOCUSED,
-          relaxedMode: changesProfile['newValue'] === RELAXED,
-          customizedBool: changesProfile['newValue'] === CUSTOMIZED,
-        });
-      }
-      if (changedInactivePolicy) {
-        this.setState({ inactivePolicy: changedInactivePolicy['newValue'] });
-      }
-    }.bind(this);
-  }
-
-  componentDidMount() {
     browser.storage.local.get(['active_profile', 'settings', 'focused_window_id', 'inactive_policy']).then((result) => {
       const profile = result.active_profile || FOCUSED;
       const focusedMode = profile === FOCUSED;
@@ -87,17 +62,34 @@ class Settings extends PureComponent {
         inactivePolicy,
       });
     });
+    this.onChangedCallback = function (changes) {
+      const changesSettings = changes['settings'];
+      const changesProfile = changes['active_profile'];
+      const changedInactivePolicy = changes['inactive_policy'];
+      if (changesSettings) {
+        this.setState({
+          settings: changesSettings['newValue'],
+        });
+      }
+      if (changesProfile) {
+        this.setState({
+          focusedMode: changesProfile['newValue'] === FOCUSED,
+          relaxedMode: changesProfile['newValue'] === RELAXED,
+          customizedBool: changesProfile['newValue'] === CUSTOMIZED,
+        });
+      }
+      if (changedInactivePolicy) {
+        this.setState({ inactivePolicy: changedInactivePolicy['newValue'] });
+      }
+    }.bind(this);
+  }
+
+  componentDidMount() {
     browser.storage.onChanged.addListener(this.onChangedCallback);
   }
 
   componentWillUnmount() {
     browser.storage.onChanged.removeListener(this.onChangedCallback);
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    if (this.state.renderSaveBoolean) {
-      this.forceRender();
-    }
   }
 
   handleBoolChange(changeType) {
@@ -111,10 +103,6 @@ class Settings extends PureComponent {
     if (this.state.inactivePolicy.includes(this.state.focusedWindowId)) {
       this.handleSwitch();
     }
-  }
-
-  forceRender() {
-    this.setState({ renderSaveBoolean: false });
   }
 
   handleSaveParameters() {
@@ -142,15 +130,18 @@ class Settings extends PureComponent {
     });
   }
 
-  handleChangeParameters = (path, parameter) => (event) => {
-    let settings = this.state.settings;
-    const nextValue = event.target.value;
-    if (isInteger(nextValue) || nextValue.length === 0) {
-      settings[path][parameter] = nextValue;
-      this.setState({ settings: settings, renderSaveBoolean: true });
-    }
-  };
-  handleSwitch = () => {
+  handleChangeParameters(path, parameter) {
+    return (event) => {
+      let settings = this.state.settings;
+      const nextValue = event.target.value;
+      if (isInteger(nextValue) || nextValue.length === 0) {
+        settings[path][parameter] = nextValue;
+        this.setState({ settings: settings });
+      }
+    };
+  }
+
+  handleSwitch() {
     let inactivePolicy = this.state.inactivePolicy;
 
     if (inactivePolicy.includes(this.state.focusedWindowId)) {
@@ -166,16 +157,16 @@ class Settings extends PureComponent {
         windowId: this.state.focusedWindowId,
       });
     }
-    this.setState({ inactivePolicy: inactivePolicy, renderSaveBoolean: true });
-  };
+    this.setState({ inactivePolicy: inactivePolicy });
+  }
 
-  handleOpen = () => {
+  handleOpen() {
     this.setState({ openModal: true });
-  };
+  }
 
-  handleClose = () => {
+  handleClose() {
     this.setState({ openModal: false });
-  };
+  }
 
   render() {
     const { classes } = this.props;
@@ -193,7 +184,7 @@ class Settings extends PureComponent {
         key={index}
         disabled={!this.state.customizedBool}
         label={item.label}
-        onChange={this.handleChangeParameters(item.path, item.parameter)}
+        onChange={this.handleChangeParameters.bind(this, item.path, item.parameter)}
         value={item.source[item.path][item.parameter]}
         className={classes.textField}
         type="number"
@@ -214,7 +205,7 @@ class Settings extends PureComponent {
                     ? !this.state.inactivePolicy.includes(this.state.focusedWindowId)
                     : true
                 }
-                onChange={this.handleSwitch}
+                onChange={this.handleSwitch.bind(this)}
                 color="secondary"
                 className={classes.switchWrapper}
               />
@@ -297,14 +288,14 @@ class Settings extends PureComponent {
             </div>
           </FormGroup>
         </div>
-        <Button variant="text" onClick={this.handleOpen} className={classes.tipsButton}>
+        <Button variant="text" onClick={this.handleOpen.bind(this)} className={classes.tipsButton}>
           <Typography className={classes.styleLabelTips}>Help</Typography>{' '}
         </Button>
         <Modal
           //disablePortal={true}
           className={classes.modal}
           open={this.state.openModal}
-          onClose={this.handleClose}
+          onClose={this.handleClose.bind(this)}
           closeAfterTransition
           BackdropComponent={Backdrop}
           BackdropProps={{
