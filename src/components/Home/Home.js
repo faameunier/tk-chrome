@@ -132,7 +132,6 @@ class Home extends PureComponent {
       );
     }
 
-    const totalLength = selectedList.length;
     selectedList = selectedList.reverse();
     let current = moment().startOf('date');
     let last = 0;

@@ -244,6 +244,9 @@ class MemoryManager {
       stored_tab.url = new_url;
       stored_tab.full_url = new_full_url;
       if (new_url !== old_url) {
+        if (typeof changes.favIconUrl === 'undefined') {
+          stored_tab.favIconUrl = null; // see #98
+        }
         await this.updateStatistics(stored_tab, false, false);
         let old_statistics = stored_tab.statistics;
         let cached = stored_tab.cache.read(new_url);
