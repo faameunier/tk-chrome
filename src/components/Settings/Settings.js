@@ -226,7 +226,7 @@ class Settings extends PureComponent {
                   control={
                     <Checkbox
                       checked={this.state.focusedMode}
-                      onChange={() => this.handleBoolChange(FOCUSED)}
+                      onChange={this.handleBoolChange.bind(this, FOCUSED)}
                       color="secondary"
                       className={classes.checkboxWrapper}
                     />
@@ -243,7 +243,7 @@ class Settings extends PureComponent {
                   control={
                     <Checkbox
                       checked={this.state.relaxedMode}
-                      onChange={() => this.handleBoolChange(RELAXED)}
+                      onChange={this.handleBoolChange.bind(this, RELAXED)}
                       color="secondary"
                       className={classes.checkboxWrapper}
                     />
@@ -260,7 +260,7 @@ class Settings extends PureComponent {
                 control={
                   <Checkbox
                     checked={this.state.customizedBool}
-                    onChange={() => this.handleBoolChange(CUSTOMIZED)}
+                    onChange={this.handleBoolChange.bind(this, CUSTOMIZED)}
                     color="secondary"
                     className={classes.checkboxWrapper}
                   />
@@ -281,7 +281,7 @@ class Settings extends PureComponent {
                   disabled={!this.state.customizedBool}
                   className={classes.secondaryButton}
                   variant="outlined"
-                  onClick={() => this.handleSaveParameters()}
+                  onClick={this.handleSaveParameters.bind(this)}
                 >
                   Save
                 </Button>
