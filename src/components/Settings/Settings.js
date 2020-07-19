@@ -136,7 +136,7 @@ class Settings extends PureComponent {
       let settings = copy(this.state.settings);
       const nextValue = event.target.value;
       if (isInteger(nextValue) || nextValue.length === 0) {
-        settings[path][parameter] = parseInt(nextValue);
+        settings[path][parameter] = nextValue; // do not parseInt or textField goes crazy...
         this.setState({ settings: settings });
       }
     };
