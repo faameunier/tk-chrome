@@ -1,5 +1,4 @@
 import * as browser from 'webextension-polyfill';
-import _ from 'lodash';
 import { FRONTEND_SKELETON_DISPLAY } from '../../config/env.js';
 import { logger, timeout, setAllReadBadge } from '../../services/utils.js';
 import moment from 'moment';
@@ -173,7 +172,7 @@ class Home extends PureComponent {
           <ListItem ContainerComponent="div">
             <div className={classes.gridAvatarWithTime}>
               <Typography className={classes.timeDisplay}>
-                {this.state.loading && FULL_SKELETON ? <Skeleton width="3em"/> : `${website.hours_minutes_format}`}
+                {this.state.loading && FULL_SKELETON ? <Skeleton width="3em" /> : `${website.hours_minutes_format}`}
               </Typography>
               <ListItemAvatar>
                 {this.state.loading ? (
@@ -190,11 +189,10 @@ class Home extends PureComponent {
                 )}
               </ListItemAvatar>
             </div>
-            {this.state.loading && FULL_SKELETON ?
-            (
+            {this.state.loading && FULL_SKELETON ? (
               <div>
-                <Skeleton width="15em"/>
-                <Skeleton width="10em"/>
+                <Skeleton width="15em" />
+                <Skeleton width="10em" />
               </div>
             ) : (
               <ListItemText
@@ -207,10 +205,7 @@ class Home extends PureComponent {
                 className={classes.itemText}
               />
             )}
-            {this.state.loading && FULL_SKELETON ?
-            (
-              null
-            ) : (
+            {this.state.loading && FULL_SKELETON ? null : (
               <ListItemSecondaryAction>
                 <div className={classes.buttonContainer}>
                   <Button

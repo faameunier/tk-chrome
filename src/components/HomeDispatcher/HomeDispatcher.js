@@ -20,14 +20,14 @@ class HomeDispatcher extends PureComponent {
   }
 
   handleChange = (newValue) => () => {
-    this.setState({ appBarValue: newValue, firstLoad: false});
+    this.setState({ appBarValue: newValue, firstLoad: false });
     logger(this, 'Switch to ' + newValue);
   };
 
   dispatchPage() {
     switch (this.state.appBarValue) {
       case 'HOME':
-        return <Home skeleton={this.state.firstLoad}/>;
+        return <Home skeleton={this.state.firstLoad} />;
       case 'SETTINGS':
         return <Settings />;
       default:

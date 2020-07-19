@@ -6,12 +6,10 @@ import { MigrationManager } from './migration.js';
 import { logger, storageReset } from './utils.js';
 import { MAX_ACTIVE_DEBOUNCE } from '../config/env.js';
 import { installOptions } from '../config/notificationConf.js';
-
+import { PolicyManager } from './policy.js';
+import _ from 'lodash';
 // -----------------------------------------------
 // Installation and startup events
-browser.runtime.setUninstallURL(
-  'https://docs.google.com/forms/d/e/1FAIpQLSfub2Ge_gQi7e6Vju7wWxZmZNSHa8AVs-Ds_1yVdOOd27R5Bw/viewform?usp=sf_link'
-);
 
 browser.runtime.onStartup.addListener(function () {
   logger(browser.runtime.getManifest().version);
@@ -21,7 +19,6 @@ browser.runtime.onStartup.addListener(function () {
 browser.runtime.onInstalled.addListener(function (details) {
   if (details.reason == 'install') {
     browser.tabs.create({ url: 'https://www.tabby.us/setup' });
-
     eventQueue.enqueue(() => storageReset());
     eventQueue.enqueue(() => settingsManager.reset());
     eventQueue.enqueue(() => memoryManager.reset());
@@ -32,6 +29,9 @@ browser.runtime.onInstalled.addListener(function (details) {
     MigrationManager.migrate();
     logger('Extension updated :D');
   }
+  browser.runtime.setUninstallURL(
+    'https://docs.google.com/forms/d/e/1FAIpQLSfub2Ge_gQi7e6Vju7wWxZmZNSHa8AVs-Ds_1yVdOOd27R5Bw/viewform?usp=sf_link'
+  );
   logger(browser.runtime.getManifest().version);
 });
 
@@ -56,6 +56,24 @@ browser.windows.onRemoved.addListener(function (windowId) {
 // -----------------------------------------------
 // Tabs tracking
 browser.tabs.onCreated.addListener(function (tab) {
+  eventQueue.enqueue(() => {
+    let windows = PolicyManager.buildWindows();
+    let tabs = windows[tab.windowId];
+    tabs = _.filter(tabs, (tab) => {
+      // removing ignored tabs
+      return (
+        !(settingsManager.settings.policy.active && tab.active) &&
+        !(settingsManager.settings.policy.pinned && tab.pinned) &&
+        !(settingsManager.settings.policy.audible && tab.audible)
+      );
+    });
+    if (
+      !settingsManager.inactive_policy.includes(parseInt(tab.windowId)) &&
+      tabs.length === settingsManager.settings.policy.target_tabs
+    ) {
+      PolicyManager.backfillRuns(windows);
+    }
+  });
   eventQueue.enqueue(() => memoryManager.createTab(tab));
 });
 
