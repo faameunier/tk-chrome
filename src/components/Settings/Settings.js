@@ -17,6 +17,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 
 import Box from '@material-ui/core/Box';
 import Fade from '@material-ui/core/Fade';
+import { copy } from '../../services/utils.js';
 
 import { withSnackbar } from 'notistack';
 import { RELAXED, FOCUSED, CUSTOMIZED, INIT_FOCUSED_PROFILE } from '../../config/settingsProfiles.js';
@@ -132,10 +133,10 @@ class Settings extends PureComponent {
 
   handleChangeParameters(path, parameter) {
     return (event) => {
-      let settings = this.state.settings;
+      let settings = copy(this.state.settings);
       const nextValue = event.target.value;
       if (isInteger(nextValue) || nextValue.length === 0) {
-        settings[path][parameter] = nextValue;
+        settings[path][parameter] = parseInt(nextValue);
         this.setState({ settings: settings });
       }
     };
@@ -184,7 +185,7 @@ class Settings extends PureComponent {
         key={index}
         disabled={!this.state.customizedBool}
         label={item.label}
-        onChange={this.handleChangeParameters.bind(this, item.path, item.parameter)}
+        onChange={this.handleChangeParameters(item.path, item.parameter).bind(this)}
         value={item.source[item.path][item.parameter]}
         className={classes.textField}
         type="number"
