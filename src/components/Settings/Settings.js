@@ -17,6 +17,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 
 import Box from '@material-ui/core/Box';
 import Fade from '@material-ui/core/Fade';
+import { copy } from '../../services/utils.js';
 
 import { withSnackbar } from 'notistack';
 import { RELAXED, FOCUSED, CUSTOMIZED, INIT_FOCUSED_PROFILE } from '../../config/settingsProfiles.js';
@@ -132,10 +133,10 @@ class Settings extends PureComponent {
 
   handleChangeParameters(path, parameter) {
     return (event) => {
-      let settings = this.state.settings;
+      let settings = copy(this.state.settings);
       const nextValue = event.target.value;
       if (isInteger(nextValue) || nextValue.length === 0) {
-        settings[path][parameter] = nextValue;
+        settings[path][parameter] = nextValue; // do not parseInt or textField goes crazy...
         this.setState({ settings: settings });
       }
     };
@@ -184,7 +185,7 @@ class Settings extends PureComponent {
         key={index}
         disabled={!this.state.customizedBool}
         label={item.label}
-        onChange={this.handleChangeParameters.bind(this, item.path, item.parameter)}
+        onChange={this.handleChangeParameters(item.path, item.parameter).bind(this)}
         value={item.source[item.path][item.parameter]}
         className={classes.textField}
         type="number"
@@ -225,7 +226,7 @@ class Settings extends PureComponent {
                   control={
                     <Checkbox
                       checked={this.state.focusedMode}
-                      onChange={() => this.handleBoolChange(FOCUSED)}
+                      onChange={this.handleBoolChange.bind(this, FOCUSED)}
                       color="secondary"
                       className={classes.checkboxWrapper}
                     />
@@ -242,7 +243,7 @@ class Settings extends PureComponent {
                   control={
                     <Checkbox
                       checked={this.state.relaxedMode}
-                      onChange={() => this.handleBoolChange(RELAXED)}
+                      onChange={this.handleBoolChange.bind(this, RELAXED)}
                       color="secondary"
                       className={classes.checkboxWrapper}
                     />
@@ -259,7 +260,7 @@ class Settings extends PureComponent {
                 control={
                   <Checkbox
                     checked={this.state.customizedBool}
-                    onChange={() => this.handleBoolChange(CUSTOMIZED)}
+                    onChange={this.handleBoolChange.bind(this, CUSTOMIZED)}
                     color="secondary"
                     className={classes.checkboxWrapper}
                   />
@@ -280,7 +281,7 @@ class Settings extends PureComponent {
                   disabled={!this.state.customizedBool}
                   className={classes.secondaryButton}
                   variant="outlined"
-                  onClick={() => this.handleSaveParameters()}
+                  onClick={this.handleSaveParameters.bind(this)}
                 >
                   Save
                 </Button>

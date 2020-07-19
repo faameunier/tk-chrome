@@ -2,7 +2,7 @@ import * as browser from 'webextension-polyfill';
 import _ from 'lodash';
 import { FRONTEND_SKELETON_DISPLAY } from '../../config/env.js';
 import { logger, timeout, setAllReadBadge } from '../../services/utils.js';
-import moment from 'moment';
+import * as dayjs from 'dayjs';
 import React, { PureComponent } from 'react';
 import Button from '@material-ui/core/Button';
 import Skeleton from '@material-ui/lab/Skeleton';
@@ -39,16 +39,16 @@ class Home extends PureComponent {
     } else {
       this.state = { closed_history: [], loading: false };
     }
-    
+
     browser.storage.local.get([CLOSED_HISTORY]).then((result) => {
       const closed_history = result.closed_history || [];
-      this.setState({ closed_history });
+      this.setState({ closed_history: this.enrichHistory(closed_history) });
     });
     this.onChangedCallback = function (changes) {
       const changesClosedHistory = changes[CLOSED_HISTORY];
       if (changesClosedHistory) {
         this.setState({
-          closed_history: changesClosedHistory['newValue'],
+          closed_history: this.enrichHistory(changesClosedHistory['newValue']),
           searchValue: '',
         });
       }
@@ -77,7 +77,7 @@ class Home extends PureComponent {
     const restoredTab = items[key];
     logger(this, messageType + ' for tab ' + restoredTab.uuid);
     const closed_history = this.state.closed_history.filter((item) => item.uuid !== restoredTab.uuid);
-    this.setState({ closed_history: closed_history });
+    this.setState({ closed_history: closed_history }); // no need to enrich here
     browser.runtime.sendMessage({
       messageType: messageType,
       uuid: restoredTab.uuid,
@@ -101,23 +101,28 @@ class Home extends PureComponent {
     });
   }
 
-  renderList() {
-    const { classes } = this.props;
-
+  enrichHistory(history) {
     // keep elements only in time-frame
-    let selectedList = this.state.closed_history ? this.filterList(this.state.closed_history, TIME_PERIOD_72H) : [];
+    let selectedList = history ? this.filterList(history, TIME_PERIOD_72H) : [];
 
     // list enrichment
     selectedList = selectedList.map((website) => {
       if (typeof website !== 'undefined') {
         const deletionTime = new Date(website.deletion_time);
-        website.hours_minutes_format = moment(deletionTime).format('HH:mm');
-        website.date = moment(deletionTime).startOf('date');
-        website.truncated_url = website.url;
+        website.hours_minutes_format = dayjs(deletionTime).format('HH:mm');
+        website.date = dayjs(deletionTime).startOf('date');
       }
       return website;
     });
 
+    selectedList = selectedList.reverse();
+    return selectedList;
+  }
+
+  renderList() {
+    const { classes } = this.props;
+
+    let selectedList = this.state.closed_history.slice(0);
     // keeping only websites that match search criteria
     if (typeof this.state.searchValue !== 'undefined' && this.state.searchValue.length > 0) {
       const searchPattern = new RegExp(
@@ -132,9 +137,7 @@ class Home extends PureComponent {
       );
     }
 
-    const totalLength = selectedList.length;
-    selectedList = selectedList.reverse();
-    let current = moment().startOf('date');
+    let current = dayjs().startOf('date');
     let last = 0;
     for (let i = 0; i < selectedList.length; i++) {
       let next = selectedList[i].date;
@@ -173,7 +176,7 @@ class Home extends PureComponent {
           <ListItem ContainerComponent="div">
             <div className={classes.gridAvatarWithTime}>
               <Typography className={classes.timeDisplay}>
-                {this.state.loading && FULL_SKELETON ? <Skeleton width="3em"/> : `${website.hours_minutes_format}`}
+                {this.state.loading && FULL_SKELETON ? <Skeleton width="3em" /> : `${website.hours_minutes_format}`}
               </Typography>
               <ListItemAvatar>
                 {this.state.loading ? (
@@ -183,22 +186,21 @@ class Home extends PureComponent {
                 ) : (
                   <Avatar
                     variant="square"
-                    alt={website.title}
-                    src={website.favIconUrl}
+                    alt={website.title ? website.title : website.url}
+                    src={website.favIconUrl ? website.favIconUrl : 'error'}
                     className={classes.avatarContainer}
                   />
                 )}
               </ListItemAvatar>
             </div>
-            {this.state.loading && FULL_SKELETON ?
-            (
+            {this.state.loading && FULL_SKELETON ? (
               <div>
-                <Skeleton width="15em"/>
-                <Skeleton width="10em"/>
+                <Skeleton width="15em" />
+                <Skeleton width="10em" />
               </div>
             ) : (
               <ListItemText
-                primary={website.truncated_url}
+                primary={website.url}
                 secondary={website.title}
                 classes={{
                   primary: classes.primaryTextContainer,
@@ -207,10 +209,7 @@ class Home extends PureComponent {
                 className={classes.itemText}
               />
             )}
-            {this.state.loading && FULL_SKELETON ?
-            (
-              null
-            ) : (
+            {this.state.loading && FULL_SKELETON ? null : (
               <ListItemSecondaryAction>
                 <div className={classes.buttonContainer}>
                   <Button
