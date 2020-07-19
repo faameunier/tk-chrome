@@ -2,7 +2,7 @@ import * as browser from 'webextension-polyfill';
 import _ from 'lodash';
 import { FRONTEND_SKELETON_DISPLAY } from '../../config/env.js';
 import { logger, timeout, setAllReadBadge } from '../../services/utils.js';
-import moment from 'moment';
+import * as dayjs from 'dayjs';
 import React, { PureComponent } from 'react';
 import Button from '@material-ui/core/Button';
 import Skeleton from '@material-ui/lab/Skeleton';
@@ -111,8 +111,8 @@ class Home extends PureComponent {
     selectedList = selectedList.map((website) => {
       if (typeof website !== 'undefined') {
         const deletionTime = new Date(website.deletion_time);
-        website.hours_minutes_format = moment(deletionTime).format('HH:mm');
-        website.date = moment(deletionTime).startOf('date');
+        website.hours_minutes_format = dayjs(deletionTime).format('HH:mm');
+        website.date = dayjs(deletionTime).startOf('date');
         website.truncated_url = website.url;
       }
       return website;
@@ -133,7 +133,7 @@ class Home extends PureComponent {
     }
 
     selectedList = selectedList.reverse();
-    let current = moment().startOf('date');
+    let current = dayjs().startOf('date');
     let last = 0;
     for (let i = 0; i < selectedList.length; i++) {
       let next = selectedList[i].date;
@@ -182,7 +182,7 @@ class Home extends PureComponent {
                 ) : (
                   <Avatar
                     variant="square"
-                    alt={website.title}
+                    alt={website.title ? website.title : website.truncated_url}
                     src={website.favIconUrl ? website.favIconUrl : 'error'}
                     className={classes.avatarContainer}
                   />
