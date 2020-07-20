@@ -1,6 +1,7 @@
 import * as browser from 'webextension-polyfill';
 import _ from 'lodash';
 import { FRONTEND_SKELETON_DISPLAY } from '../../config/env.js';
+import { NO_RESTORE_URL } from '../../config/websites.js';
 import { logger, timeout, setAllReadBadge } from '../../services/utils.js';
 import * as dayjs from 'dayjs';
 import React, { PureComponent } from 'react';
@@ -104,13 +105,14 @@ class Home extends PureComponent {
   enrichHistory(history) {
     // keep elements only in time-frame
     let selectedList = history ? this.filterList(history, TIME_PERIOD_72H) : [];
-
+    const rx = new RegExp(NO_RESTORE_URL.join('|'));
     // list enrichment
     selectedList = selectedList.map((website) => {
       if (typeof website !== 'undefined') {
         const deletionTime = new Date(website.deletion_time);
         website.hours_minutes_format = dayjs(deletionTime).format('HH:mm');
         website.date = dayjs(deletionTime).startOf('date');
+        website.no_restore = rx.exec(website.url) ? true : false;
       }
       return website;
     });
@@ -217,6 +219,7 @@ class Home extends PureComponent {
                     onClick={this.removeItem.bind(this, myFilteredList, index)}
                     variant="outlined"
                     color="secondary"
+                    disabled={website.no_restore}
                     className={classes.button}
                   >
                     {'Restore'}

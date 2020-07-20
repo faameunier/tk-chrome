@@ -10,4 +10,6 @@ const PROTECTED_URL = [
   'whereby.com/',
 ];
 
-export { PROTECTED_URL };
+const NO_RESTORE_URL = ['about:debugging'];
+
+export { PROTECTED_URL, NO_RESTORE_URL };
