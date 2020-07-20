@@ -181,7 +181,7 @@ class PolicyManager {
       let copiedTab = copy(tab); // making a simple json copy
       copiedTab.deletion_time = Date.now();
       memoryManager.closed_history.push(copiedTab);
-      memoryManager.closed_history = memoryManager.closed_history.slice(0, MAXIMUM_HISTORY_SIZE);
+      memoryManager.closed_history = memoryManager.closed_history.slice(-MAXIMUM_HISTORY_SIZE);
       setUnreadBadge();
       this.retrieveSessionId(tab); // async
       logger('Tab '.concat(tabId, ' killed by policy'));
