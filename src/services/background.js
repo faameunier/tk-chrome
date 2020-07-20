@@ -56,24 +56,29 @@ browser.windows.onRemoved.addListener(function (windowId) {
 // -----------------------------------------------
 // Tabs tracking
 browser.tabs.onCreated.addListener(function (tab) {
-  eventQueue.enqueue(() => {
-    let windows = PolicyManager.buildWindows();
-    let tabs = windows[tab.windowId];
-    tabs = _.filter(tabs, (tab) => {
-      // removing ignored tabs
-      return (
-        !(settingsManager.settings.policy.active && tab.active) &&
-        !(settingsManager.settings.policy.pinned && tab.pinned) &&
-        !(settingsManager.settings.policy.audible && tab.audible)
-      );
-    });
-    if (
-      !settingsManager.inactive_policy.includes(parseInt(tab.windowId)) &&
-      tabs.length === settingsManager.settings.policy.target_tabs
-    ) {
-      PolicyManager.backfillRuns(windows);
-    }
-  });
+  // eventQueue.enqueue(() => {
+  //   let windows = PolicyManager.buildWindows();
+  //   let tabs = windows[tab.windowId];
+  //   tabs = _.filter(tabs, (tab) => {
+  //     // removing ignored tabs
+  //     return (
+  //       !(settingsManager.settings.policy.active && tab.active) &&
+  //       !(settingsManager.settings.policy.pinned && tab.pinned) &&
+  //       !(settingsManager.settings.policy.audible && tab.audible)
+  //     );
+  //   });
+  //   if (
+  //     !settingsManager.inactive_policy.includes(parseInt(tab.windowId)) &&
+  //     tabs.length === settingsManager.settings.policy.target_tabs
+  //   ) {
+  //     let windowIds = Object.keys(windows);
+  //     let now = Date.now();
+  //
+  //     for (let i = 0; i < windowIds.length; i++) {
+  //       memoryManager.runtime_events.last_policy_runs[windowIds[i]] = now;
+  //     }
+  //   }
+  // });
   eventQueue.enqueue(() => memoryManager.createTab(tab));
 });
 

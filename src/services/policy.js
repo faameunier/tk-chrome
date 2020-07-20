@@ -76,17 +76,20 @@ class PolicyManager {
     // Run policy for a given window
     // Returns true if the policy was run, false otherwise
     let tabs = windows[windowId];
-    tabs = _.filter(tabs, (tab) => {
+    let all_unprotected_tabs = _.filter(tabs, (tab) => {
       // removing ignored tabs
       return (
-        !(settingsManager.settings.policy.active && tab.active) &&
         !(settingsManager.settings.policy.pinned && tab.pinned) &&
         !(settingsManager.settings.policy.audible && tab.audible)
       );
     });
+    tabs = _.filter(tabs, (tab) => {
+      // removing ignored tabs
+      return !(settingsManager.settings.policy.active && tab.active);
+    });
     if (
       !settingsManager.inactive_policy.includes(parseInt(windowId)) &&
-      tabs.length > settingsManager.settings.policy.target_tabs
+      all_unprotected_tabs.length > settingsManager.settings.policy.target_tabs
     ) {
       // if too many tabs
       if (this.exponentialTrigger(tabs, windowId)) {
