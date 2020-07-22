@@ -1,5 +1,8 @@
 const utils = require('../../../src/services/utils.js');
 const _ = require('lodash');
+const browser = require('sinon-chrome/webextensions');
+
+jest.mock('webextension-polyfill', () => require('sinon-chrome/webextensions'))
 
 describe('isInteger', () => {
   test('letters return false', () => {
@@ -27,7 +30,7 @@ describe('timeout', () => {
   test('makes us wait', async () => {
     let start = Date.now();
     await utils.timeout(500);
-    expect((Date.now() - start) / 1000).toBeCloseTo(0.500);
+    expect((Date.now() - start) - 500).toBeLessThan(10);
   });
 });
 
@@ -56,5 +59,21 @@ describe('copy', () => {
     let b = utils.copy(a);
     b.test = [2, 3];
     expect(_.isEqual(a.test, [1, 2])).toBeTruthy();
+  });
+});
+
+describe('setAllReadBadge', () => {
+  beforeEach(() => {
+    browser.flush();
+  });
+
+  test('setBadge was called once', () => {
+    utils.setAllReadBadge();
+    expect(browser.browserAction.setBadgeText.calledOnce).toBeTruthy();
+  });
+
+  test('badge was reset', () => {
+    utils.setAllReadBadge();
+    expect(browser.browserAction.setBadgeText.withArgs({ text: '' }).calledOnce).toBeTruthy();
   });
 });

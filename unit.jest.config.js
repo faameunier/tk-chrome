@@ -1,7 +1,5 @@
 // For a detailed explanation regarding each configuration property, visit:
 // https://jestjs.io/docs/en/configuration.html
-const chrome = require('sinon-chrome/extensions');
-chrome.runtime.id = 'unittesting';
 
 module.exports = {
   // All imported modules in your tests should be mocked automatically
@@ -60,7 +58,7 @@ module.exports = {
   // globalTeardown: undefined,
 
   // A set of global variables that need to be available in all test environments
-  globals: { chrome, ENV: 'debug' },
+  globals: { ENV: 'debug' },
 
   // The maximum amount of workers used to run your tests. Can be specified as % or a number. E.g. maxWorkers: 10% will use 10% of your CPU amount + 1 as the maximum worker number. maxWorkers: 2 will use a maximum of 2 workers.
   maxWorkers: 8,
@@ -143,7 +141,10 @@ module.exports = {
   // testLocationInResults: false,
 
   // The glob patterns Jest uses to detect test files
-  testMatch: ['<rootDir>/tests/unit/**/__tests__/**/*.[jt]s?(x)', '<rootDir>/tests/unit/**/?(*.)+(spec|test).[tj]s?(x)'],
+  testMatch: [
+    '<rootDir>/tests/unit/**/__tests__/**/*.[jt]s?(x)',
+    '<rootDir>/tests/unit/**/?(*.)+(spec|test).[tj]s?(x)',
+  ],
 
   // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
   // testPathIgnorePatterns: [
