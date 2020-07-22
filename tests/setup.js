@@ -12,10 +12,7 @@ module.exports = async function () {
   const pathToExtension = require('path').join(__dirname, '../dist/');
   const browser = await puppeteer.launch({
     headless: false,
-    args: [
-      `--disable-extensions-except=${pathToExtension}`,
-      `--load-extension=${pathToExtension}`
-    ]
+    args: [`--disable-extensions-except=${pathToExtension}`, `--load-extension=${pathToExtension}`],
   });
   // This global is not available inside tests but only in global teardown
   global.__BROWSER_GLOBAL__ = browser;
