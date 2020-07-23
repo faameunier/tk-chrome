@@ -1,4 +1,4 @@
-import * as browser from 'webextension-polyfill';
+import browser from 'webextension-polyfill';
 import _ from 'lodash';
 import { logger, getDomain, copy, getLastFocusedWindow, isUserActive } from './utils.js';
 import { MIN_ACTIVE_DEBOUNCE, MAX_ACTIVE_DEBOUNCE } from '../config/env.js';

@@ -1,4 +1,4 @@
-import * as browser from 'webextension-polyfill';
+import browser from 'webextension-polyfill';
 import { settingsManager } from './settings.js';
 import { memoryManager } from './memory.js';
 import { logger, storageReset } from './utils.js';

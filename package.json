@@ -46,10 +46,11 @@
     "psl": "^1.8.0",
     "puppeteer": "^5.2.1",
     "rimraf": "^3.0.2",
-    "sinon-chrome": "^3.0.1",
+    "sinon": "^9.0.2",
     "style-loader": "^0.23.1",
     "uuid": "^8.2.0",
     "webextension-polyfill": "^0.6.0",
+    "webextensions-api-mock": "^1.0.0",
     "webpack": "github:webpack/webpack#master",
     "webpack-cli": "^3.3.6",
     "webpack-dev-server": "^3.7.2"
@@ -76,6 +77,6 @@
     "projects": [
       "./e2e.jest.config.js",
       "./unit.jest.config.js"
-     ]
+    ]
   }
 }

@@ -1,8 +1,8 @@
-import * as browser from 'webextension-polyfill';
+import browser from 'webextension-polyfill';
 import _ from 'lodash';
 import { FRONTEND_SKELETON_DISPLAY } from '../../config/env.js';
 import { logger, timeout, setAllReadBadge } from '../../services/utils.js';
-import * as dayjs from 'dayjs';
+import dayjs from 'dayjs';
 import React, { PureComponent } from 'react';
 import Button from '@material-ui/core/Button';
 import Skeleton from '@material-ui/lab/Skeleton';

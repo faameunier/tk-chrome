@@ -1,5 +1,5 @@
-import * as psl from 'psl';
-import * as browser from 'webextension-polyfill';
+import psl from 'psl';
+import browser from 'webextension-polyfill';
 import { MAX_ACTIVE_DEBOUNCE } from '../config/env.js';
 
 const logger = function (...args) {
@@ -44,14 +44,14 @@ function setAllReadBadge() {
   browser.browserAction.setBadgeText({ text: '' }); // <-- set text to '' to remove the badge
 }
 
-function setUnreadBadge() {
+async function setUnreadBadge() {
   browser.browserAction.setBadgeBackgroundColor({ color: [229, 92, 0, 128] });
-  browser.browserAction.getBadgeText({}).then(function (badgeText) {
+  return browser.browserAction.getBadgeText().then(function (badgeText) {
     let counter = 1;
     if (isInteger(badgeText)) {
       counter = parseInt(badgeText) + 1;
     }
-    browser.browserAction.setBadgeText({ text: `${counter}` });
+    return browser.browserAction.setBadgeText({ text: `${counter}` });
   });
 }
 
