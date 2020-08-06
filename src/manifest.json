@@ -29,6 +29,7 @@
     "48": "./assets/static/icons/tabby_48.png",
     "128": "./assets/static/icons/tabby_128.png"
   },
+  "content_security_policy": "script-src 'self' https://www.youtube.com https://s.ytimg.com; object-src 'self'",
   "offline_enabled": true,
   "manifest_version": 2
 }

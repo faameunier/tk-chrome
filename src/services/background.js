@@ -31,6 +31,7 @@ browser.runtime.onInstalled.addListener(function (details) {
   } else if (details.reason == 'update') {
     MigrationManager.migrate();
     logger('Extension updated :D');
+    chrome.tabs.create({ url: chrome.runtime.getURL('../views/onboarding.html') });
   }
   logger(browser.runtime.getManifest().version);
 });
