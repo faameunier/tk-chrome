@@ -1,10 +1,7 @@
 import React, { PureComponent } from 'react';
 import { logger } from '../../services/utils.js';
 import Backdrop from '@material-ui/core/Backdrop';
-import Fade from '@material-ui/core/Fade';
 import Box from '@material-ui/core/Box';
-import Typography from '@material-ui/core/Typography';
-import * as browser from 'webextension-polyfill';
 import Modal from '@material-ui/core/Modal';
 import Welcome from '../Welcome';
 import First from '../First';
@@ -27,15 +24,11 @@ class OnboardingDispatcher extends PureComponent {
   dispatchPage() {
     switch (this.state.appBarValue) {
       case 'WELCOME':
-        return <Welcome handleChange={this.handleChange} />;
+        return <Welcome type="WELCOME" handleChange={this.handleChange} />;
       case 'FIRST':
-        return <First />;
-      case 'SECOND':
-        return <Second />;
-      case 'THIRD':
-        return <Third />;
-      case 'FOURTH':
-        return <Fourth />;
+        return <First handleChange={this.handleChange} />;
+      case 'END':
+        return <Welcome type="END" handleChange={this.handleChange} />;
       default:
         return <div>This is an error page</div>;
     }
@@ -43,7 +36,7 @@ class OnboardingDispatcher extends PureComponent {
 
   render() {
     const { classes } = this.props;
-    const styleBox = this.state.appBarValue === 'WELCOME' ? classes.paperWelcome : classes.paperDefault;
+    const styleBox = this.state.appBarValue === 'FIRST' ? classes.paperDefault : classes.paperWelcome;
     return (
       <div className={classes.homeContainer}>
         <img

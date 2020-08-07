@@ -9,13 +9,15 @@ class Welcome extends PureComponent {
 
   componentDidMount() {}
   render() {
-    const { classes } = this.props;
+    const { classes, type } = this.props;
 
     return (
       <div className={classes.mainContainer}>
         <div className={classes.titleGroup}>
-          <Typography className={classes.title}>Welcome to Tabby</Typography>
-          <Typography className={classes.subtitle}>Your intelligent tab manager</Typography>
+          <Typography className={classes.title}>{type === 'WELCOME' ? 'Welcome to Tabby' : 'That’s all!'}</Typography>
+          <Typography className={classes.subtitle}>
+            {type === 'WELCOME' ? 'Your intelligent tab manager' : 'We wish you a wonderful browsing experience'}
+          </Typography>
         </div>
         <div className={classes.buttonContainer}>
           <Button
@@ -25,7 +27,7 @@ class Welcome extends PureComponent {
             color="secondary"
             className={classes.button}
           >
-            {'Start'}
+            {type === 'WELCOME' ? 'Start' : 'Return'}
           </Button>
         </div>
       </div>

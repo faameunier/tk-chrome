@@ -23,8 +23,8 @@ const styles = (theme) => ({
   },
   button: {
     textTransform: 'capitalize',
-    fontWeight: 'normal',
-    fontSize: 18,
+    fontWeight: 'bold',
+    fontSize: 16,
     borderRadius: 10,
     maxWidth: theme.spacing(6),
   },
