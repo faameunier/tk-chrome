@@ -6,8 +6,19 @@ class Welcome extends PureComponent {
     super(props);
     this.state = {};
   }
+  componentDidMount() {
+    window.addEventListener('keydown', this.handleKeyDown);
+  }
 
-  componentDidMount() {}
+  componentWillUnmount() {
+    window.removeEventListener('keydown', this.handleKeyDown);
+  }
+
+  handleKeyDown = (event) => {
+    if (event.keyCode === 13) {
+      this.props.handleChange('FIRST')();
+    }
+  };
   render() {
     const { classes, type } = this.props;
 
@@ -16,7 +27,7 @@ class Welcome extends PureComponent {
         <div className={classes.titleGroup}>
           <Typography className={classes.title}>{type === 'WELCOME' ? 'Welcome to Tabby' : 'That’s all!'}</Typography>
           <Typography className={classes.subtitle}>
-            {type === 'WELCOME' ? 'Your intelligent tab manager' : 'We wish you a wonderful browsing experience'}
+            {type === 'WELCOME' ? 'Your intelligent tab manager' : 'We wish you a wonderful browsing experience.'}
           </Typography>
         </div>
         <div className={classes.buttonContainer}>

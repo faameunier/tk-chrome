@@ -12,10 +12,6 @@ class OnboardingDispatcher extends PureComponent {
     this.state = { appBarValue: 'WELCOME' };
   }
 
-  componentDidMount() {
-    logger(this, 'Onboarding opened');
-  }
-
   handleChange = (newValue) => () => {
     this.setState({ appBarValue: newValue });
     logger(this, 'Switch to ' + newValue);

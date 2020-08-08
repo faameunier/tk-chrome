@@ -11,19 +11,24 @@ import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
 import ArrowForwardIosIcon from '@material-ui/icons/ArrowForwardIos';
 
 function getSteps() {
-  return ['Pin tabby', 'How to restore tabs?', 'Personalize your settings', 'How to protect your tabs?'];
+  return [
+    'How to pin tabby?',
+    'How to restore tabs?',
+    'How to personalize your settings?',
+    'How to protect your tabs?',
+  ];
 }
 
 function getStepContent(stepIndex) {
   switch (stepIndex) {
     case 0:
-      return 'Pin your tabby to the extension bar, if it’s not the case, to see the notifications.';
+      return 'Pin tabby to your browser extension bar, to easily access it.';
     case 1:
-      return 'You can find and restore removed tabs in your home page... with their full history.';
+      return 'Find and restore removed tabs with their full history.';
     case 2:
-      return 'You can personalize your experience in the settings.';
+      return 'Personalize your online experience with 1-click within the settings.';
     case 3:
-      return 'You can protect tabs, for instance your mail and messaging apps.';
+      return 'Protect important tabs, like mail and messaging apps among others.';
     default:
       return 'Unknown stepIndex';
   }
@@ -49,6 +54,26 @@ class First extends PureComponent {
     super(props);
     this.state = { activeStep: 0 };
   }
+
+  componentDidMount() {
+    window.addEventListener('keydown', this.handleKeyDown);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('keydown', this.handleKeyDown);
+  }
+
+  handleKeyDown = (event) => {
+    if (event.keyCode === 37 && this.state.activeStep !== 0) {
+      this.handleBack();
+    }
+    if (event.keyCode === 39 && this.state.activeStep !== 3) {
+      this.handleNext();
+    }
+    if (event.keyCode === 13 && this.state.activeStep === 3) {
+      this.props.handleChange('END')();
+    }
+  };
   handleNext = () => {
     this.setState({ activeStep: this.state.activeStep + 1 });
   };
