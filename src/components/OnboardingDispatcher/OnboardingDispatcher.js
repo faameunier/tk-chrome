@@ -3,6 +3,7 @@ import { logger } from '../../services/utils.js';
 import Backdrop from '@material-ui/core/Backdrop';
 import Box from '@material-ui/core/Box';
 import Modal from '@material-ui/core/Modal';
+
 import Welcome from '../Welcome';
 import First from '../First';
 

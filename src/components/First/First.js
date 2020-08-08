@@ -9,6 +9,7 @@ import Step from '@material-ui/core/Step';
 import StepLabel from '@material-ui/core/StepLabel';
 import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
 import ArrowForwardIosIcon from '@material-ui/icons/ArrowForwardIos';
+import Slide from '@material-ui/core/Slide';
 
 function getSteps() {
   return [
@@ -101,10 +102,12 @@ class First extends PureComponent {
 
     return (
       <div className={classes.mainContainer}>
-        <div className={classes.titleGroup}>
-          <Typography className={classes.title}>{steps[this.state.activeStep]}</Typography>
-          <Typography className={classes.subtitle}>{getStepContent(this.state.activeStep)}</Typography>
-        </div>
+        <Slide direction="up" in={true} mountOnEnter unmountOnExit transitionDuration={1000}>
+          <div className={classes.titleGroup}>
+            <Typography className={classes.title}>{steps[this.state.activeStep]}</Typography>
+            <Typography className={classes.subtitle}>{getStepContent(this.state.activeStep)}</Typography>
+          </div>
+        </Slide>
         <div className={classes.videoContainer}>
           <YouTube videoId={getStepUrl(this.state.activeStep)} opts={opts} classname={classes.video} />
         </div>
