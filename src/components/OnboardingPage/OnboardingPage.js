@@ -50,7 +50,7 @@ function getStepUrl(stepIndex) {
   }
 }
 
-class First extends PureComponent {
+class OnboardingPage extends PureComponent {
   constructor(props) {
     super(props);
     this.state = { activeStep: 0 };
@@ -102,7 +102,7 @@ class First extends PureComponent {
 
     return (
       <div className={classes.mainContainer}>
-        <Slide direction="up" in={true} mountOnEnter unmountOnExit transitionDuration={1000}>
+        <Slide direction="up" in={true} mountOnEnter unmountOnExit>
           <div className={classes.titleGroup}>
             <Typography className={classes.title}>{steps[this.state.activeStep]}</Typography>
             <Typography className={classes.subtitle}>{getStepContent(this.state.activeStep)}</Typography>
@@ -167,4 +167,4 @@ class First extends PureComponent {
   }
 }
 
-export default First;
+export default OnboardingPage;

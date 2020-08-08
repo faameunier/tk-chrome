@@ -5,7 +5,7 @@ import Box from '@material-ui/core/Box';
 import Modal from '@material-ui/core/Modal';
 
 import Welcome from '../Welcome';
-import First from '../First';
+import OnboardingPage from '../OnboardingPage';
 
 class OnboardingDispatcher extends PureComponent {
   constructor(props) {
@@ -22,8 +22,8 @@ class OnboardingDispatcher extends PureComponent {
     switch (this.state.appBarValue) {
       case 'WELCOME':
         return <Welcome type="WELCOME" handleChange={this.handleChange} />;
-      case 'FIRST':
-        return <First handleChange={this.handleChange} />;
+      case 'ONBOARDING_PAGE':
+        return <OnboardingPage handleChange={this.handleChange} />;
       case 'END':
         return <Welcome type="END" handleChange={this.handleChange} />;
       default:
@@ -33,7 +33,7 @@ class OnboardingDispatcher extends PureComponent {
 
   render() {
     const { classes } = this.props;
-    const styleBox = this.state.appBarValue === 'FIRST' ? classes.paperDefault : classes.paperWelcome;
+    const styleBox = this.state.appBarValue === 'ONBOARDING_PAGE' ? classes.paperDefault : classes.paperWelcome;
     return (
       <div className={classes.homeContainer}>
         <img

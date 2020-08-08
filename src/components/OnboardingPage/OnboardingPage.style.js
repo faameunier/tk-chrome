@@ -1,6 +1,6 @@
 import { withStyles } from '@material-ui/core/styles';
 
-import First from './First';
+import OnboardingPage from './OnboardingPage';
 
 const styles = (theme) => ({
   titleGroup: {
@@ -76,4 +76,4 @@ const styles = (theme) => ({
     maxWidth: theme.spacing(6),
   },
 });
-export default withStyles(styles)(First);
+export default withStyles(styles)(OnboardingPage);

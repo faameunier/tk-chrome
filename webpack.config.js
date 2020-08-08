@@ -8,6 +8,7 @@ var common = {
   entry: {
     popup: { import: './src/app/popup.js' },
     background: { import: './src/services/background.js' },
+    onboarding: { import: './src/app/onboarding.js' },
   },
   output: {
     filename: '[name].bundle.js',
@@ -32,6 +33,13 @@ var common = {
       chunks: ['background'],
       template: './src/views/background.html',
       filename: './views/background.html',
+      cache: true,
+    }),
+    new HtmlWebpackPlugin({
+      title: 'Tabby',
+      chunks: ['onboarding'],
+      template: './src/views/onboarding.html',
+      filename: './views/onboarding.html',
       cache: true,
     }),
     new CopyWebpackPlugin([{ from: './src/manifest.json', to: './', flatten: true }], {

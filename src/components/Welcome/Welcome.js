@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import Typography from '@material-ui/core/Typography/Typography';
 import Button from '@material-ui/core/Button/Button';
+import Slide from '@material-ui/core/Slide/Slide';
 
 class Welcome extends PureComponent {
   constructor(props) {
@@ -17,7 +18,7 @@ class Welcome extends PureComponent {
 
   handleKeyDown = (event) => {
     if (event.keyCode === 13) {
-      this.props.handleChange('FIRST')();
+      this.props.handleChange('ONBOARDING_PAGE')();
     }
   };
   render() {
@@ -34,7 +35,7 @@ class Welcome extends PureComponent {
         <div className={classes.buttonContainer}>
           <Button
             size="small"
-            onClick={this.props.handleChange('FIRST')}
+            onClick={this.props.handleChange('ONBOARDING_PAGE')}
             variant="outlined"
             color="secondary"
             className={classes.button}
