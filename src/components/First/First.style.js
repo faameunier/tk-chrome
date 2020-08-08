@@ -6,7 +6,7 @@ const styles = (theme) => ({
   titleGroup: {
     display: 'grid',
     placeItems: 'center',
-    marginBottom: theme.spacing(1),
+    marginBottom: theme.spacing(2),
   },
   title: {
     fontWeight: 'bold',
