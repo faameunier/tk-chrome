@@ -127,7 +127,7 @@ class Settings extends PureComponent {
         horizontal: 'right',
       },
       transitionDuration: 750,
-      autoHideDuration: 1500,
+      autoHideDuration: 2000,
     });
   }
 
