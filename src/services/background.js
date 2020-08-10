@@ -20,18 +20,17 @@ browser.runtime.onStartup.addListener(function () {
 
 browser.runtime.onInstalled.addListener(function (details) {
   if (details.reason == 'install') {
-    browser.tabs.create({ url: 'https://www.tabby.us/setup' });
-
+    browser.tabs.create({ url: browser.runtime.getURL('../views/onboarding.html') });
     eventQueue.enqueue(() => storageReset());
     eventQueue.enqueue(() => settingsManager.reset());
     eventQueue.enqueue(() => memoryManager.reset());
     eventQueue.enqueue(() => MigrationManager.setVersion());
+
     browser.notifications.create(installOptions); // Safari not supported
     logger('Extension installed :D');
   } else if (details.reason == 'update') {
     MigrationManager.migrate();
     logger('Extension updated :D');
-    chrome.tabs.create({ url: chrome.runtime.getURL('../views/onboarding.html') });
   }
   logger(browser.runtime.getManifest().version);
 });

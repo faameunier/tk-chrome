@@ -38,13 +38,13 @@ function getStepContent(stepIndex) {
 function getStepUrl(stepIndex) {
   switch (stepIndex) {
     case 0:
-      return 'eKfImHIcqwY';
+      return 'PL-6zShgK2U';
     case 1:
-      return '9v4XbJop918';
+      return 'oXOsunDV8vs';
     case 2:
-      return 'eKfImHIcqwY';
+      return 'dew6Eemae5A';
     case 3:
-      return '9v4XbJop918';
+      return 'zcselvlRHB8';
     default:
       return 'Unknown stepIndex';
   }
