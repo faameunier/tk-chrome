@@ -75,7 +75,8 @@ const styles = (theme) => ({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: theme.spacing(1.25),
+    marginTop: theme.spacing(2.5),
+    maxHeight: theme.spacing(0.5),
     minWidth: '100%',
   },
   footerRight: {

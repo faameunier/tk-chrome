@@ -287,12 +287,7 @@ class Home extends PureComponent {
         {this.renderList.bind(this)()}
 
         <div className={classes.footerContainer}>
-          <IconButton
-            color="secondary"
-            component="div"
-            onClick={this.copyToClipBoard.bind(this)}
-            className={classes.iconContainer}
-          >
+          <IconButton color="secondary" component="div" onClick={this.copyToClipBoard.bind(this)}>
             <ShareIcon color="secondary" className={classes.iconContainer} />
           </IconButton>
           <div className={classes.footerRight}>
