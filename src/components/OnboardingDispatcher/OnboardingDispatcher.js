@@ -37,7 +37,7 @@ class OnboardingDispatcher extends PureComponent {
     return (
       <div className={classes.homeContainer}>
         <img
-          src="https://cdn.pixabay.com/photo/2016/11/06/05/38/landscape-1802340_1280.jpg"
+          src="https://uploads-ssl.webflow.com/5e4d88dc34500365793bfc0b/5f33c165eadeb37d391596d2_landscape-1802340_1920-p-1080.jpeg"
           alt="background_image"
           className={classes.homeContainer}
         />
