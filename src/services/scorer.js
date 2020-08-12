@@ -1,7 +1,7 @@
 import { copy } from './utils.js';
 import { settingsManager } from './settings.js';
 import { SCORER, MAXIMUM_SCORE } from '../config/env.js';
-import { PROTECTED_URL } from '../config/webConf.js';
+import { PROTECTED_URL } from '../config/websites.js';
 import { sigmoidScaled, exponentialDecay, exponentialDecayReversed, bound, ReLU } from './math.js';
 
 class AbstractScorer {
