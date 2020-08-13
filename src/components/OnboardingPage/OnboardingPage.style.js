@@ -7,6 +7,7 @@ const styles = (theme) => ({
     display: 'grid',
     placeItems: 'center',
     marginBottom: theme.spacing(2),
+    maxHeight: '30%',
   },
   title: {
     fontWeight: 'bold',
@@ -32,40 +33,33 @@ const styles = (theme) => ({
   videoContainer: {
     display: 'grid',
     placeItems: 'center',
+    width: '100%',
+    height: '56.25%',
   },
   video: {
-    width: '100%',
+    width: '70%',
     height: '100%',
   },
-  mobileStepper: {
-    maxWidth: 400,
-    flexGrow: 1,
-  },
-  step: {
-    '& $completed': {
-      color: 'lightgreen',
-    },
-    '& $active': {
-      color: 'pink',
-    },
-    '& $disabled': {
-      color: 'red',
-    },
-  },
+
   stepIcon: {
     color: '#00b9aa',
   },
   stepper: {
+    paddingTop: 0,
     backgroundColor: '#E7E7E7',
+    maxHeight: '10%',
+    maxWidth: '70%',
+    //marginBottom: theme.spacing(1),
   },
   stepperContainer: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     alignItems: 'center',
+    maxHeight: '15%',
   },
   iconContainer: {
-    marginBottom: theme.spacing(0.5),
+    //marginTop: theme.spacing(1),
   },
 
   button: {

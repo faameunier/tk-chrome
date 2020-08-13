@@ -11,7 +11,6 @@ const styles = (theme) => ({
   },
   paperWelcome: {
     backgroundColor: '#E7E7E7',
-    padding: theme.spacing(1, 1, 1, 1),
     minWidth: '30%',
     minHeight: '35%',
     position: 'absolute',
@@ -20,7 +19,6 @@ const styles = (theme) => ({
   },
   paperDefault: {
     backgroundColor: '#E7E7E7',
-    padding: theme.spacing(1, 1, 0, 1),
     minWidth: '65%',
     minHeight: '80%',
     position: 'absolute',

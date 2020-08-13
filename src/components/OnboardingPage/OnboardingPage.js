@@ -109,7 +109,13 @@ class OnboardingPage extends PureComponent {
           </div>
         </Slide>
         <div className={classes.videoContainer}>
-          <YouTube videoId={getStepUrl(this.state.activeStep)} opts={opts} classname={classes.video} />
+          <iframe
+            src={`https://www.youtube.com/embed/${getStepUrl(this.state.activeStep)}?autoplay=1`}
+            className={classes.video}
+            frameBorder="0"
+            allowfullscreen
+            allow="autoplay"
+          />
         </div>
         <div className={classes.stepperContainer}>
           <IconButton
