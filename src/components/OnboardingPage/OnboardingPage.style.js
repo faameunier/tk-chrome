@@ -49,7 +49,6 @@ const styles = (theme) => ({
     backgroundColor: '#E7E7E7',
     maxHeight: '10%',
     maxWidth: '70%',
-    //marginBottom: theme.spacing(1),
   },
   stepperContainer: {
     display: 'flex',
@@ -59,7 +58,6 @@ const styles = (theme) => ({
     maxHeight: '15%',
   },
   iconContainer: {
-    //marginTop: theme.spacing(1),
   },
 
   button: {

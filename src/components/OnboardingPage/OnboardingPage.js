@@ -1,5 +1,4 @@
 import React, { PureComponent } from 'react';
-import YouTube from 'react-youtube';
 import Typography from '@material-ui/core/Typography/Typography';
 import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
