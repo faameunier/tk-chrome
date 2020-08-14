@@ -8,7 +8,7 @@
     "url": "https://tabby.us/"
   },
   "version": "1.1.1",
-  "version_name": "v1.1.0",
+  "version_name": "v1.1.1",
   "permissions": ["tabs", "storage", "sessions", "idle", "notifications"],
   "background": {
     "persistent": false,
