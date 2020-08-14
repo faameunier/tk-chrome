@@ -74,10 +74,18 @@ const styles = (theme) => ({
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-end',
-    marginTop: theme.spacing(1.25),
+    justifyContent: 'space-between',
+    marginTop: theme.spacing(2.5),
+    maxHeight: theme.spacing(0.5),
     minWidth: '100%',
   },
+  footerRight: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+
   linkToForm: {
     fontSize: 10,
   },

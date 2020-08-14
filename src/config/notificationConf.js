@@ -1,7 +1,7 @@
 const installOptions = {
   type: 'basic',
-  title: 'Welcome to tabby!',
-  message: 'Discover tips in the help section',
+  title: 'Welcome to tabby',
+  message: 'Follow the on-boarding to learn more!',
   iconUrl: '../assets/static/icons/tabby_128.png',
 };
 

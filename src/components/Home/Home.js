@@ -1,5 +1,4 @@
 import * as browser from 'webextension-polyfill';
-import _ from 'lodash';
 import { FRONTEND_SKELETON_DISPLAY } from '../../config/env.js';
 import { NO_RESTORE_URL } from '../../config/websites.js';
 import { logger, timeout, setAllReadBadge } from '../../services/utils.js';
@@ -15,6 +14,9 @@ import Avatar from '@material-ui/core/Avatar';
 import Typography from '@material-ui/core/Typography';
 import Link from '@material-ui/core/Link';
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
+import ShareIcon from '@material-ui/icons/Share';
+import IconButton from '@material-ui/core/IconButton';
+import { withSnackbar } from 'notistack';
 import { FixedSizeList as List } from 'react-window';
 import SearchBar from 'material-ui-search-bar';
 
@@ -99,6 +101,19 @@ class Home extends PureComponent {
     const now = Date.now();
     return selectedList.filter((item) => {
       return now - item.deletion_time < endPeriod;
+    });
+  }
+
+  copyToClipBoard() {
+    navigator.clipboard.writeText('https://www.tabby.us');
+    this.props.enqueueSnackbar('Link copied to the clipboard.', {
+      variant: 'success',
+      anchorOrigin: {
+        vertical: 'bottom',
+        horizontal: 'right',
+      },
+      transitionDuration: 750,
+      autoHideDuration: 2000,
     });
   }
 
@@ -273,19 +288,25 @@ class Home extends PureComponent {
           </div>
         </div>
         {this.renderList.bind(this)()}
+
         <div className={classes.footerContainer}>
-          <ErrorOutlineIcon color="secondary" className={classes.iconContainer} />
-          <Link
-            href="https://docs.google.com/forms/d/e/1FAIpQLSdUEJHd0bL6ryFvZk220CoZp7cwvFxESorps7cngk0wQfyu-Q/viewform"
-            target="_blank"
-            className={classes.linkToForm}
-          >
-            Bug/Feedback?
-          </Link>
+          <IconButton color="secondary" component="div" onClick={this.copyToClipBoard.bind(this)}>
+            <ShareIcon color="secondary" className={classes.iconContainer} />
+          </IconButton>
+          <div className={classes.footerRight}>
+            <ErrorOutlineIcon color="secondary" className={classes.iconContainer} />
+            <Link
+              href="https://docs.google.com/forms/d/e/1FAIpQLSdUEJHd0bL6ryFvZk220CoZp7cwvFxESorps7cngk0wQfyu-Q/viewform"
+              target="_blank"
+              className={classes.linkToForm}
+            >
+              Bug/Feedback?
+            </Link>
+          </div>
         </div>
       </div>
     );
   }
 }
 
-export default Home;
+export default withSnackbar(Home);

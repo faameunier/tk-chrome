@@ -21,7 +21,7 @@ import { copy } from '../../services/utils.js';
 
 import { withSnackbar } from 'notistack';
 import { RELAXED, FOCUSED, CUSTOMIZED, INIT_FOCUSED_PROFILE } from '../../config/settingsProfiles.js';
-import { checkSettings, OPTIMAL_NUMBER_TABS, POLICY, INACTIVE_POLICY } from '../utils';
+import { checkSettings, OPTIMAL_NUMBER_TABS, POLICY } from '../utils';
 import { isInteger, removeItem } from '../../services/utils';
 import Link from '@material-ui/core/Link';
 
@@ -127,7 +127,7 @@ class Settings extends PureComponent {
         horizontal: 'right',
       },
       transitionDuration: 750,
-      autoHideDuration: 1500,
+      autoHideDuration: 2000,
     });
   }
 
