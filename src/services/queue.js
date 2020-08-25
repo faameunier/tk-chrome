@@ -53,9 +53,9 @@ class EventQueue {
     if (!item) {
       this.workingOnPromise = true;
       logger(this, 'Queue killed');
-      memoryManager.log().then(() => {
-        PolicyManager.run().then(() => {
-          memoryManager.save().then(() => {
+      memoryManager.log().finally(() => {
+        PolicyManager.run().finally(() => {
+          memoryManager.save().finally(() => {
             // memory is saved only at the end of the queue
             // to avoid useless savings when everything is chained.
             // Settings are saved within the manager as these are rare events.
