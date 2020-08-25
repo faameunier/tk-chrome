@@ -2,6 +2,7 @@ import psl from 'psl';
 import browser from 'webextension-polyfill';
 import { MAX_ACTIVE_DEBOUNCE } from '../config/env.js';
 
+/* istanbul ignore next */
 const logger = function (...args) {
   if (ENV === 'debug' || ENV === 'dev') {
     let default_format = ['font-weight:initial; color:black;'];
@@ -55,6 +56,7 @@ async function setUnreadBadge() {
   });
 }
 
+/* istanbul ignore next */
 function isUserActive() {
   // Not compatible with Safari
   return browser.idle.queryState(Math.round(MAX_ACTIVE_DEBOUNCE / 1000)).then((status) => {
@@ -69,6 +71,7 @@ function isUserActive() {
   });
 }
 
+/* istanbul ignore next */
 function storageReset() {
   return browser.storage.local
     .get(null)
@@ -80,6 +83,7 @@ function storageReset() {
     });
 }
 
+/* istanbul ignore next */
 function getLastFocusedWindow() {
   // windowType is deprecated in FF, it doesn't seem critical anyways
   return browser.windows.getLastFocused({ populate: false }).then((d) => {
@@ -103,7 +107,7 @@ const retryPromise = (func, delay, times) =>
         if (reason === false) {
           return reject(reason);
         }
-        if (times > 0) {
+        if (times > 1) {
           return timeout(delay)
             .then(retryPromise.bind(null, func, delay, times - 1))
             .then(resolve)
