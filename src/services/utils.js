@@ -10,11 +10,12 @@ const logger = function (...args) {
     let options = ['font-weight:lighter; color:LightSlateGrey;'];
     options.push(default_format);
     if (typeof args[0] === 'object') {
-      pre += ' | %c' + args[0].constructor.name + '%c | ';
-      pre += args[1];
+      pre += ' | %c' + args[0].constructor.name + '%c | '; 
       if (args[0] instanceof Error) {
         options.push('color:#c71a1a; font-weight:bolder');
+        pre += args[0].message + '\n' + args[0].stack
       } else {
+        pre += args[1];
         options.push('color:#1da87c; font-weight:bolder');
       }
       options.push(default_format);
@@ -51,7 +52,7 @@ function setAllReadBadge() {
 
 async function setUnreadBadge() {
   browser.browserAction.setBadgeBackgroundColor({ color: [229, 92, 0, 128] });
-  return browser.browserAction.getBadgeText().then(function (badgeText) {
+  return browser.browserAction.getBadgeText({}).then(function (badgeText) {
     let counter = 1;
     if (isInteger(badgeText)) {
       counter = parseInt(badgeText) + 1;

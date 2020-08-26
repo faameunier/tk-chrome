@@ -161,9 +161,9 @@ class PolicyManager {
         .catch((error) => {
           if (error !== true) {
             logger('getRecentlyClosed failed');
-            throw false;
+            throw false; // rethrow is key
           }
-          throw true;
+          throw true; // rethrow is key
         });
     let p = retryPromise(attempt, SESSIONS_TIMEOUT_MS, SESSIONS_RETRIES);
     p.then(
