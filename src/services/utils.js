@@ -12,7 +12,11 @@ const logger = function (...args) {
     if (typeof args[0] === 'object') {
       pre += ' | %c' + args[0].constructor.name + '%c | ';
       pre += args[1];
-      options.push('color:#1da87c; font-weight:bolder');
+      if (args[0] instanceof Error) {
+        options.push('color:#c71a1a; font-weight:bolder');
+      } else {
+        options.push('color:#1da87c; font-weight:bolder');
+      }
       options.push(default_format);
     } else {
       pre += ' | ' + args[0];
