@@ -57,8 +57,7 @@ const styles = (theme) => ({
     alignItems: 'center',
     maxHeight: '15%',
   },
-  iconContainer: {
-  },
+  iconContainer: {},
 
   button: {
     textTransform: 'capitalize',
