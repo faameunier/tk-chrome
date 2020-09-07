@@ -3,6 +3,7 @@ const FOCUSED = 'focused';
 const CUSTOMIZED = 'customized';
 var INIT_RELAXED_PROFILE = {};
 var INIT_FOCUSED_PROFILE = {};
+var INIT_CUSTOMIZED_PROFILE = {};
 
 if (ENV === 'debug') {
   INIT_RELAXED_PROFILE = {
@@ -57,6 +58,33 @@ if (ENV === 'debug') {
 
       min_active: 5 * 1000,
       protection_time: 15 * 1000,
+      cached_decay: 0.2,
+    },
+  };
+  INIT_CUSTOMIZED_PROFILE = {
+    memory: {
+      cache_size: 5,
+      min_time_full_stats_update: 10 * 1000,
+      min_time_garbage_collector: 10 * 60 * 1000,
+    },
+    policy: {
+      target_tabs: 8,
+      decay: 0.9,
+      min_time: 45 * 1000,
+
+      // IGNORED tabs
+      active: false, // these status are absolutely protected tabs: these are ignored and do not count as tabs.
+      pinned: true,
+      audible: false,
+    },
+    scorer: {
+      // PROTECTED tabs
+      active: true, // these tabs will be given absolute maximum score + extended protection
+      pinned: true, // when the status is lost.
+      audible: true,
+
+      min_active: 5 * 60 * 1000,
+      protection_time: 15 * 60 * 1000,
       cached_decay: 0.2,
     },
   };
@@ -116,9 +144,36 @@ if (ENV === 'debug') {
       cached_decay: 0.2,
     },
   };
+  INIT_CUSTOMIZED_PROFILE = {
+    memory: {
+      cache_size: 5,
+      min_time_full_stats_update: 10 * 1000,
+      min_time_garbage_collector: 10 * 60 * 1000,
+    },
+    policy: {
+      target_tabs: 8,
+      decay: 0.9,
+      min_time: 45 * 1000,
+
+      // IGNORED tabs
+      active: false, // these status are absolutely protected tabs: these are ignored and do not count as tabs.
+      pinned: true,
+      audible: false,
+    },
+    scorer: {
+      // PROTECTED tabs
+      active: true, // these tabs will be given absolute maximum score + extended protection
+      pinned: true, // when the status is lost.
+      audible: true,
+
+      min_active: 5 * 60 * 1000,
+      protection_time: 15 * 60 * 1000,
+      cached_decay: 0.2,
+    },
+  };
 }
 
 Object.freeze(INIT_FOCUSED_PROFILE);
 Object.freeze(INIT_RELAXED_PROFILE);
 
-export { RELAXED, FOCUSED, CUSTOMIZED, INIT_FOCUSED_PROFILE, INIT_RELAXED_PROFILE };
+export { RELAXED, FOCUSED, CUSTOMIZED, INIT_FOCUSED_PROFILE, INIT_RELAXED_PROFILE, INIT_CUSTOMIZED_PROFILE };

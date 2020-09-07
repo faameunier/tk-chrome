@@ -1,11 +1,10 @@
 import * as browser from 'webextension-polyfill';
 import { logger, getDomain, removeItem } from './utils.js';
 import {
-  RELAXED,
-  FOCUSED,
   CUSTOMIZED,
   INIT_FOCUSED_PROFILE,
   INIT_RELAXED_PROFILE,
+  INIT_CUSTOMIZED_PROFILE,
 } from '../config/settingsProfiles.js';
 
 class SettingsManager {
@@ -22,8 +21,8 @@ class SettingsManager {
 
   async init() {
     this.inactive_policy = [];
-    this.active_profile = FOCUSED;
-    this.settings = INIT_FOCUSED_PROFILE;
+    this.active_profile = CUSTOMIZED;
+    this.settings = INIT_CUSTOMIZED_PROFILE;
     this.whitelist = [];
   }
 
