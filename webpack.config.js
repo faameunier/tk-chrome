@@ -22,14 +22,14 @@ var common = {
   plugins: [
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
-      title: 'Tabby',
+      title: 'tabby',
       chunks: ['popup'],
       template: './src/views/popup.html',
       filename: './views/popup.html',
       cache: true,
     }),
     new HtmlWebpackPlugin({
-      title: 'Tabby',
+      title: 'tabby',
       chunks: ['background'],
       template: './src/views/background.html',
       filename: './views/background.html',
@@ -91,7 +91,7 @@ var createConfig = function (env) {
         envName: 'dev',
       },
     });
-  } else if (env == 'debug') {
+  } else if (env == 'debug' || env == 'test') {
     common['mode'] = 'development';
     common['devtool'] = 'inline-source-map';
     common['plugins'].push(

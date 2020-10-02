@@ -36,6 +36,10 @@ class LRU {
   }
 
   write(key, value) {
+    if (this.cache[key]) {
+      this.remove(key);
+    }
+
     this.ensureLimit();
 
     if (!this.head) {
@@ -48,7 +52,7 @@ class LRU {
 
     this.cache[key] = this.head;
     this.size++;
-    logger(this, 'New value stored into cache');
+    // logger(this, 'New value stored into cache');
   }
 
   read(key) {

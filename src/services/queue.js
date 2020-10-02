@@ -5,7 +5,7 @@ import { logger } from './utils.js';
 
 class EventQueue {
   queue = [];
-  pendingPromise = false;
+  workingOnPromise = false;
 
   constructor() {
     if (!EventQueue.instance) {
@@ -20,20 +20,22 @@ class EventQueue {
       // Settings and memory are lazy loaded
       // These loads are in case the program was
       // deloaded from memory by the browser.
-      new Promise((resolve, reject) => {
-        this.queue.push({
-          promise: () => settingsManager.load(),
-          resolve,
-          reject,
+      if (!this.workingOnPromise) {
+        new Promise((resolve, reject) => {
+          this.queue.push({
+            promise: () => settingsManager.load(),
+            resolve,
+            reject,
+          });
         });
-      });
-      new Promise((resolve, reject) => {
-        this.queue.push({
-          promise: () => memoryManager.load(),
-          resolve,
-          reject,
+        new Promise((resolve, reject) => {
+          this.queue.push({
+            promise: () => memoryManager.load(),
+            resolve,
+            reject,
+          });
         });
-      });
+      }
     }
     return new Promise((resolve, reject) => {
       this.queue.push({

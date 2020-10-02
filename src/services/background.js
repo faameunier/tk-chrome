@@ -1,4 +1,6 @@
-import * as browser from 'webextension-polyfill';
+/* istanbul ignore file */
+
+import browser from 'webextension-polyfill';
 import { eventQueue } from './queue.js';
 import { memoryManager } from './memory.js';
 import { settingsManager } from './settings.js';

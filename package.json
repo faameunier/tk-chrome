@@ -1,14 +1,19 @@
 {
   "name": "tk-chrome",
-  "version": "0.0.1",
+  "version": "1.1.0",
   "scripts": {
-    "build-dev": "webpack --env dev",
-    "build-debug": "webpack --env debug",
-    "build-prod": "webpack --env prod",
-    "watch": "npm-watch"
+    "build:dev": "webpack --env dev",
+    "build:debug": "webpack --env debug",
+    "build:prod": "webpack --env prod",
+    "build:test": "webpack --env test",
+    "watch": "npm-watch",
+    "test": "jest",
+    "test:unit": "jest --projects './unit.jest.config.js'",
+    "test:unit:coverage": "jest --coverage --projects './unit.jest.config.js'",
+    "test:e2e": "jest --projects './e2e.jest.config.js'"
   },
   "watch": {
-    "build-debug": {
+    "build:debug": {
       "patterns": [
         "src"
       ]
@@ -27,19 +32,25 @@
     "babel-loader": "^8.0.6",
     "babel-preset-minify": "^0.5.1",
     "bootstrap-css-only": "^4.4.1",
+    "chalk": "^4.1.0",
     "clean-webpack-plugin": "^3.0.0",
     "copy-webpack-plugin": "^5.0.3",
     "css-loader": "^3.1.0",
     "dayjs": "^1.8.29",
     "file-loader": "^4.1.0",
     "html-webpack-plugin": "^4.2.0",
+    "jest": "^26.1.0",
     "lodash": "^4.17.15",
     "material-ui-search-bar": "^1.0.0-beta.14",
     "prettier": "^2.0.4",
     "psl": "^1.8.0",
+    "puppeteer": "^5.2.1",
+    "rimraf": "^3.0.2",
+    "sinon": "^9.0.2",
     "style-loader": "^0.23.1",
     "uuid": "^8.2.0",
     "webextension-polyfill": "^0.6.0",
+    "webextensions-api-mock": "^1.0.0",
     "webpack": "github:webpack/webpack#master",
     "webpack-cli": "^3.3.6",
     "webpack-dev-server": "^3.7.2"
@@ -62,5 +73,11 @@
     "semi": true,
     "singleQuote": true,
     "printWidth": 120
+  },
+  "jest": {
+    "projects": [
+      "./e2e.jest.config.js",
+      "./unit.jest.config.js"
+    ]
   }
 }
