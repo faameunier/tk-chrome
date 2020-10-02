@@ -98,11 +98,9 @@ browser.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   switch (request.messageType) {
     case 'RESTORE':
       eventQueue.enqueue(() => memoryManager.restoreTab(request.uuid));
-      eventQueue.enqueue(() => memoryManager.removeTabFromClosedHistory(request.uuid));
       break;
     case 'SHELL_RESTORE':
       eventQueue.enqueue(() => memoryManager.restoreTab(request.uuid, true));
-      eventQueue.enqueue(() => memoryManager.removeTabFromClosedHistory(request.uuid));
       break;
     case 'SETTINGS_PARAMETERS':
       eventQueue.enqueue(() => settingsManager.updateSettings(request.settings));
