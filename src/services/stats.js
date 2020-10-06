@@ -40,21 +40,21 @@ class StatsManager {
   static upsert(stats, newStats) {
     // O(max(|stats|, |newStats|))
     Object.keys(newStats).forEach((key) => {
-      if (!stats.key) {
-        Object.assign({ key: newStats.key });
+      if (!stats[key]) {
+        stats = Object.assign(stats, { [key]: newStats[key] });
       } else {
         let i = 0;
         let j = 0;
-        while (i < newStats.key.time.length && j < stats.key.time.length) {
-          if (newStats.key.time[i] > stats.key.time[j]) {
+        while (i < newStats[key].time.length && j < stats[key].time.length) {
+          if (newStats[key].time[i] > stats[key].time[j]) {
             j++;
-          } else if (newStats.key.time[i] == stats.key.time[j]) {
-            switch (newStats.key.agg) {
+          } else if (newStats[key].time[i] == stats[key].time[j]) {
+            switch (newStats[key].agg) {
               case 'max':
-                stats.key.value[j] = Math.max(newStats.key.value[i], stats.key.value[j]);
+                stats[key].value[j] = Math.max(newStats[key].value[i], stats[key].value[j]);
                 break;
               case 'sum':
-                stats.key.value[j] += newStats.key.value[i];
+                stats[key].value[j] += newStats[key].value[i];
                 break;
               default:
                 throw new Error('Statistic ' + key + ' has an unknown aggregation method.');
@@ -62,15 +62,16 @@ class StatsManager {
             i++;
             j++;
           } else {
-            stats.key.value.splice(j, 0, newStats.key.value[i]);
-            stats.key.time.splice(j, 0, newStats.key.time[i]);
+            stats[key].value.splice(j, 0, newStats[key].value[i]);
+            stats[key].time.splice(j, 0, newStats[key].time[i]);
             i++;
           }
         }
-        if (i < newStats.key.time.length) {
-          stats.key.time = stats.key.time.concat(newStats.key.time.slice(i));
-          stats.key.value = stats.key.value.concat(newStats.key.value.slice(i));
+        if (i < newStats[key].time.length) {
+          stats[key].time = stats[key].time.concat(newStats[key].time.slice(i));
+          stats[key].value = stats[key].value.concat(newStats[key].value.slice(i));
         }
+        stats[key].agg = newStats[key].agg;
       }
     });
   }
@@ -90,7 +91,7 @@ class StatsManager {
     count = _.toPairs(count);
     count = _.sortBy(count, (d) => d[0]);
     count = _.unzip(count);
-    return { time: count[0], value: count[1], agg: 'max' };
+    return { time: count[0].map(Number), value: count[1], agg: 'max' };
   }
 
   static metricKilledTabs(data) {
@@ -101,7 +102,7 @@ class StatsManager {
     count = _.toPairs(count);
     count = _.sortBy(count, (d) => d[0]);
     count = _.unzip(count);
-    return { time: count[0], value: count[1], agg: 'max' };
+    return { time: count[0].map(Number), value: count[1], agg: 'max' };
   }
 
   static metricRestoredTabs(data) {
@@ -112,7 +113,7 @@ class StatsManager {
     count = _.toPairs(count);
     count = _.sortBy(count, (d) => d[0]);
     count = _.unzip(count);
-    return { time: count[0], value: count[1], agg: 'max' };
+    return { time: count[0].map(Number), value: count[1], agg: 'max' };
   }
 
   /* istanbul ignore next */

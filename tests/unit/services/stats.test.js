@@ -113,15 +113,15 @@ const fakeData = [
 
 const fakeDataClose = {
   time: [
-    '1602001080000',
-    '1602001140000',
-    '1602001200000',
-    '1602001260000',
-    '1602001320000',
-    '1602001380000',
-    '1602001440000',
-    '1602001500000',
-    '1602001560000',
+    1602001080000,
+    1602001140000,
+    1602001200000,
+    1602001260000,
+    1602001320000,
+    1602001380000,
+    1602001440000,
+    1602001500000,
+    1602001560000,
   ],
   value: [14, 14, 7, 10, 11, 10, 14, 16, 4],
   agg: 'max',
@@ -129,15 +129,15 @@ const fakeDataClose = {
 
 const fakeDataKill = {
   time: [
-    '1602001080000',
-    '1602001140000',
-    '1602001200000',
-    '1602001260000',
-    '1602001320000',
-    '1602001380000',
-    '1602001440000',
-    '1602001500000',
-    '1602001560000',
+    1602001080000,
+    1602001140000,
+    1602001200000,
+    1602001260000,
+    1602001320000,
+    1602001380000,
+    1602001440000,
+    1602001500000,
+    1602001560000,
   ],
   value: [10, 8, 6, 7, 8, 7, 11, 11, 1],
   agg: 'max',
@@ -145,14 +145,14 @@ const fakeDataKill = {
 
 const fakeDataRestore = {
   time: [
-    '1602001080000',
-    '1602001140000',
-    '1602001200000',
-    '1602001260000',
-    '1602001320000',
-    '1602001380000',
-    '1602001440000',
-    '1602001500000',
+    1602001080000,
+    1602001140000,
+    1602001200000,
+    1602001260000,
+    1602001320000,
+    1602001380000,
+    1602001440000,
+    1602001500000,
   ],
   value: [5, 1, 2, 3, 5, 2, 4, 1],
   agg: 'max',
@@ -205,5 +205,143 @@ describe('Statistics metrics work', () => {
     let data = stats.StatsManager.preprocessClosedHistory();
     let res = stats.StatsManager.metricRestoredTabs(data);
     expect(_.isEqual(res, fakeDataRestore)).toBeTruthy();
+  });
+});
+
+describe('Upsert', () => {
+  test('all new cases are in the past', async () => {
+    let oldStats = {
+      closed: {
+        time: [10, 12, 14],
+        value: [1, 2, 3],
+        agg: 'max',
+      },
+    };
+    let newStats = {
+      closed: {
+        time: [1, 5, 10],
+        value: [1, 2, 3],
+        agg: 'max',
+      },
+    };
+    let expected = {
+      closed: {
+        time: [1, 5, 10, 12, 14],
+        value: [1, 2, 3, 2, 3],
+        agg: 'max',
+      },
+    };
+    stats.StatsManager.upsert(oldStats, newStats);
+    expect(_.isEqual(oldStats, expected)).toBeTruthy();
+  });
+
+  test('all new cases are in the future', async () => {
+    let oldStats = {
+      closed: {
+        time: [10, 12, 14],
+        value: [1, 2, 3],
+        agg: 'max',
+      },
+    };
+    let newStats = {
+      closed: {
+        time: [14, 15, 16],
+        value: [1, 2, 3],
+        agg: 'max',
+      },
+    };
+    let expected = {
+      closed: {
+        time: [10, 12, 14, 15, 16],
+        value: [1, 2, 3, 2, 3],
+        agg: 'max',
+      },
+    };
+    stats.StatsManager.upsert(oldStats, newStats);
+    expect(_.isEqual(oldStats, expected)).toBeTruthy();
+  });
+
+  test('cases everywhere', async () => {
+    let oldStats = {
+      closed: {
+        time: [10, 12, 14],
+        value: [1, 2, 3],
+        agg: 'max',
+      },
+    };
+    let newStats = {
+      closed: {
+        time: [1, 3, 10, 13, 15, 16],
+        value: [1, 2, 3, 4, 5, 6],
+        agg: 'max',
+      },
+    };
+    let expected = {
+      closed: {
+        time: [1, 3, 10, 12, 13, 14, 15, 16],
+        value: [1, 2, 3, 2, 4, 3, 5, 6],
+        agg: 'max',
+      },
+    };
+    stats.StatsManager.upsert(oldStats, newStats);
+    expect(_.isEqual(oldStats, expected)).toBeTruthy();
+  });
+
+  test('sums everywhere', async () => {
+    let oldStats = {
+      closed: {
+        time: [10, 12, 14],
+        value: [1, 2, 3],
+        agg: 'sum',
+      },
+    };
+    let newStats = {
+      closed: {
+        time: [1, 3, 10, 14, 15, 16],
+        value: [1, 2, 3, 4, 5, 6],
+        agg: 'sum',
+      },
+    };
+    let expected = {
+      closed: {
+        time: [1, 3, 10, 12, 14, 15, 16],
+        value: [1, 2, 4, 2, 7, 5, 6],
+        agg: 'sum',
+      },
+    };
+    stats.StatsManager.upsert(oldStats, newStats);
+    expect(_.isEqual(oldStats, expected)).toBeTruthy();
+  });
+
+  test('new metric added', async () => {
+    let oldStats = {
+      closed: {
+        time: [10, 12, 14],
+        value: [1, 2, 3],
+        agg: 'sum',
+      },
+    };
+    let newStats = {
+      killed: {
+        time: [1, 3, 10, 14, 15, 16],
+        value: [1, 2, 3, 4, 5, 6],
+        agg: 'sum',
+      },
+    };
+    let expected = {
+      closed: {
+        time: [10, 12, 14],
+        value: [1, 2, 3],
+        agg: 'sum',
+      },
+      killed: {
+        time: [1, 3, 10, 14, 15, 16],
+        value: [1, 2, 3, 4, 5, 6],
+        agg: 'sum',
+      },
+    };
+    stats.StatsManager.upsert(oldStats, newStats);
+    console.log(oldStats);
+    expect(_.isEqual(oldStats, expected)).toBeTruthy();
   });
 });
