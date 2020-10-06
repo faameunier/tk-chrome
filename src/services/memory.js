@@ -299,12 +299,11 @@ class MemoryManager {
       } else {
         copiedTab.status = 'manual';
       }
-      memoryManager.closed_history.push(copiedTab);
-      memoryManager.closed_history = memoryManager.closed_history.slice(-MAXIMUM_HISTORY_SIZE);
-      memoryManager.retrieveSessionId(tab); // async
+      this.closed_history.push(copiedTab);
+      this.closed_history = this.closed_history.slice(-MAXIMUM_HISTORY_SIZE);
+      this.retrieveSessionId(tab); // async
       delete this.tabs[tabId];
     } catch (e) {
-      console.log(e);
       logger(this, 'OOS trying to delete unknown tab');
     }
   }
@@ -531,7 +530,7 @@ class MemoryManager {
         await browser.tabs.get(parseInt(tabId));
       } catch {
         logger(this, 'Tab ' + tabId + ' collected by garbage collector');
-        delete this.tabs[tabId]; // we don't want to pollute historical data with potential bugs.
+        delete this.tabs[tabId]; // we don't want to pollute historical data with potential bugs ?
       }
     }
   }
