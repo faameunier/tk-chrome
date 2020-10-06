@@ -29,6 +29,7 @@ class StatsManager {
     return {};
   }
 
+  /* istanbul ignore next */
   static async save(stats) {
     logger(this, 'Saved');
     await browser.storage.local.set({
@@ -78,7 +79,7 @@ class StatsManager {
     let data = copy(memoryManager.closed_history);
     for (let i = 0; i < data.length; i++) {
       let website = data[i];
-      const deletionTime = new Date(website.deletion_time);
+      let deletionTime = new Date(website.deletion_time);
       website.date = dayjs(deletionTime).startOf(AGG_STATS).valueOf();
     }
     return data;
@@ -86,7 +87,7 @@ class StatsManager {
 
   static metricClosedTabs(data) {
     let count = _.countBy(data, (website) => website.date);
-    count = _.pairs(count);
+    count = _.toPairs(count);
     count = _.sortBy(count, (d) => d[0]);
     count = _.unzip(count);
     return { time: count[0], value: count[1], agg: 'max' };
@@ -97,7 +98,7 @@ class StatsManager {
       _.filter(data, (website) => website.status == 'killed' || website.status == 'restored'),
       (website) => website.date
     );
-    count = _.pairs(count);
+    count = _.toPairs(count);
     count = _.sortBy(count, (d) => d[0]);
     count = _.unzip(count);
     return { time: count[0], value: count[1], agg: 'max' };
@@ -108,12 +109,13 @@ class StatsManager {
       _.filter(data, (website) => website.status == 'restored'),
       (website) => website.date
     );
-    count = _.pairs(count);
+    count = _.toPairs(count);
     count = _.sortBy(count, (d) => d[0]);
     count = _.unzip(count);
     return { time: count[0], value: count[1], agg: 'max' };
   }
 
+  /* istanbul ignore next */
   static eventOpenedTab() {
     return { time: [dayjs().startOf(AGG_STATS).valueOf()], value: [1], agg: 'sum' };
   }
