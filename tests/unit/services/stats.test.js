@@ -341,7 +341,32 @@ describe('Upsert', () => {
       },
     };
     stats.StatsManager.upsert(oldStats, newStats);
-    console.log(oldStats);
     expect(_.isEqual(oldStats, expected)).toBeTruthy();
+  });
+});
+
+describe('Full run', () => {
+  beforeEach(() => {
+    global.__browser__.sinonSandbox.resetHistory();
+    stats.StatsManager.load = jest.fn().mockResolvedValue({ closed: fakeDataClose });
+    memory.memoryManager.closed_history = fakeData;
+    stats.StatsManager.save = jest.fn().mockResolvedValue();
+  });
+
+  test('run', async () => {
+    await stats.StatsManager.run(['killed']);
+    expect(stats.StatsManager.save).toHaveBeenCalledWith({
+      closed: fakeDataClose,
+      killed: fakeDataKill,
+    });
+  });
+
+  test('run all metrics', async () => {
+    await stats.StatsManager.run(['killed', 'closed', 'restored']);
+    expect(stats.StatsManager.save).toHaveBeenCalledWith({
+      closed: fakeDataClose,
+      killed: fakeDataKill,
+      restored: fakeDataRestore,
+    });
   });
 });

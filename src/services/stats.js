@@ -3,11 +3,12 @@ import _ from 'lodash';
 import dayjs from 'dayjs';
 
 import { memoryManager } from './memory.js';
-import { copy } from './utils.js';
+import { copy, logger } from './utils.js';
 import { AGG_STATS } from '../config/env.js';
 
 class StatsManager {
   static async run(metrics) {
+    logger('running statistics update for ' + metrics.toString());
     let newStats = {};
     let data = this.preprocessClosedHistory();
     let stats = await this.load();
@@ -31,7 +32,6 @@ class StatsManager {
 
   /* istanbul ignore next */
   static async save(stats) {
-    logger(this, 'Saved');
     await browser.storage.local.set({
       stats: stats,
     });
@@ -40,38 +40,40 @@ class StatsManager {
   static upsert(stats, newStats) {
     // O(max(|stats|, |newStats|))
     Object.keys(newStats).forEach((key) => {
-      if (!stats[key]) {
-        stats = Object.assign(stats, { [key]: newStats[key] });
-      } else {
-        let i = 0;
-        let j = 0;
-        while (i < newStats[key].time.length && j < stats[key].time.length) {
-          if (newStats[key].time[i] > stats[key].time[j]) {
-            j++;
-          } else if (newStats[key].time[i] == stats[key].time[j]) {
-            switch (newStats[key].agg) {
-              case 'max':
-                stats[key].value[j] = Math.max(newStats[key].value[i], stats[key].value[j]);
-                break;
-              case 'sum':
-                stats[key].value[j] += newStats[key].value[i];
-                break;
-              default:
-                throw new Error('Statistic ' + key + ' has an unknown aggregation method.');
+      if (newStats[key]) {
+        if (!stats[key]) {
+          stats = Object.assign(stats, { [key]: newStats[key] });
+        } else {
+          let i = 0;
+          let j = 0;
+          while (i < newStats[key].time.length && j < stats[key].time.length) {
+            if (newStats[key].time[i] > stats[key].time[j]) {
+              j++;
+            } else if (newStats[key].time[i] == stats[key].time[j]) {
+              switch (newStats[key].agg) {
+                case 'max':
+                  stats[key].value[j] = Math.max(newStats[key].value[i], stats[key].value[j]);
+                  break;
+                case 'sum':
+                  stats[key].value[j] += newStats[key].value[i];
+                  break;
+                default:
+                  throw new Error('Statistic ' + key + ' has an unknown aggregation method.');
+              }
+              i++;
+              j++;
+            } else {
+              stats[key].value.splice(j, 0, newStats[key].value[i]);
+              stats[key].time.splice(j, 0, newStats[key].time[i]);
+              i++;
             }
-            i++;
-            j++;
-          } else {
-            stats[key].value.splice(j, 0, newStats[key].value[i]);
-            stats[key].time.splice(j, 0, newStats[key].time[i]);
-            i++;
           }
+          if (i < newStats[key].time.length) {
+            stats[key].time = stats[key].time.concat(newStats[key].time.slice(i));
+            stats[key].value = stats[key].value.concat(newStats[key].value.slice(i));
+          }
+          stats[key].agg = newStats[key].agg;
         }
-        if (i < newStats[key].time.length) {
-          stats[key].time = stats[key].time.concat(newStats[key].time.slice(i));
-          stats[key].value = stats[key].value.concat(newStats[key].value.slice(i));
-        }
-        stats[key].agg = newStats[key].agg;
       }
     });
   }
