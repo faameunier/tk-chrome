@@ -88,7 +88,6 @@ function storageReset() {
     });
 }
 
-/* istanbul ignore next */
 function getLastFocusedWindow() {
   // windowType is deprecated in FF, it doesn't seem critical anyways
   return browser.windows.getLastFocused({ populate: false }).then((d) => {

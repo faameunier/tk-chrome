@@ -22,7 +22,11 @@ class StatsManager {
   }
 
   static async load() {
-    return await browser.storage.local.get(['stats']);
+    let data = await browser.storage.local.get(['stats']);
+    if (data.stats) {
+      return data.stats;
+    }
+    return {};
   }
 
   static async save(stats) {
@@ -52,7 +56,7 @@ class StatsManager {
                 stats.key.value[j] += newStats.key.value[i];
                 break;
               default:
-                throw new Error('Statistic ' + key + ' has an unknown aggregation method.')
+                throw new Error('Statistic ' + key + ' has an unknown aggregation method.');
             }
             i++;
             j++;
@@ -63,8 +67,8 @@ class StatsManager {
           }
         }
         if (i < newStats.key.time.length) {
-          stats.key.time = stats.key.time.concat(newStats.key.time.slice(i))
-          stats.key.value = stats.key.value.concat(newStats.key.value.slice(i))
+          stats.key.time = stats.key.time.concat(newStats.key.time.slice(i));
+          stats.key.value = stats.key.value.concat(newStats.key.value.slice(i));
         }
       }
     });

@@ -34,6 +34,13 @@ describe('timeout', () => {
   });
 });
 
+describe('getLastFocusedWindow', () => {
+  test('extracts domain', async () => {
+    global.__browser__.windows.getLastFocused.resolves({ id: 0 });
+    expect(await utils.getLastFocusedWindow()).toBe(0);
+  });
+});
+
 describe('getDomain', () => {
   test('extracts domain', () => {
     expect(utils.getDomain('http://google.com/fhre')).toBe('google.com');
