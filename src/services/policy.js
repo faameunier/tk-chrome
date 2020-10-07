@@ -27,10 +27,15 @@ class PolicyManager {
 
     for (var i = 0; i < windowIds.length; i++) {
       if (results[i][0]) {
-        // The policy ran on the i-th window
+        // a tab was succesfully killed
+        // Update runtime event in order to not kill again right away
         memoryManager.runtime_events.last_policy_runs[windowIds[i]] = now;
+        any = true; // something is pending save
+      }
+      if (results[i][1]) {
+        // the tab was scores
         allScores = Object.assign(allScores, results[i][1]);
-        any = true;
+        any = true; // something is pending save
       }
     }
 
@@ -114,20 +119,20 @@ class PolicyManager {
         }
 
         if (minimumScore === MAXIMUM_SCORE) {
-          return [false, objScores];
+          return [false, objScores]; // updating tab scores
         }
 
         // safety hack, do not remove a tab only because you have an excess of protected ones
         if (countProtected < tabs.length - settingsManager.settings.policy.target_tabs) {
-          await this.killTab(
+          let success = await this.killTab(
             minimumId,
             _.find(tabs, (tab) => tab.tabId === minimumId)
           );
-          return [true, objScores]; // updating tab scores
+          return [success, objScores]; // updating tab scores
         }
       }
     }
-    return [false, {}]; // old scores are kept for windows without a run
+    return [false, undefined]; // old scores are kept for windows without a run
   }
 
   static async killTab(tabId, tab) {
@@ -136,9 +141,11 @@ class PolicyManager {
       memoryManager.killedByPolicy(tab.uuid);
       setUnreadBadge();
       logger('Tab '.concat(tabId, ' killed by policy'));
+      return true;
     } catch (err) {
       logger('Tab '.concat(tabId, " couldn't be killed"));
     }
+    return false;
   }
 
   static exponentialTrigger(tabs, windowId) {
