@@ -19,10 +19,10 @@ import IconButton from '@material-ui/core/IconButton';
 import { withSnackbar } from 'notistack';
 import { FixedSizeList as List } from 'react-window';
 import SearchBar from 'material-ui-search-bar';
+import _ from 'lodash';
 
 const RESTORE = 'RESTORE';
 const SHELL_RESTORE = 'SHELL_RESTORE';
-const CLOSED_HISTORY = 'closed_history';
 const NUMBER_HOURS_DAY = 24;
 const TIME_PERIOD_24H = 3600000 * NUMBER_HOURS_DAY; // in microsecond
 const TIME_PERIOD_72H = 3600000 * NUMBER_HOURS_DAY * 3; // in microsecond
@@ -35,36 +35,24 @@ class Home extends PureComponent {
     setAllReadBadge();
 
     if (props.skeleton) {
-      this.state = { closed_history: [], loading: true };
+      this.state = { closed_history: this.enrichHistory(props.closed_history), loading: true };
       timeout(FRONTEND_SKELETON_DISPLAY).then(() => {
         logger(this, 'Displaying list');
         this.setState({ loading: false });
       });
     } else {
-      this.state = { closed_history: [], loading: false };
+      this.state = { closed_history: this.enrichHistory(props.closed_history), loading: false };
     }
-
-    browser.storage.local.get([CLOSED_HISTORY]).then((result) => {
-      const closed_history = result.closed_history || [];
-      this.setState({ closed_history: this.enrichHistory(closed_history) });
-    });
-    this.onChangedCallback = function (changes) {
-      const changesClosedHistory = changes[CLOSED_HISTORY];
-      if (changesClosedHistory) {
-        this.setState({
-          closed_history: this.enrichHistory(changesClosedHistory['newValue']),
-        });
-      }
-    }.bind(this);
-  }
-
-  componentDidMount() {
-    browser.storage.onChanged.addListener(this.onChangedCallback);
   }
 
   componentWillUnmount() {
     setAllReadBadge();
-    browser.storage.onChanged.removeListener(this.onChangedCallback);
+  }
+
+  componentDidUpdate(prevProps) {
+    if (!_.isEqual(prevProps.closed_history, this.props.closed_history)) {
+      this.setState({ closed_history: this.enrichHistory(this.props.closed_history) });
+    }
   }
 
   removeItem(listItems, key, e) {
