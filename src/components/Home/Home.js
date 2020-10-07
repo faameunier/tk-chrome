@@ -14,7 +14,7 @@ import Avatar from '@material-ui/core/Avatar';
 import Typography from '@material-ui/core/Typography';
 import Link from '@material-ui/core/Link';
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
-import ShareIcon from '@material-ui/icons/Share';
+import FavoriteBorderIcon from '@material-ui/icons/FavoriteBorder';
 import IconButton from '@material-ui/core/IconButton';
 import { withSnackbar } from 'notistack';
 import { FixedSizeList as List } from 'react-window';
@@ -100,26 +100,17 @@ class Home extends PureComponent {
   filterList(selectedList, endPeriod) {
     const now = Date.now();
     return selectedList.filter((item) => {
-      return (now - item.deletion_time < endPeriod) && DISPLAY_STATUSES.includes(item.status);
+      return now - item.deletion_time < endPeriod && DISPLAY_STATUSES.includes(item.status);
     });
   }
 
-  copyToClipBoard() {
-    navigator.clipboard.writeText('https://www.tabby.us');
-    this.props.enqueueSnackbar('Link copied to the clipboard.', {
-      variant: 'success',
-      anchorOrigin: {
-        vertical: 'bottom',
-        horizontal: 'right',
-      },
-      transitionDuration: 750,
-      autoHideDuration: 2000,
-    });
+  coffeeTime() {
+    window.open('https://buymeacoff.ee/tabbytabs', '_blank');
   }
 
   enrichHistory(history) {
     // keep elements only in time-frame
-    let selectedList = history ? this.filterList(history, TIME_PERIOD_72H)  : [];
+    let selectedList = history ? this.filterList(history, TIME_PERIOD_72H) : [];
     const rx = new RegExp(NO_RESTORE_URL.join('|'));
     // list enrichment
     selectedList = selectedList.map((website) => {
@@ -290,8 +281,8 @@ class Home extends PureComponent {
         {this.renderList.bind(this)()}
 
         <div className={classes.footerContainer}>
-          <IconButton color="secondary" component="div" onClick={this.copyToClipBoard.bind(this)}>
-            <ShareIcon color="secondary" className={classes.iconContainer} />
+          <IconButton color="secondary" component="div" onClick={this.coffeeTime.bind(this)}>
+            <FavoriteBorderIcon color="secondary" className={classes.iconContainer} />
           </IconButton>
           <div className={classes.footerRight}>
             <ErrorOutlineIcon color="secondary" className={classes.iconContainer} />
