@@ -8,8 +8,18 @@ import { to1_1_0 } from '../config/notificationConf.js';
 class MigrationManager {
   static async setVersion() {
     logger('Saving version.');
+    let installData = await browser.storage.local.get(['uuid', 'installed_at', 'updated_at']);
+    // memoryManager may not be loaded
+    if(!memoryManager.loaded) {
+      await memoryManager.load();
+    }
+    let oldestMemory = memoryManager.closed_history[0] ? memoryManager.closed_history[0].deletion_time : Date.now();
     await browser.storage.local.set({
       version: browser.runtime.getManifest().version,
+      uuid: installData.uuid ? installData.uuid : uuidv4(),
+      installed_at: installData.installed_at ? installData.installed_at : oldestMemory,
+      updated_at: Date.now(),
+      user_agent: navigator.userAgent,
     });
   }
 
