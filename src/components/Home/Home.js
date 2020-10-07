@@ -53,7 +53,6 @@ class Home extends PureComponent {
       if (changesClosedHistory) {
         this.setState({
           closed_history: this.enrichHistory(changesClosedHistory['newValue']),
-          searchValue: '',
         });
       }
     }.bind(this);
