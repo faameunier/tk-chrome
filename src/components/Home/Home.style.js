@@ -60,6 +60,9 @@ const styles = (theme) => ({
     maxHeight: 60,
   },
   timeDisplay: {
+    marginTop: theme.spacing(0.75),
+    maxWidth: theme.spacing(5),
+    textAlign: 'center',
     fontWeight: 'bold',
     fontSize: 14,
   },
@@ -106,7 +109,13 @@ const styles = (theme) => ({
     maxHeight: 22,
   },
   secondaryTextContainer: {
-    fontSize: 13,
+    fontSize: 12,
+    overflowWrap: 'break-word',
+    lineHeight: '1.5em',
+    height: '3em',
+    // overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    // whiteSpace: 'nowrap',
   },
   primaryTitleContainer: {
     fontWeight: 'bold',

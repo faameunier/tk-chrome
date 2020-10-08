@@ -17,7 +17,7 @@ import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import FavoriteBorderIcon from '@material-ui/icons/FavoriteBorder';
 import IconButton from '@material-ui/core/IconButton';
 import { withSnackbar } from 'notistack';
-import { FixedSizeList as List } from 'react-window';
+import { FixedSizeList } from 'react-window';
 import SearchBar from 'material-ui-search-bar';
 import _ from 'lodash';
 
@@ -154,8 +154,8 @@ class Home extends PureComponent {
       const website = myFilteredList[index];
       if (typeof website.day !== 'undefined') {
         return (
-          <div key={index} style={style}>
-            <ListItem ContainerComponent="div">
+          <div style={style} key={index}>
+            <ListItem component="div">
               <ListItemText
                 primary={`${website.text} ${website.day}`}
                 classes={{
@@ -168,8 +168,8 @@ class Home extends PureComponent {
         );
       }
       return (
-        <div key={index} style={style}>
-          <ListItem ContainerComponent="div">
+        <div style={style} key={index}>
+          <ListItem ContainerComponent="div" component="div">
             <div className={classes.gridAvatarWithTime}>
               <Typography className={classes.timeDisplay}>
                 {this.state.loading && FULL_SKELETON ? <Skeleton width="3em" /> : `${website.hours_minutes_format}`}
@@ -207,18 +207,16 @@ class Home extends PureComponent {
             )}
             {this.state.loading && FULL_SKELETON ? null : (
               <ListItemSecondaryAction>
-                <div className={classes.buttonContainer}>
-                  <Button
-                    size="small"
-                    onClick={this.removeItem.bind(this, myFilteredList, index)}
-                    variant="outlined"
-                    color="secondary"
-                    disabled={website.no_restore}
-                    className={classes.button}
-                  >
-                    {'Restore'}
-                  </Button>
-                </div>
+                <Button
+                  size="small"
+                  onClick={this.removeItem.bind(this, myFilteredList, index)}
+                  variant="outlined"
+                  color="secondary"
+                  disabled={website.no_restore}
+                  className={classes.button}
+                >
+                  {'Restore'}
+                </Button>
               </ListItemSecondaryAction>
             )}
           </ListItem>
@@ -235,13 +233,11 @@ class Home extends PureComponent {
           value={this.state.searchValue}
           className={classes.searchBar}
         />
-        <div className={classes.list}>
-          {selectedList.length === 0 ? null : (
-            <List height={Math.min(80 * selectedList.length, 300)} itemCount={selectedList.length} itemSize={80}>
-              {listItem(selectedList)}
-            </List>
-          )}
-        </div>
+        {selectedList.length === 0 ? null : (
+          <FixedSizeList height={Math.min(80 * selectedList.length, 300)} itemCount={selectedList.length} itemSize={80}>
+            {listItem(selectedList)}
+          </FixedSizeList>
+        )}
       </div>
     );
   }
