@@ -19,6 +19,7 @@ var common = {
     splitChunks: {
       chunks: 'all',
     },
+    usedExports: true,
   },
   plugins: [
     new BundleAnalyzerPlugin({
@@ -94,6 +95,7 @@ var createConfig = function (env) {
       loader: 'babel-loader',
       options: {
         envName: 'dev',
+        plugins: ['lodash']
       },
     });
   } else if (env == 'debug' || env == 'test') {
@@ -110,6 +112,7 @@ var createConfig = function (env) {
       loader: 'babel-loader',
       options: {
         envName: 'dev',
+        plugins: ['lodash'],
       },
     });
   } else {
@@ -125,6 +128,7 @@ var createConfig = function (env) {
       loader: 'babel-loader',
       options: {
         envName: 'prod',
+        plugins: ['lodash']
       },
     });
   }

@@ -1,6 +1,6 @@
 {
   "name": "tk-chrome",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "scripts": {
     "build:dev": "webpack --env dev",
     "build:debug": "webpack --env debug",
@@ -30,6 +30,7 @@
     "@material-ui/lab": "^4.0.0-alpha.56",
     "babel-install": "2.1.0",
     "babel-loader": "^8.0.6",
+    "babel-plugin-lodash": "^3.3.4",
     "babel-preset-minify": "^0.5.1",
     "chalk": "^4.1.0",
     "clean-webpack-plugin": "^3.0.0",
