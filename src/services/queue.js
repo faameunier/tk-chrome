@@ -4,12 +4,11 @@ import { PolicyManager } from './policy.js';
 import { logger } from './utils.js';
 
 class EventQueue {
-  queue = [];
-  workingOnPromise = false;
-
   constructor() {
     if (!EventQueue.instance) {
       logger(this, 'Instanciating empty EventQueue');
+      this.queue = [];
+      this.workingOnPromise = false;
       EventQueue.instance = this;
     }
     return EventQueue.instance;

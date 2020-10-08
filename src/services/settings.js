@@ -69,7 +69,7 @@ class SettingsManager {
         } else {
           throw 'Loading failed or version change';
         }
-      } catch {
+      } catch (e) {
         logger(this, 'Loading settings fail');
         await this.save();
       }

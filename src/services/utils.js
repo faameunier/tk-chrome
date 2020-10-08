@@ -10,10 +10,10 @@ const logger = function (...args) {
     let options = ['font-weight:lighter; color:LightSlateGrey;'];
     options.push(default_format);
     if (typeof args[0] === 'object') {
-      pre += ' | %c' + args[0].constructor.name + '%c | '; 
+      pre += ' | %c' + args[0].constructor.name + '%c | ';
       if (args[0] instanceof Error) {
         options.push('color:#c71a1a; font-weight:bolder');
-        pre += args[0].message + '\n' + args[0].stack
+        pre += args[0].message + '\n' + args[0].stack;
       } else {
         pre += args[1];
         options.push('color:#1da87c; font-weight:bolder');
@@ -37,7 +37,7 @@ function timeout(ms) {
 function getDomain(str) {
   try {
     return psl.parse(new URL(str).hostname).domain;
-  } catch {
+  } catch (e) {
     return str;
   }
 }
