@@ -7,3 +7,4 @@ idea/
 .idea/
 dist/
 dist/*
+bundleSizeAnalysis.html
