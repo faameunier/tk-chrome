@@ -115,6 +115,7 @@ class HomeDispatcher extends PureComponent {
 
   render() {
     const { classes } = this.props;
+    let beta = ENV !== 'prod' ? <span className={classes.beta}>beta</span> : null;
     return (
       <SnackbarProvider
         maxSnack={2}
@@ -126,8 +127,9 @@ class HomeDispatcher extends PureComponent {
         <div className={classes.homeContainer}>
           <Paper square={false} variant="outlined" className={classes.paperShadow}>
             <div className={classes.gridLogoTabs}>
-              <Link href="https://tabby.us" target="_blank" className={classes.ensemblelogo}>
+              <Link href="https://tabby.us" target="_blank" className={classes.ensemblelogo} style={{ textDecoration: 'none' }}>
                 <img src={'../../assets/static/icons/tabby_2.png'} className={classes.logoFull} />
+                {beta}
               </Link>
               {this.displayIcon()}
             </div>

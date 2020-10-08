@@ -43,6 +43,15 @@ const styles = (theme) => ({
     width: theme.spacing(12),
     marginTop: theme.spacing(1.25),
   },
+  beta: {
+    background: 'linear-gradient(45deg,#80e0a7, #00b9aa)',
+    padding: theme.spacing(0.2),
+    borderRadius: theme.spacing(0.2),
+    color: 'white',
+    textDecoration: 'none',
+    lineHeight: 1,
+    fontSize: 'xx-small',
+  },
   iconContainer: {
     marginTop: theme.spacing(2),
     marginRight: theme.spacing(1.5),
