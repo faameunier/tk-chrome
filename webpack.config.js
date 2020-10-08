@@ -22,10 +22,10 @@ var common = {
     usedExports: true,
   },
   plugins: [
-    new BundleAnalyzerPlugin({
-      analyzerMode: 'static',
-      reportFilename: 'bundleSizeAnalysis.html'
-    }),
+    // new BundleAnalyzerPlugin({
+    //   analyzerMode: 'static',
+    //   reportFilename: 'bundleSizeAnalysis.html'
+    // }),
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
       title: 'tabby',
