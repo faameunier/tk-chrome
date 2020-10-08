@@ -1,5 +1,5 @@
 import browser from 'webextension-polyfill';
-import _ from 'lodash';
+import {filter, groupBy} from 'lodash';
 import { logger, getDomain, copy, getLastFocusedWindow, isUserActive, retryPromise } from './utils.js';
 import {
   MIN_ACTIVE_DEBOUNCE,
@@ -142,7 +142,7 @@ class MemoryManager {
       // and stats will be updated right after.
     }
 
-    let win = _.filter(Object.values(this.tabs), (tab) => {
+    let win = filter(Object.values(this.tabs), (tab) => {
       return tab.windowId == windowId;
     });
 
@@ -454,7 +454,7 @@ class MemoryManager {
     let fromSession = false;
 
     let windows = Object.keys(
-      _.groupBy(this.tabs, (tab) => {
+      groupBy(this.tabs, (tab) => {
         return tab.windowId;
       })
     );

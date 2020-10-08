@@ -1,5 +1,5 @@
 import browser from 'webextension-polyfill';
-import _ from 'lodash';
+import {isEqual} from 'lodash';
 import React, { PureComponent } from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import FormGroup from '@material-ui/core/FormGroup';
@@ -51,7 +51,7 @@ class Settings extends PureComponent {
   }
 
   componentDidUpdate(prevProps) {
-    if (!_.isEqual(prevProps.settings, this.props.settings)) {
+    if (!isEqual(prevProps.settings, this.props.settings)) {
       this.setState({ settings: this.props.settings });
     }
     if (prevProps.active_profile !== this.props.active_profile) {
@@ -66,7 +66,7 @@ class Settings extends PureComponent {
         customizedBool: this.props.active_profile === CUSTOMIZED,
       });
     }
-    if (!_.isEqual(prevProps.inactive_policy, this.props.inactive_policy)) {
+    if (!isEqual(prevProps.inactive_policy, this.props.inactive_policy)) {
       this.setState({
         inactivePolicy: this.props.inactive_policy,
       });

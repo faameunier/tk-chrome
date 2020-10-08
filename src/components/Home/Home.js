@@ -19,7 +19,7 @@ import IconButton from '@material-ui/core/IconButton';
 import { withSnackbar } from 'notistack';
 import { FixedSizeList } from 'react-window';
 import SearchBar from 'material-ui-search-bar';
-import _ from 'lodash';
+import {isEqual} from 'lodash';
 
 const RESTORE = 'RESTORE';
 const SHELL_RESTORE = 'SHELL_RESTORE';
@@ -50,7 +50,7 @@ class Home extends PureComponent {
   }
 
   componentDidUpdate(prevProps) {
-    if (!_.isEqual(prevProps.closed_history, this.props.closed_history)) {
+    if (!isEqual(prevProps.closed_history, this.props.closed_history)) {
       this.setState({ closed_history: this.enrichHistory(this.props.closed_history) });
     }
   }

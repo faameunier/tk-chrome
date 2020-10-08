@@ -1,5 +1,5 @@
 import browser from 'webextension-polyfill';
-import _ from 'lodash';
+import {countBy, toPairs, sortBy, unzip, filter} from 'lodash';
 import dayjs from 'dayjs';
 
 import { memoryManager } from './memory.js';
@@ -89,32 +89,32 @@ class StatsManager {
   }
 
   static metricClosedTabs(data) {
-    let count = _.countBy(data, (website) => website.date);
-    count = _.toPairs(count);
-    count = _.sortBy(count, (d) => d[0]);
-    count = _.unzip(count);
+    let count = countBy(data, (website) => website.date);
+    count = toPairs(count);
+    count = sortBy(count, (d) => d[0]);
+    count = unzip(count);
     return { time: count[0].map(Number), value: count[1], agg: 'max' };
   }
 
   static metricKilledTabs(data) {
-    let count = _.countBy(
-      _.filter(data, (website) => website.status == 'killed' || website.status == 'restored'),
+    let count = countBy(
+      filter(data, (website) => website.status == 'killed' || website.status == 'restored'),
       (website) => website.date
     );
-    count = _.toPairs(count);
-    count = _.sortBy(count, (d) => d[0]);
-    count = _.unzip(count);
+    count = toPairs(count);
+    count = sortBy(count, (d) => d[0]);
+    count = unzip(count);
     return { time: count[0].map(Number), value: count[1], agg: 'max' };
   }
 
   static metricRestoredTabs(data) {
-    let count = _.countBy(
-      _.filter(data, (website) => website.status == 'restored'),
+    let count = countBy(
+      filter(data, (website) => website.status == 'restored'),
       (website) => website.date
     );
-    count = _.toPairs(count);
-    count = _.sortBy(count, (d) => d[0]);
-    count = _.unzip(count);
+    count = toPairs(count);
+    count = sortBy(count, (d) => d[0]);
+    count = unzip(count);
     return { time: count[0].map(Number), value: count[1], agg: 'max' };
   }
 
