@@ -22,10 +22,11 @@ var common = {
     usedExports: true,
   },
   plugins: [
-    // new BundleAnalyzerPlugin({
-    //   analyzerMode: 'static',
-    //   reportFilename: 'bundleSizeAnalysis.html'
-    // }),
+    new BundleAnalyzerPlugin({
+      analyzerMode: 'static',
+      reportFilename: '../bundle_size_analysis.html',
+      openAnalyzer: false,
+    }),
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
       title: 'tabby',
@@ -95,7 +96,7 @@ var createConfig = function (env) {
       loader: 'babel-loader',
       options: {
         envName: 'dev',
-        plugins: ['lodash']
+        plugins: ['lodash'],
       },
     });
   } else if (env == 'debug' || env == 'test') {
@@ -128,7 +129,7 @@ var createConfig = function (env) {
       loader: 'babel-loader',
       options: {
         envName: 'prod',
-        plugins: ['lodash']
+        plugins: ['lodash'],
       },
     });
   }
