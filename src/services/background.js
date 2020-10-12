@@ -1,6 +1,9 @@
-import * as browser from 'webextension-polyfill';
+/* istanbul ignore file */
+
+import browser from 'webextension-polyfill';
 import { eventQueue } from './queue.js';
 import { memoryManager } from './memory.js';
+import { StatsManager } from './stats.js';
 import { settingsManager } from './settings.js';
 import { MigrationManager } from './migration.js';
 import { logger, storageReset } from './utils.js';
@@ -57,6 +60,7 @@ browser.windows.onRemoved.addListener(function (windowId) {
 // Tabs tracking
 browser.tabs.onCreated.addListener(function (tab) {
   eventQueue.enqueue(() => memoryManager.createTab(tab));
+  eventQueue.enqueue(() => StatsManager.run(['opened']));
 });
 
 browser.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
@@ -73,6 +77,7 @@ browser.tabs.onAttached.addListener(function (tabId, attachInfo) {
 
 browser.tabs.onRemoved.addListener(function (tabId, removeInfo) {
   eventQueue.enqueue(() => memoryManager.deleteTab(tabId, removeInfo.windowId, removeInfo.isWindowClosing));
+  eventQueue.enqueue(() => StatsManager.run(['closed', 'killed']));
 });
 
 /*
@@ -96,11 +101,11 @@ browser.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   switch (request.messageType) {
     case 'RESTORE':
       eventQueue.enqueue(() => memoryManager.restoreTab(request.uuid));
-      eventQueue.enqueue(() => memoryManager.removeTabFromClosedHistory(request.uuid));
+      eventQueue.enqueue(() => StatsManager.run(['restored']));
       break;
     case 'SHELL_RESTORE':
       eventQueue.enqueue(() => memoryManager.restoreTab(request.uuid, true));
-      eventQueue.enqueue(() => memoryManager.removeTabFromClosedHistory(request.uuid));
+      eventQueue.enqueue(() => StatsManager.run(['restored']));
       break;
     case 'SETTINGS_PARAMETERS':
       eventQueue.enqueue(() => settingsManager.updateSettings(request.settings));

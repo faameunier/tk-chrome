@@ -1,7 +1,14 @@
-import * as browser from 'webextension-polyfill';
+import browser from 'webextension-polyfill';
 import _ from 'lodash';
-import { logger, getDomain, copy, getLastFocusedWindow, isUserActive } from './utils.js';
-import { MIN_ACTIVE_DEBOUNCE, MAX_ACTIVE_DEBOUNCE } from '../config/env.js';
+import { logger, getDomain, copy, getLastFocusedWindow, isUserActive, retryPromise } from './utils.js';
+import {
+  MIN_ACTIVE_DEBOUNCE,
+  MAX_ACTIVE_DEBOUNCE,
+  SESSIONS_TIMEOUT_MS,
+  SESSIONS_RETRIES,
+  SESSIONS_MAX_FUZZY_DELTA_MS,
+  MAXIMUM_HISTORY_SIZE,
+} from '../config/env.js';
 import { LRUfactory, LRU } from './LRU.js';
 import { settingsManager } from './settings.js';
 import { v4 as uuidv4 } from 'uuid';
@@ -55,6 +62,7 @@ class MemoryManager {
     this.tabs = {};
     this.closed_history = [];
     this.current_scores = {};
+    this.tmpKilledTab = [];
     this.runtime_events = {
       last_full_stats_update: Date.now(),
       last_garbage_collector: Date.now(),
@@ -282,8 +290,20 @@ class MemoryManager {
   async deleteTab(tabId, windowId, isWindowClosing) {
     logger(this, 'Deleting tab ' + tabId);
     try {
+      let tab = this.tabs[tabId];
+      await this.updateStatistics(tab); // updating statistics of the tab before removing it from memory
+      let copiedTab = copy(tab); // making a simple json copy (cache is flattened)
+      copiedTab.deletion_time = Date.now();
+      if (this.tmpKilledTab.includes(tab.uuid)) {
+        copiedTab.status = 'killed';
+      } else {
+        copiedTab.status = 'manual';
+      }
+      this.closed_history.push(copiedTab);
+      this.closed_history = this.closed_history.slice(-MAXIMUM_HISTORY_SIZE);
+      this.retrieveSessionId(tab); // async
       delete this.tabs[tabId];
-    } catch {
+    } catch (e) {
       logger(this, 'OOS trying to delete unknown tab');
     }
   }
@@ -427,7 +447,8 @@ class MemoryManager {
     logger(this, 'Restoring tab ' + uuid);
     let restoredTab = this.closed_history.filter((tab) => {
       return tab.uuid === uuid;
-    })[0];
+    });
+    restoredTab = restoredTab[restoredTab.length - 1]; // closed history is ordered,picking the last closed tab
 
     let tab = null;
     let fromSession = false;
@@ -460,6 +481,7 @@ class MemoryManager {
       });
     }
 
+    restoredTab.status = 'restored';
     await this.createTab(tab);
     this.tabs[tab.id].statistics = copy(restoredTab.statistics);
     if (fromSession) {
@@ -508,9 +530,51 @@ class MemoryManager {
         await browser.tabs.get(parseInt(tabId));
       } catch {
         logger(this, 'Tab ' + tabId + ' collected by garbage collector');
-        await this.deleteTab(tabId);
+        delete this.tabs[tabId]; // we don't want to pollute historical data with potential bugs ?
       }
     }
+  }
+
+  killedByPolicy(uuid) {
+    this.tmpKilledTab.push(uuid);
+  }
+
+  async retrieveSessionId(iTab) {
+    // not compatible with Safari
+    var attempt = () =>
+      browser.sessions
+        .getRecentlyClosed({
+          maxResults: 5,
+        })
+        .then((sessions) => {
+          for (let i = 0; i < sessions.length; i++) {
+            // Closed tabs are explored from more recent to oldest
+            let sessionTab = sessions[i].tab;
+            let lastModified = sessions[i].lastModified;
+            if (
+              sessionTab &&
+              sessionTab.url === iTab.full_url &&
+              Date.now() - lastModified * 1000 <= SESSIONS_MAX_FUZZY_DELTA_MS
+            ) {
+              return sessionTab.sessionId;
+            }
+          }
+          throw true;
+        })
+        .catch((error) => {
+          if (error !== true) {
+            logger('getRecentlyClosed failed');
+            throw false; // rethrow is key
+          }
+          throw true; // rethrow is key
+        });
+    let p = retryPromise(attempt, SESSIONS_TIMEOUT_MS, SESSIONS_RETRIES);
+    p.then(
+      (sessionId) => this.updateSessionId(iTab.uuid, sessionId),
+      (reason) => {}
+    )
+      .then(() => this.save())
+      .catch(() => logger("Couldn't retrieve sessionId"));
   }
 }
 

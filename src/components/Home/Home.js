@@ -1,8 +1,8 @@
-import * as browser from 'webextension-polyfill';
+import browser from 'webextension-polyfill';
 import { FRONTEND_SKELETON_DISPLAY } from '../../config/env.js';
 import { NO_RESTORE_URL } from '../../config/websites.js';
 import { logger, timeout, setAllReadBadge } from '../../services/utils.js';
-import * as dayjs from 'dayjs';
+import dayjs from 'dayjs';
 import React, { PureComponent } from 'react';
 import Button from '@material-ui/core/Button';
 import Skeleton from '@material-ui/lab/Skeleton';
@@ -27,6 +27,7 @@ const NUMBER_HOURS_DAY = 24;
 const TIME_PERIOD_24H = 3600000 * NUMBER_HOURS_DAY; // in microsecond
 const TIME_PERIOD_72H = 3600000 * NUMBER_HOURS_DAY * 3; // in microsecond
 const FULL_SKELETON = false;
+const DISPLAY_STATUSES = ['killed'];
 
 class Home extends PureComponent {
   constructor(props) {
@@ -100,7 +101,7 @@ class Home extends PureComponent {
   filterList(selectedList, endPeriod) {
     const now = Date.now();
     return selectedList.filter((item) => {
-      return now - item.deletion_time < endPeriod;
+      return (now - item.deletion_time < endPeriod) && DISPLAY_STATUSES.includes(item.status);
     });
   }
 
@@ -119,7 +120,7 @@ class Home extends PureComponent {
 
   enrichHistory(history) {
     // keep elements only in time-frame
-    let selectedList = history ? this.filterList(history, TIME_PERIOD_72H) : [];
+    let selectedList = history ? this.filterList(history, TIME_PERIOD_72H)  : [];
     const rx = new RegExp(NO_RESTORE_URL.join('|'));
     // list enrichment
     selectedList = selectedList.map((website) => {

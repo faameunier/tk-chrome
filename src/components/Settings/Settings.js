@@ -1,4 +1,4 @@
-import * as browser from 'webextension-polyfill';
+import browser from 'webextension-polyfill';
 import React, { PureComponent } from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import FormGroup from '@material-ui/core/FormGroup';
