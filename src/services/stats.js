@@ -44,11 +44,12 @@ class StatsManager {
         if (!stats[key]) {
           stats = Object.assign(stats, { [key]: newStats[key] });
         } else {
-          let i = 0;
-          let j = 0;
-          while (i < newStats[key].time.length && j < stats[key].time.length) {
-            if (newStats[key].time[i] > stats[key].time[j]) {
-              j++;
+          let i = newStats[key].time.length - 1;
+          let j = stats[key].time.length - 1;
+          let splice = false;
+          while (i >= 0 && j >= 0) {
+            if (newStats[key].time[i] < stats[key].time[j]) {
+              j--;
             } else if (newStats[key].time[i] == stats[key].time[j]) {
               switch (newStats[key].agg) {
                 case 'max':
@@ -60,17 +61,17 @@ class StatsManager {
                 default:
                   throw new Error('Statistic ' + key + ' has an unknown aggregation method.');
               }
-              i++;
-              j++;
+              i--;
+              j--;
             } else {
-              stats[key].value.splice(j, 0, newStats[key].value[i]);
-              stats[key].time.splice(j, 0, newStats[key].time[i]);
-              i++;
+              stats[key].value.splice(j + 1, 0, newStats[key].value[i]);
+              stats[key].time.splice(j + 1, 0, newStats[key].time[i]);
+              i--;
             }
           }
           if (i < newStats[key].time.length) {
-            stats[key].time = stats[key].time.concat(newStats[key].time.slice(i));
-            stats[key].value = stats[key].value.concat(newStats[key].value.slice(i));
+            stats[key].time = newStats[key].time.slice(0, i+1).concat(stats[key].time);
+            stats[key].value = newStats[key].value.slice(0, i+1).concat(stats[key].value);
           }
           stats[key].agg = newStats[key].agg;
         }
