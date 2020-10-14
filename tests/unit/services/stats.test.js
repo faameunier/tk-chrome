@@ -232,8 +232,6 @@ describe('Upsert', () => {
       },
     };
     stats.StatsManager.upsert(oldStats, newStats);
-    console.log(oldStats);
-    console.log(expected);
     expect(_.isEqual(oldStats, expected)).toBeTruthy();
   });
 
