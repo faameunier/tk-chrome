@@ -14,15 +14,15 @@ import Avatar from '@material-ui/core/Avatar';
 import Typography from '@material-ui/core/Typography';
 import Link from '@material-ui/core/Link';
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
-import ShareIcon from '@material-ui/icons/Share';
+import FavoriteBorderIcon from '@material-ui/icons/FavoriteBorder';
 import IconButton from '@material-ui/core/IconButton';
 import { withSnackbar } from 'notistack';
-import { FixedSizeList as List } from 'react-window';
+import { FixedSizeList } from 'react-window';
 import SearchBar from 'material-ui-search-bar';
+import {isEqual} from 'lodash';
 
 const RESTORE = 'RESTORE';
 const SHELL_RESTORE = 'SHELL_RESTORE';
-const CLOSED_HISTORY = 'closed_history';
 const NUMBER_HOURS_DAY = 24;
 const TIME_PERIOD_24H = 3600000 * NUMBER_HOURS_DAY; // in microsecond
 const TIME_PERIOD_72H = 3600000 * NUMBER_HOURS_DAY * 3; // in microsecond
@@ -35,37 +35,24 @@ class Home extends PureComponent {
     setAllReadBadge();
 
     if (props.skeleton) {
-      this.state = { closed_history: [], loading: true };
+      this.state = { closed_history: this.enrichHistory(props.closed_history), loading: true };
       timeout(FRONTEND_SKELETON_DISPLAY).then(() => {
         logger(this, 'Displaying list');
         this.setState({ loading: false });
       });
     } else {
-      this.state = { closed_history: [], loading: false };
+      this.state = { closed_history: this.enrichHistory(props.closed_history), loading: false };
     }
-
-    browser.storage.local.get([CLOSED_HISTORY]).then((result) => {
-      const closed_history = result.closed_history || [];
-      this.setState({ closed_history: this.enrichHistory(closed_history) });
-    });
-    this.onChangedCallback = function (changes) {
-      const changesClosedHistory = changes[CLOSED_HISTORY];
-      if (changesClosedHistory) {
-        this.setState({
-          closed_history: this.enrichHistory(changesClosedHistory['newValue']),
-          searchValue: '',
-        });
-      }
-    }.bind(this);
-  }
-
-  componentDidMount() {
-    browser.storage.onChanged.addListener(this.onChangedCallback);
   }
 
   componentWillUnmount() {
     setAllReadBadge();
-    browser.storage.onChanged.removeListener(this.onChangedCallback);
+  }
+
+  componentDidUpdate(prevProps) {
+    if (!isEqual(prevProps.closed_history, this.props.closed_history)) {
+      this.setState({ closed_history: this.enrichHistory(this.props.closed_history) });
+    }
   }
 
   removeItem(listItems, key, e) {
@@ -101,26 +88,17 @@ class Home extends PureComponent {
   filterList(selectedList, endPeriod) {
     const now = Date.now();
     return selectedList.filter((item) => {
-      return (now - item.deletion_time < endPeriod) && DISPLAY_STATUSES.includes(item.status);
+      return now - item.deletion_time < endPeriod && DISPLAY_STATUSES.includes(item.status);
     });
   }
 
-  copyToClipBoard() {
-    navigator.clipboard.writeText('https://www.tabby.us');
-    this.props.enqueueSnackbar('Link copied to the clipboard.', {
-      variant: 'success',
-      anchorOrigin: {
-        vertical: 'bottom',
-        horizontal: 'right',
-      },
-      transitionDuration: 750,
-      autoHideDuration: 2000,
-    });
+  coffeeTime() {
+    window.open('https://buymeacoff.ee/tabbytabs', '_blank');
   }
 
   enrichHistory(history) {
     // keep elements only in time-frame
-    let selectedList = history ? this.filterList(history, TIME_PERIOD_72H)  : [];
+    let selectedList = history ? this.filterList(history, TIME_PERIOD_72H) : [];
     const rx = new RegExp(NO_RESTORE_URL.join('|'));
     // list enrichment
     selectedList = selectedList.map((website) => {
@@ -176,8 +154,8 @@ class Home extends PureComponent {
       const website = myFilteredList[index];
       if (typeof website.day !== 'undefined') {
         return (
-          <div key={index} style={style}>
-            <ListItem ContainerComponent="div">
+          <div style={style} key={index}>
+            <ListItem component="div">
               <ListItemText
                 primary={`${website.text} ${website.day}`}
                 classes={{
@@ -190,8 +168,8 @@ class Home extends PureComponent {
         );
       }
       return (
-        <div key={index} style={style}>
-          <ListItem ContainerComponent="div">
+        <div style={style} key={index}>
+          <ListItem ContainerComponent="div" component="div">
             <div className={classes.gridAvatarWithTime}>
               <Typography className={classes.timeDisplay}>
                 {this.state.loading && FULL_SKELETON ? <Skeleton width="3em" /> : `${website.hours_minutes_format}`}
@@ -229,18 +207,16 @@ class Home extends PureComponent {
             )}
             {this.state.loading && FULL_SKELETON ? null : (
               <ListItemSecondaryAction>
-                <div className={classes.buttonContainer}>
-                  <Button
-                    size="small"
-                    onClick={this.removeItem.bind(this, myFilteredList, index)}
-                    variant="outlined"
-                    color="secondary"
-                    disabled={website.no_restore}
-                    className={classes.button}
-                  >
-                    {'Restore'}
-                  </Button>
-                </div>
+                <Button
+                  size="small"
+                  onClick={this.removeItem.bind(this, myFilteredList, index)}
+                  variant="outlined"
+                  color="secondary"
+                  disabled={website.no_restore}
+                  className={classes.button}
+                >
+                  {'Restore'}
+                </Button>
               </ListItemSecondaryAction>
             )}
           </ListItem>
@@ -257,13 +233,11 @@ class Home extends PureComponent {
           value={this.state.searchValue}
           className={classes.searchBar}
         />
-        <div className={classes.list}>
-          {selectedList.length === 0 ? null : (
-            <List height={Math.min(80 * selectedList.length, 300)} itemCount={selectedList.length} itemSize={80}>
-              {listItem(selectedList)}
-            </List>
-          )}
-        </div>
+        {selectedList.length === 0 ? null : (
+          <FixedSizeList height={Math.min(80 * selectedList.length, 300)} itemCount={selectedList.length} itemSize={80}>
+            {listItem(selectedList)}
+          </FixedSizeList>
+        )}
       </div>
     );
   }
@@ -291,8 +265,8 @@ class Home extends PureComponent {
         {this.renderList.bind(this)()}
 
         <div className={classes.footerContainer}>
-          <IconButton color="secondary" component="div" onClick={this.copyToClipBoard.bind(this)}>
-            <ShareIcon color="secondary" className={classes.iconContainer} />
+          <IconButton color="secondary" component="div" onClick={this.coffeeTime.bind(this)}>
+            <FavoriteBorderIcon color="secondary" className={classes.iconContainer} />
           </IconButton>
           <div className={classes.footerRight}>
             <ErrorOutlineIcon color="secondary" className={classes.iconContainer} />

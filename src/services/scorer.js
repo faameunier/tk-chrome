@@ -183,10 +183,8 @@ class Scorer {
     switch (SCORER) {
       case 'random':
         return RandomScorer.score(tab);
-        break;
       case 'v1':
         return v1Scorer.score(tab);
-        break;
       default:
         return DefaultScorer.score(tab);
     }

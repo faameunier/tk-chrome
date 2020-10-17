@@ -1,6 +1,6 @@
 {
   "name": "tk-chrome",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "scripts": {
     "build:dev": "webpack --env dev",
     "build:debug": "webpack --env debug",
@@ -30,8 +30,8 @@
     "@material-ui/lab": "^4.0.0-alpha.56",
     "babel-install": "2.1.0",
     "babel-loader": "^8.0.6",
+    "babel-plugin-lodash": "^3.3.4",
     "babel-preset-minify": "^0.5.1",
-    "bootstrap-css-only": "^4.4.1",
     "chalk": "^4.1.0",
     "clean-webpack-plugin": "^3.0.0",
     "copy-webpack-plugin": "^5.0.3",
@@ -52,6 +52,7 @@
     "webextension-polyfill": "^0.6.0",
     "webextensions-api-mock": "^1.0.0",
     "webpack": "github:webpack/webpack#master",
+    "webpack-bundle-analyzer": "^3.9.0",
     "webpack-cli": "^3.3.6",
     "webpack-dev-server": "^3.7.2"
   },
@@ -59,13 +60,13 @@
     "@babel/runtime": "^7.8.4",
     "@material-ui/core": "^4.9.5",
     "@material-ui/icons": "^4.9.1",
+    "jshint": "^2.12.0",
     "material-ui-icons": "^1.0.0-beta.36",
     "notistack": "^0.9.9",
     "npm-watch": "^0.6.0",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
-    "react-window": "^1.8.5",
-    "react-youtube": "^7.11.3"
+    "react-window": "^1.8.5"
   },
   "prettier": {
     "trailingComma": "es5",

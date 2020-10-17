@@ -1,6 +1,5 @@
 import { withStyles } from '@material-ui/core/styles';
 import OnboardingDispatcher from './OnboardingDispatcher';
-import React from 'react';
 
 const styles = (theme) => ({
   homeContainer: {

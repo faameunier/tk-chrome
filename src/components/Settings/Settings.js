@@ -1,4 +1,5 @@
 import browser from 'webextension-polyfill';
+import {isEqual} from 'lodash';
 import React, { PureComponent } from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import FormGroup from '@material-ui/core/FormGroup';
@@ -39,58 +40,37 @@ class Settings extends PureComponent {
   constructor(props) {
     super(props);
     this.state = {
-      focusedMode: false,
-      relaxedMode: false,
-      customizedBool: false,
-      settings: INIT_FOCUSED_PROFILE,
-      focusedWindowId: true,
+      focusedMode: this.props.active_profile === FOCUSED,
+      relaxedMode: this.props.active_profile === RELAXED,
+      customizedBool: this.props.active_profile === CUSTOMIZED,
+      settings: this.props.settings,
+      focusedWindowId: this.props.focused_window_id,
+      inactivePolicy: this.props.inactive_policy,
       openModal: false,
     };
-    browser.storage.local.get(['active_profile', 'settings', 'focused_window_id', 'inactive_policy']).then((result) => {
-      const profile = result.active_profile || FOCUSED;
-      const focusedMode = profile === FOCUSED;
-      const relaxedMode = profile === RELAXED;
-      const customizedBool = profile === CUSTOMIZED;
-      const settings = result.settings || INIT_FOCUSED_PROFILE;
-      const focusedWindowId = result.focused_window_id;
-      const inactivePolicy = result.inactive_policy;
+  }
+
+  componentDidUpdate(prevProps) {
+    if (!isEqual(prevProps.settings, this.props.settings)) {
+      this.setState({ settings: this.props.settings });
+    }
+    if (prevProps.active_profile !== this.props.active_profile) {
       this.setState({
-        focusedMode,
-        relaxedMode,
-        customizedBool,
-        settings,
-        focusedWindowId,
-        inactivePolicy,
+        focusedMode: this.props.active_profile === FOCUSED,
+        relaxedMode: this.props.active_profile === RELAXED,
+        customizedBool: this.props.active_profile === CUSTOMIZED,
       });
-    });
-    this.onChangedCallback = function (changes) {
-      const changesSettings = changes['settings'];
-      const changesProfile = changes['active_profile'];
-      const changedInactivePolicy = changes['inactive_policy'];
-      if (changesSettings) {
-        this.setState({
-          settings: changesSettings['newValue'],
-        });
-      }
-      if (changesProfile) {
-        this.setState({
-          focusedMode: changesProfile['newValue'] === FOCUSED,
-          relaxedMode: changesProfile['newValue'] === RELAXED,
-          customizedBool: changesProfile['newValue'] === CUSTOMIZED,
-        });
-      }
-      if (changedInactivePolicy) {
-        this.setState({ inactivePolicy: changedInactivePolicy['newValue'] });
-      }
-    }.bind(this);
-  }
-
-  componentDidMount() {
-    browser.storage.onChanged.addListener(this.onChangedCallback);
-  }
-
-  componentWillUnmount() {
-    browser.storage.onChanged.removeListener(this.onChangedCallback);
+    }
+    if (prevProps.focused_window_id !== this.props.focused_window_id) {
+      this.setState({
+        customizedBool: this.props.active_profile === CUSTOMIZED,
+      });
+    }
+    if (!isEqual(prevProps.inactive_policy, this.props.inactive_policy)) {
+      this.setState({
+        inactivePolicy: this.props.inactive_policy,
+      });
+    }
   }
 
   handleBoolChange(changeType) {

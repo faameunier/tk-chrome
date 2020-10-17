@@ -3,6 +3,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const webpack = require('webpack');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 var common = {
   entry: {
@@ -18,8 +19,14 @@ var common = {
     splitChunks: {
       chunks: 'all',
     },
+    usedExports: true,
   },
   plugins: [
+    new BundleAnalyzerPlugin({
+      analyzerMode: 'static',
+      reportFilename: '../bundle_size_analysis.html',
+      openAnalyzer: false,
+    }),
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
       title: 'tabby',
@@ -89,6 +96,7 @@ var createConfig = function (env) {
       loader: 'babel-loader',
       options: {
         envName: 'dev',
+        plugins: ['lodash'],
       },
     });
   } else if (env == 'debug' || env == 'test') {
@@ -105,6 +113,7 @@ var createConfig = function (env) {
       loader: 'babel-loader',
       options: {
         envName: 'dev',
+        plugins: ['lodash'],
       },
     });
   } else {
@@ -120,6 +129,7 @@ var createConfig = function (env) {
       loader: 'babel-loader',
       options: {
         envName: 'prod',
+        plugins: ['lodash'],
       },
     });
   }

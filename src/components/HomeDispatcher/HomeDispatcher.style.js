@@ -1,8 +1,5 @@
 import { withStyles } from '@material-ui/core/styles';
-
 import HomeDispatcher from './HomeDispatcher';
-import Tab from '@material-ui/core/Tab/Tab';
-import React from 'react';
 
 const styles = (theme) => ({
   homeContainer: {
@@ -42,6 +39,15 @@ const styles = (theme) => ({
     marginLeft: theme.spacing(2.25),
     width: theme.spacing(12),
     marginTop: theme.spacing(1.25),
+  },
+  beta: {
+    background: 'linear-gradient(45deg,#80e0a7, #00b9aa)',
+    padding: theme.spacing(0.2),
+    borderRadius: theme.spacing(0.2),
+    color: 'white',
+    textDecoration: 'none',
+    lineHeight: 1,
+    fontSize: 'xx-small',
   },
   iconContainer: {
     marginTop: theme.spacing(2),

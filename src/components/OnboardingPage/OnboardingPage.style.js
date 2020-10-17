@@ -1,5 +1,4 @@
 import { withStyles } from '@material-ui/core/styles';
-
 import OnboardingPage from './OnboardingPage';
 
 const styles = (theme) => ({

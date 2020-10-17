@@ -1,5 +1,5 @@
 import browser from 'webextension-polyfill';
-import _ from 'lodash';
+import {pick, map, groupBy, difference, filter, zipObject, zip, find} from 'lodash';
 import { MAXIMUM_SCORE } from '../config/env.js';
 import { memoryManager } from './memory.js';
 import { settingsManager } from './settings.js';
@@ -14,12 +14,12 @@ class PolicyManager {
     let windows = this.buildWindows();
     this.backfillRuns(windows);
 
-    let allScores = _.pick(memoryManager.current_scores, Object.keys(memoryManager.tabs));
+    let allScores = pick(memoryManager.current_scores, Object.keys(memoryManager.tabs));
     // keeping only tabs that still exist
     // ie. if the policy doesn't run in a window, its known scores are kept in memory.
 
     let windowIds = Object.keys(windows);
-    let promises = _.map(windowIds, (windowId) => this.runWindow(windows, windowId));
+    let promises = map(windowIds, (windowId) => this.runWindow(windows, windowId));
     let results = await Promise.all(promises); // Running every windows update in parallel.
 
     let now = Date.now();
@@ -27,10 +27,15 @@ class PolicyManager {
 
     for (var i = 0; i < windowIds.length; i++) {
       if (results[i][0]) {
-        // The policy ran on the i-th window
+        // a tab was succesfully killed
+        // Update runtime event in order to not kill again right away
         memoryManager.runtime_events.last_policy_runs[windowIds[i]] = now;
+        any = true; // something is pending save
+      }
+      if (results[i][1]) {
+        // the tab was scores
         allScores = Object.assign(allScores, results[i][1]);
-        any = true;
+        any = true; // something is pending save
       }
     }
 
@@ -44,7 +49,7 @@ class PolicyManager {
 
   static buildWindows() {
     // Groups tabs per window
-    return _.groupBy(memoryManager.tabs, (tab) => {
+    return groupBy(memoryManager.tabs, (tab) => {
       return tab.windowId;
     });
   }
@@ -56,11 +61,11 @@ class PolicyManager {
     let now = Date.now();
     let known_windows = Object.keys(memoryManager.runtime_events.last_policy_runs);
     let current_windows = Object.keys(windows);
-    let unknown_windows = _.difference(current_windows, known_windows);
+    let unknown_windows = difference(current_windows, known_windows);
     for (var i = 0; i < unknown_windows.length; i++) {
       memoryManager.runtime_events.last_policy_runs[unknown_windows[i]] = now;
     }
-    unknown_windows = _.difference(known_windows, current_windows);
+    unknown_windows = difference(known_windows, current_windows);
     for (var i = 0; i < unknown_windows.length; i++) {
       delete memoryManager.runtime_events.last_policy_runs[unknown_windows[i]];
     }
@@ -70,7 +75,7 @@ class PolicyManager {
     // Run policy for a given window
     // Returns true if the policy was run, false otherwise
     let tabs = windows[windowId];
-    tabs = _.filter(tabs, (tab) => {
+    tabs = filter(tabs, (tab) => {
       // removing ignored tabs
       return (
         !(settingsManager.settings.policy.active && tab.active) &&
@@ -86,15 +91,15 @@ class PolicyManager {
       if (this.exponentialTrigger(tabs, windowId)) {
         // if we waited enough
         // score all tabs
-        let scores = await Promise.all(_.map(tabs, (tab) => Scorer.score(tab)));
+        let scores = await Promise.all(map(tabs, (tab) => Scorer.score(tab)));
 
-        let objScores = _.zipObject(
-          _.map(tabs, (tab) => tab.tabId),
+        let objScores = zipObject(
+          map(tabs, (tab) => tab.tabId),
           scores
         ); // save scores
 
-        scores = _.zip(
-          _.map(tabs, (tab) => tab.tabId),
+        scores = zip(
+          map(tabs, (tab) => tab.tabId),
           scores
         ); // [[tabId1, score1], [tabId2, score2]...]
 
@@ -114,20 +119,20 @@ class PolicyManager {
         }
 
         if (minimumScore === MAXIMUM_SCORE) {
-          return [false, objScores];
+          return [false, objScores]; // updating tab scores
         }
 
         // safety hack, do not remove a tab only because you have an excess of protected ones
         if (countProtected < tabs.length - settingsManager.settings.policy.target_tabs) {
-          await this.killTab(
+          let success = await this.killTab(
             minimumId,
-            _.find(tabs, (tab) => tab.tabId === minimumId)
+            find(tabs, (tab) => tab.tabId === minimumId)
           );
-          return [true, objScores]; // updating tab scores
+          return [success, objScores]; // updating tab scores
         }
       }
     }
-    return [false, {}]; // old scores are kept for windows without a run
+    return [false, undefined]; // old scores are kept for windows without a run
   }
 
   static async killTab(tabId, tab) {
@@ -136,9 +141,11 @@ class PolicyManager {
       memoryManager.killedByPolicy(tab.uuid);
       setUnreadBadge();
       logger('Tab '.concat(tabId, ' killed by policy'));
+      return true;
     } catch (err) {
       logger('Tab '.concat(tabId, " couldn't be killed"));
     }
+    return false;
   }
 
   static exponentialTrigger(tabs, windowId) {
